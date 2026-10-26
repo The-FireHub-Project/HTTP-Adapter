@@ -23,7 +23,7 @@ use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
  * Immutable value object containing a validated HTTP header value.
  * @since 1.0.0
  *
- * @template TValue of non-empty-string
+ * @template TValue of string
  *
  * @extends \FireHub\Core\Type\ValueObject<TValue>
  */
@@ -51,7 +51,7 @@ final readonly class Value extends ValueObject {
     ) {
 
         $this->guard(
-            fn() => Runtime\Str\SB\Regex::match("/[\x00-\x08\x0A-\x1F\x7F]/", $value),
+            fn() => !Runtime\Str\SB\Regex::match("/[\x00-\x08\x0A-\x1F\x7F]/", $value),
             fn() => new InvalidFieldValueException
         );
 
