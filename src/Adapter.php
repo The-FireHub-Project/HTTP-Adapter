@@ -115,7 +115,7 @@ final readonly class Adapter {
         } catch (InvalidLifecycleStateException $exception) {
 
             throw new InvalidHttpAdapterStateException(
-                'Cannot register an initializer in the current adapter state.',
+                'Cannot register an initializer in the current HTTP adapter state.',
                 previous: $exception
             );
 
@@ -175,7 +175,7 @@ final readonly class Adapter {
         } catch (InvalidLifecycleStateException $exception) {
 
             throw new InvalidHttpAdapterStateException(
-                'Cannot register a disposer in the current adapter state.',
+                'Cannot register a disposer in the current HTTP adapter state.',
                 previous: $exception
             );
 
@@ -238,7 +238,7 @@ final readonly class Adapter {
         } catch (InvalidLifecycleStateException $exception) {
 
             throw new InvalidHttpAdapterStateException(
-                'Cannot initialize the application in the current state.',
+                'Cannot initialize the HTTP adapter in the current state.',
                 previous: $exception
             );
 
@@ -314,7 +314,7 @@ final readonly class Adapter {
         } catch (InvalidLifecycleStateException $exception) {
 
             throw new InvalidHttpAdapterStateException(
-                'Cannot dispose the application in the current state.',
+                'Cannot dispose the HTTP adapter in the current state.',
                 previous: $exception
             );
 
