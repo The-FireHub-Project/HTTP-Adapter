@@ -19,7 +19,7 @@ use FireHub\Core\Exception\DomainException;
  * ### Represents an invalid HTTP method name
  * @since 1.0.0
  */
-final class InvalidMethodName extends DomainException {
+final class InvalidMethodNameException extends DomainException {
 
     protected const string DEFAULT_MESSAGE = 'Invalid HTTP method name';
 

@@ -16,7 +16,7 @@ namespace FireHub\Adapter\HTTP\Request\Method;
 use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Request\Method;
 use FireHub\Runtime;
-use FireHub\Adapter\HTTP\Request\Method\Exception\InvalidMethodName;
+use FireHub\Adapter\HTTP\Request\Method\Exception\InvalidMethodNameException;
 
 /**
  * ### Represents a custom HTTP request method
@@ -44,7 +44,7 @@ final readonly class Custom extends ValueObject implements Method {
      * HTTP method token.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Request\Method\Exception\InvalidMethodName If the method token is invalid.
+     * @throws \FireHub\Adapter\HTTP\Request\Method\Exception\InvalidMethodNameException If the method token is invalid.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
@@ -56,7 +56,7 @@ final readonly class Custom extends ValueObject implements Method {
 
         $this->guard(
             fn() => Runtime\Str\SB\Regex::match("/\\A[!#$%&'*+.^_`|~0-9A-Za-z-]+\\z/", $method),
-            fn() => new InvalidMethodName
+            fn() => new InvalidMethodNameException
         );
 
     }
