@@ -12,7 +12,7 @@
   /></a>
   <a href="#">
     <img
-      src="https://img.shields.io/badge/Version-0.0.0-d50000?style=flat&labelColor=30363d&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzMuNjUxIDM4Ny4wOSI+CiAgICA8dGl0bGU+RmlyZWh1YiBJY29uPC90aXRsZT4KICAgIDxzdHlsZT4KICAgICAgICAuY29sb3Ige2ZpbGw6ICNkNTAwMDA7fQogICAgPC9zdHlsZT4KICAgIDxnPgogICAgICAgIDxwYXRoIGNsYXNzPSJjb2xvciIgZD0iTTI2Ny4xMDYsMjYyLjU2MWMxMC41LTE3LjYzMSwxOS42My0zNi45MzEsMjAuMTItNTcuNDUxYzAuNDktMjAuNTItOS42LTQyLjQxOS0yOC40Ni01MC41MmM1LjcxLDkuNjcsMTAuMjUsMjAuNjIsOS4yOCwzMS44MWMtMC45NywxMS4xOS04Ljg2LDIyLjM3LTIwLDI0Yy0xMC40OSwxLjUyOS0yMC43Ny01Ljg1MS0yNS41MS0xNS4zNGMtNC43NC05LjQ5MS00LjYyLTIwLjU2MS00LTMxLjE1QzIyNC4zOTYsNTYuMTcsMTQyLjA0Niw1Ljk0LDEyNy4yODYsMGMwLDAsMTEuNDksMTIuMzksMTMuODgsMzAuNTNjMS45LDE0LjQ0LDAuMTcsMjkuMjItMy4zNCw0My4yNGMtMTAuODgsNDMuMzUtMzYuODYsNzcuODItNTguNTksMTE2Yy0xNC41OCwyNS41OC0yNCw1NC4wNS0yMy4zMiw4My42OWMwLjc2LDM0LDE2LDY3LjksNDIuNzMsODguODdjMTMuMDUsMTAuMjI5LDI4LjMyLDE3LjY1LDQzLjg0LDIzLjI5Yy0yLjE5LTIuNjItNC44NS01LjYyLTctOC42MDFjLTE4LjY4LTI1LjkzOS0zMi4yNi01MS41LTMzLjE3LTg0LjEwOWMtMC43Ny0yOC4yMyw3LjQtNTMuOTMsMTUuMTQtODAuNjFjLTAuOTEsMy4xNCwxLjgzLDEwLjcsMi4xLDE0LjIxYzAuNDEsNS40LDAuNDYsMTAuODIsMC41LDE2LjIyMWMwLjA4LDExLjQ3LTAuMTQsMjMsMS4zMiwzNC4zNzljMy40MiwyNi43NCwxOC4yOCw0OS43MTEsNDMuMjYsNjEuMjAxYy04LjQ3LTE5LjY5LTkuMzEtMzYuMzAxLTEuMjgtNTYuNzIxYzYuMDUtMTUuMzY5LDE0LjcxLTI5Ljc3OSwxOC45NC00NS43NWM4LjYzLTMyLjU2LTIuNDItNjcuNjQtMjAuNzUtOTUuODljMTcuMzIsMTUuMzEsMzIsMzQuNDUsMzguMyw1Ni43YzcuMzYsMjYsMi44Niw1My41NiwwLDgwLjM5Yy0yLjUxLDIzLjIxLTMuNzEsNDgsNS40Miw3MC4wNWM4LDE5LjIzLDIyLjQsMjkuNTIxLDM5LjUxLDQwYy0zLjY0NC0zLjAxMS02LjU2Ni02LjgtOC41NS0xMS4wOWMtOS4xNi0xOC4zNy02LjczLTQwLjY2LDAuNzktNTkuNzZTMjU2LjYxNiwyODAuMiwyNjcuMTA2LDI2Mi41NjF6Ii8+CiAgICAgICAgPHBhdGggY2xhc3M9ImNvbG9yIiBkPSJNMTczLjEzNiwyMi40M2M1LjA3OCw0Ljk5MSw5Ljg3MiwxMC4yNjIsMTQuMzYsMTUuNzljMS43NzMsMi4xODcsMy40ODMsNC40LDUuMTMsNi42NGM3OS42NzQsMTQuMjQ0LDEzMi43MTYsOTAuMzgsMTE4LjQ3MiwxNzAuMDU0Yy02Ljk0NywzOC44NTctMjkuMjc2LDczLjI3LTYxLjkzMiw5NS40NDZjLTEuNDMsMy0yLjc3LDYtNCw5Yy0yLjUyOCw2LjM3Ny00LjMzLDEzLjAxOS01LjM3LDE5LjhjODIuODQ5LTQwLjMyOSwxMTcuMzE4LTE0MC4xODUsNzYuOTg5LTIyMy4wMzNDMjg5Ljg0OSw2MC43OSwyMzQuNjM1LDI0Ljc3NywxNzMuMTM2LDIyLjQzeiIvPgogICAgICAgIDxwYXRoIGNsYXNzPSJjb2xvciIgZD0iTTQ3LjA0NiwyNzMuNjA5di0wLjA4QzAuNDM1LDIwNy4zNTQsMTYuMjk2LDExNS45MjMsODIuNDcxLDY5LjMxM2MxNS4yNTQtMTAuNzQ0LDMyLjQyLTE4LjQ3Nyw1MC41NzUtMjIuNzgzYzAuMjEyLTQuOTYyLDAuMDA1LTkuOTMzLTAuNjItMTQuODZjLTAuMjUzLTEuODc1LTAuNjI0LTMuNzMxLTEuMTEtNS41NkM0MS4yOTksNDUuNzM4LTE1Ljc2MywxMzQuNjIzLDMuODY1LDIyNC42NGM3LjI4LDMzLjM5LDI0LjY0LDYzLjczOCw0OS43MzEsODYuOTRDNDkuNTU5LDI5OS4zMTQsNDcuMzUyLDI4Ni41Miw0Ny4wNDYsMjczLjYwOXoiLz4KICAgIDwvZz4KPC9zdmc+"
+      src="https://img.shields.io/badge/Version-0.4.0-d50000?style=flat&labelColor=30363d&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzMuNjUxIDM4Ny4wOSI+CiAgICA8dGl0bGU+RmlyZWh1YiBJY29uPC90aXRsZT4KICAgIDxzdHlsZT4KICAgICAgICAuY29sb3Ige2ZpbGw6ICNkNTAwMDA7fQogICAgPC9zdHlsZT4KICAgIDxnPgogICAgICAgIDxwYXRoIGNsYXNzPSJjb2xvciIgZD0iTTI2Ny4xMDYsMjYyLjU2MWMxMC41LTE3LjYzMSwxOS42My0zNi45MzEsMjAuMTItNTcuNDUxYzAuNDktMjAuNTItOS42LTQyLjQxOS0yOC40Ni01MC41MmM1LjcxLDkuNjcsMTAuMjUsMjAuNjIsOS4yOCwzMS44MWMtMC45NywxMS4xOS04Ljg2LDIyLjM3LTIwLDI0Yy0xMC40OSwxLjUyOS0yMC43Ny01Ljg1MS0yNS41MS0xNS4zNGMtNC43NC05LjQ5MS00LjYyLTIwLjU2MS00LTMxLjE1QzIyNC4zOTYsNTYuMTcsMTQyLjA0Niw1Ljk0LDEyNy4yODYsMGMwLDAsMTEuNDksMTIuMzksMTMuODgsMzAuNTNjMS45LDE0LjQ0LDAuMTcsMjkuMjItMy4zNCw0My4yNGMtMTAuODgsNDMuMzUtMzYuODYsNzcuODItNTguNTksMTE2Yy0xNC41OCwyNS41OC0yNCw1NC4wNS0yMy4zMiw4My42OWMwLjc2LDM0LDE2LDY3LjksNDIuNzMsODguODdjMTMuMDUsMTAuMjI5LDI4LjMyLDE3LjY1LDQzLjg0LDIzLjI5Yy0yLjE5LTIuNjItNC44NS01LjYyLTctOC42MDFjLTE4LjY4LTI1LjkzOS0zMi4yNi01MS41LTMzLjE3LTg0LjEwOWMtMC43Ny0yOC4yMyw3LjQtNTMuOTMsMTUuMTQtODAuNjFjLTAuOTEsMy4xNCwxLjgzLDEwLjcsMi4xLDE0LjIxYzAuNDEsNS40LDAuNDYsMTAuODIsMC41LDE2LjIyMWMwLjA4LDExLjQ3LTAuMTQsMjMsMS4zMiwzNC4zNzljMy40MiwyNi43NCwxOC4yOCw0OS43MTEsNDMuMjYsNjEuMjAxYy04LjQ3LTE5LjY5LTkuMzEtMzYuMzAxLTEuMjgtNTYuNzIxYzYuMDUtMTUuMzY5LDE0LjcxLTI5Ljc3OSwxOC45NC00NS43NWM4LjYzLTMyLjU2LTIuNDItNjcuNjQtMjAuNzUtOTUuODljMTcuMzIsMTUuMzEsMzIsMzQuNDUsMzguMyw1Ni43YzcuMzYsMjYsMi44Niw1My41NiwwLDgwLjM5Yy0yLjUxLDIzLjIxLTMuNzEsNDgsNS40Miw3MC4wNWM4LDE5LjIzLDIyLjQsMjkuNTIxLDM5LjUxLDQwYy0zLjY0NC0zLjAxMS02LjU2Ni02LjgtOC41NS0xMS4wOWMtOS4xNi0xOC4zNy02LjczLTQwLjY2LDAuNzktNTkuNzZTMjU2LjYxNiwyODAuMiwyNjcuMTA2LDI2Mi41NjF6Ii8+CiAgICAgICAgPHBhdGggY2xhc3M9ImNvbG9yIiBkPSJNMTczLjEzNiwyMi40M2M1LjA3OCw0Ljk5MSw5Ljg3MiwxMC4yNjIsMTQuMzYsMTUuNzljMS43NzMsMi4xODcsMy40ODMsNC40LDUuMTMsNi42NGM3OS42NzQsMTQuMjQ0LDEzMi43MTYsOTAuMzgsMTE4LjQ3MiwxNzAuMDU0Yy02Ljk0NywzOC44NTctMjkuMjc2LDczLjI3LTYxLjkzMiw5NS40NDZjLTEuNDMsMy0yLjc3LDYtNCw5Yy0yLjUyOCw2LjM3Ny00LjMzLDEzLjAxOS01LjM3LDE5LjhjODIuODQ5LTQwLjMyOSwxMTcuMzE4LTE0MC4xODUsNzYuOTg5LTIyMy4wMzNDMjg5Ljg0OSw2MC43OSwyMzQuNjM1LDI0Ljc3NywxNzMuMTM2LDIyLjQzeiIvPgogICAgICAgIDxwYXRoIGNsYXNzPSJjb2xvciIgZD0iTTQ3LjA0NiwyNzMuNjA5di0wLjA4QzAuNDM1LDIwNy4zNTQsMTYuMjk2LDExNS45MjMsODIuNDcxLDY5LjMxM2MxNS4yNTQtMTAuNzQ0LDMyLjQyLTE4LjQ3Nyw1MC41NzUtMjIuNzgzYzAuMjEyLTQuOTYyLDAuMDA1LTkuOTMzLTAuNjItMTQuODZjLTAuMjUzLTEuODc1LTAuNjI0LTMuNzMxLTEuMTEtNS41NkM0MS4yOTksNDUuNzM4LTE1Ljc2MywxMzQuNjIzLDMuODY1LDIyNC42NGM3LjI4LDMzLjM5LDI0LjY0LDYzLjczOCw0OS43MzEsODYuOTRDNDkuNTU5LDI5OS4zMTQsNDcuMzUyLDI4Ni41Miw0Ny4wNDYsMjczLjYwOXoiLz4KICAgIDwvZz4KPC9zdmc+"
       alt="version"  
   /></a>  
   <a href="./LICENSE">
@@ -21,6 +21,10 @@
       alt="GitHub license"
   /></a>
 </h1>
+
+[![PHPStan](https://github.com/The-FireHub-Project/HTTP-Adapter/actions/workflows/PHPStan.yml/badge.svg?branch=develop)](https://github.com/The-FireHub-Project/HTTP-Adapter/actions/workflows/PHPStan.yml)
+[![PHPUnit](https://github.com/The-FireHub-Project/HTTP-Adapter/actions/workflows/PHPUnit.yml/badge.svg?branch=develop)](https://github.com/The-FireHub-Project/HTTP-Adapter/actions/workflows/PHPUnit.yml)
+[![Codecov](https://codecov.io/gh/The-FireHub-Project/HTTP-Adapter/branch/develop/graph/badge.svg?token=XW2YEONF51)](https://app.codecov.io/gh/The-FireHub-Project/HTTP-Adapter/tree/develop)
 
 <p>
   <a href="https://github.com/The-FireHub-Project/HTTP-Adapter">
@@ -73,72 +77,47 @@ This repository serves as the HTTP integration layer for FireHub applications, s
 
 ---
 
-## <img src="https://raw.githubusercontent.com/The-FireHub-Project/the-firehub-project.github.io/master/resources/graphics/icons/firehub.svg" width="15" alt="FireHub Icon"> Repository Purpose
+## <img src="https://raw.githubusercontent.com/The-FireHub-Project/the-firehub-project.github.io/master/resources/graphics/icons/firehub.svg" width="15" alt="FireHub Icon"> Development Branch
 
-FireHub HTTP Adapter is the HTTP integration and request processing component of the FireHub ecosystem.
+⚠️ **This is the `develop` branch**
 
-Built on the contracts provided by FireHub Core and integrated with FireHub Application, it supplies the mechanisms required to initialize HTTP infrastructure, process incoming requests, and coordinate HTTP-specific execution within application boundaries.
+- Unstable
+- APIs may change without notice
+- Not intended for production use
 
-The purpose of this repository is to centralize HTTP integration responsibilities while preserving separation of concerns between application lifecycle management, dependency injection, request processing, and transport-specific infrastructure.
+## <img src="https://raw.githubusercontent.com/The-FireHub-Project/the-firehub-project.github.io/master/resources/graphics/icons/firehub.svg" width="15" alt="FireHub Icon"> Branch Purpose
 
-The HTTP Adapter architecture is designed to support:
+The `develop` branch is the **primary integration branch** for all ongoing development.
 
-* Independent HTTP adapter lifecycle management
-* Application lifecycle integration and dependency coordination
-* Dedicated dependency injection containers for HTTP services
-* Controlled access to application-level dependencies
-* HTTP request and response processing
-* Request-scoped execution and resource isolation
-* Routing and request dispatching
-* Middleware-based request processing
-* HTTP server and runtime interoperability
-* Extensible HTTP infrastructure and integration mechanisms
+It serves as the staging area where:
+- Feature branches are merged
+- Bug fixes are integrated
+- Experimental work is stabilized
+- Code is prepared for upcoming releases
 
-FireHub HTTP Adapter follows the architectural principles of The FireHub Project by separating HTTP infrastructure from application execution, business logic, and domain responsibilities.
+All **release branches** are created **from `develop`**.
 
-The HTTP Adapter does not control kernel bootstrapping or application lifecycle transitions. Instead, it operates within an initialized application environment and manages its own HTTP-specific lifecycle, services, and request processing responsibilities.
+## Stability Guarantee
 
-## <img src="https://raw.githubusercontent.com/The-FireHub-Project/the-firehub-project.github.io/master/resources/graphics/icons/firehub.svg" width="15" alt="FireHub Icon"> Security
+❌ No backward compatibility guarantee  
+❌ APIs may change without notice  
+❌ Behavior may be incomplete or inconsistent  
+❌ Breaking changes are expected
 
-For security reporting and guidelines, please refer to our [SECURITY.md](https://github.com/The-FireHub-Project/.github/blob/master/.github/SECURITY.md) file.
+This branch is intended **only for contributors and advanced testers**.
 
-## <img src="https://raw.githubusercontent.com/The-FireHub-Project/the-firehub-project.github.io/master/resources/graphics/icons/firehub.svg" width="15" alt="FireHub Icon"> Community
+## <img src="https://raw.githubusercontent.com/The-FireHub-Project/the-firehub-project.github.io/master/resources/graphics/icons/firehub.svg" width="15" alt="FireHub Icon"> Composer Usage (Not Recommended)
 
-![GitHub watchers](https://img.shields.io/github/watchers/The-FireHub-Project/HTTP-Adapter?style=social)
-![GitHub Repo stars](https://img.shields.io/github/stars/The-FireHub-Project/HTTP-Adapter?style=social)
-![GitHub forks](https://img.shields.io/github/forks/The-FireHub-Project/HTTP-Adapter?style=social)
+For internal testing only:
 
-- Be sure to review the [Code of Conduct](https://github.com/The-FireHub-Project/.github/blob/master/.github/CODE_OF_CONDUCT.md).
-- Read a [Contributing](https://github.com/The-FireHub-Project/.github/blob/master/.github/CONTRIBUTING.md) file to see how you can contribute to this project.
-- Read our [Security policy](https://github.com/The-FireHub-Project/.github/blob/master/.github/SECURITY.md) file to see how you can report a vulnerability.
-- Review the project [Governance model](https://github.com/The-FireHub-Project/.github/blob/master/.github/GOVERNANCE.md), including roles, decision-making, RFC process, and releases.
-
-## <img src="https://raw.githubusercontent.com/The-FireHub-Project/the-firehub-project.github.io/master/resources/graphics/icons/firehub.svg" width="15" alt="FireHub Icon"> Support
-
-<p>
-  <a href="https://github.com/The-FireHub-Project/HTTP-Adapter/issues?q=is%3Aissue%20state%3Aopen">
-    <img
-      src="https://img.shields.io/github/issues/The-FireHub-Project/HTTP-Adapter?style=flat&logo=github&logoColor=959da5&label=in%20progress%20issues&labelColor=31373e"
-      alt="GitHub in-progress issues"
-  /></a>
-  <a href="https://github.com/The-FireHub-Project/HTTP-Adapter/issues?q=is%3Aissue">
-    <img
-      src="https://img.shields.io/github/issues-search?query=repo%3AThe-FireHub-Project%Foundaton&style=flat&logo=github&logoColor=959da5&label=total%20issues&labelColor=31373e"
-      alt="GitHub total issues"
-  /></a>
-  <a href="https://github.com/The-FireHub-Project/HTTP-Adapter/issues?q=is%3Apr%20is%3Aopen">
-    <img
-      src="https://img.shields.io/github/issues-pr/The-FireHub-Project/HTTP-Adapter?style=flat&logo=github&logoColor=959da5&labelColor=31373e"
-      alt="GitHub opened pull requests"
-  /></a>
-</p>
-
-For help with FireHub products, please refer to the following resources:
-
-- **General questions & discussions**: [GitHub Discussions](https://github.com/orgs/The-FireHub-Project/discussions)
-- **Bug reports & issues**: [Support](https://github.com/The-FireHub-Project/HTTP-Adapter/issues)
-- **Documentation & guides**: [FireHub Docs](https://the-firehub-project.github.io)
-- **Commercial support** (Pro/Enterprise): contact your account manager
+```json
+{
+  "require": {
+    "the-firehub-project/http-adapter": "dev-develop"
+  }
+}
+```
+⚠️ Never use dev-develop in production.
 
 ## <img src="https://raw.githubusercontent.com/The-FireHub-Project/the-firehub-project.github.io/master/resources/graphics/icons/firehub.svg" width="15" alt="FireHub Icon"> Authors and Contributors
 
