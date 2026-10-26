@@ -8,6 +8,7 @@
   "require": {
     "php": "^8.5",
 
+    "the-firehub-project/core-standard": "dev-develop",
     "the-firehub-project/application": "dev-develop"
   },
   "require-dev": {
