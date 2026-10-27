@@ -11,7 +11,9 @@
  * @package Adapter\HTTP
  */
 
-namespace FireHub\Adapter\HTTP\Request;
+namespace FireHub\Adapter\HTTP\Request\Method;
+
+use FireHub\Adapter\HTTP\Request\Method;
 
 /**
  * ### Defines standard HTTP request methods
