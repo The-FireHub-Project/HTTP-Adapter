@@ -81,10 +81,10 @@ final readonly class Headers {
      * @uses \FireHub\Adapter\HTTP\Header\Media\Preference::value() To serialize each media preference.
      * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join media preferences into a single string.
      *
-     * @param \FireHub\Adapter\HTTP\Header\Media\Preference $preference <p>
+     * @param \FireHub\Adapter\HTTP\Header\Media\Preference<non-empty-string> $preference <p>
      * First accepted media preference.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Header\Media\Preference ...$additional [optional] <p>
+     * @param \FireHub\Adapter\HTTP\Header\Media\Preference<non-empty-string> ...$additional [optional] <p>
      * Additional accepted media preferences.
      * </p>
      *

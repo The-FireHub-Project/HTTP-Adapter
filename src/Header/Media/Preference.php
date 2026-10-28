@@ -15,6 +15,7 @@ namespace FireHub\Adapter\HTTP\Header\Media;
 
 use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Header\Quality;
+use FireHub\Runtime;
 
 /**
  * ### Represents an HTTP media preference
@@ -39,7 +40,7 @@ final readonly class Preference extends ValueObject {
      * ### Constructor
      * @since 1.0.0
      *
-     * @param \FireHub\Adapter\HTTP\Header\Media\Type|\FireHub\Adapter\HTTP\Header\Media\Range $media <p>
+     * @param \FireHub\Adapter\HTTP\Header\Media\Type|\FireHub\Adapter\HTTP\Header\Media\Range|\FireHub\Adapter\HTTP\Header\Media\Custom<non-empty-string> $media <p>
      * Accepted media type or media range.
      * </p>
      * @param \FireHub\Adapter\HTTP\Header\Quality $quality [optional] <p>
@@ -49,7 +50,7 @@ final readonly class Preference extends ValueObject {
      * @return void
      */
     public function __construct (
-        private Type|Range $media,
+        private Type|Range|Custom $media,
         private Quality $quality = new Quality(1.0)
     ) {}
 
@@ -64,11 +65,11 @@ final readonly class Preference extends ValueObject {
      *
      * @since 1.0.0
      *
-     * @return \FireHub\Adapter\HTTP\Header\Media\Type|\FireHub\Adapter\HTTP\Header\Media\Range <p>
+     * @return \FireHub\Adapter\HTTP\Header\Media\Type|\FireHub\Adapter\HTTP\Header\Media\Range|\FireHub\Adapter\HTTP\Header\Media\Custom<non-empty-string> <p>
      * Accepted media type or media range.
      * </p>
      */
-    public function media ():Type|Range {
+    public function media ():Type|Range|Custom {
 
         return $this->media;
 
@@ -103,14 +104,19 @@ final readonly class Preference extends ValueObject {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\Quality::value() To get the quality factor.
+     * @uses \FireHub\Adapter\HTTP\Header\Media\Custom::value() To get the custom media type.
      */
     public function value ():string {
 
+        $media = $this->media instanceof Custom
+            ? $this->media->value()
+            : $this->media->value;
+
         $quality = $this->quality->value();
 
-        if ($quality === 1.0) return $this->media->value;
+        if ($quality === 1.0) return $media;
 
-        return "{$this->media->value};q=$quality";
+        return "$media;q=$quality";
 
     }
 
@@ -120,14 +126,19 @@ final readonly class Preference extends ValueObject {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\Quality::value() To get the quality factor.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the media type to lowercase.
+     * @uses \FireHub\Adapter\HTTP\Header\Media\Custom::value() To get the custom media type.
      *
-     * @return array{\FireHub\Adapter\HTTP\Header\Media\Range|\FireHub\Adapter\HTTP\Header\Media\Type, float}
-     * Comparison value.
+     * @return array{string, float} Comparison value.
      */
     protected function comparisonValue ():array {
 
+        $media = $this->media instanceof Custom
+            ? $this->media->value()
+            : $this->media->value;
+
         return [
-            $this->media,
+            Runtime\Str\SB\Casing::toLower($media),
             $this->quality->value()
         ];
 
