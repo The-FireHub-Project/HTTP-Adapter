@@ -16,7 +16,8 @@ namespace FireHub\Adapter\HTTP\Request;
 
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
-    Media\Preference,
+    Encoding\Preference as EncodingPreference,
+    Media\Preference as MediaPreference,
     Name, Value
 };
 use FireHub\Runtime;
@@ -90,7 +91,7 @@ final readonly class Headers {
      *
      * @return self Updated request header collection.
      */
-    public function accept (Preference $preference, Preference ...$additional):self {
+    public function accept (MediaPreference $preference, MediaPreference ...$additional):self {
 
         $values = [];
 
@@ -99,6 +100,52 @@ final readonly class Headers {
 
         return $this->replace(
             'Accept',
+            new Value(Runtime\Str\SB\Delimiter::implode($values, ', '))
+        );
+
+    }
+
+    /**
+     * ### Sets the AcceptEncoding request header
+     *
+     * Specifies the media types accepted by the HTTP client.
+     *
+     * <code>
+     * $headers = Headers::empty()->acceptEncoding(
+     *     new Preference(Type::BR),
+     *     new Preference(Type::GZIP, new Quality(0.9)),
+     *     new Preference(new Custom('x-firehub-compression'), new Quality(0.5)),
+     *     new Preference(Range::ANY, new Quality(0.1))
+     * );
+     *
+     * // Accept-Encoding: br, gzip;q=0.9, x-firehub-compression;q=0.5, *;q=0.1
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::replace() Replaces all existing occurrences of the specified HTTP
+     * message header with a new value.
+     * @uses \FireHub\Adapter\HTTP\Header\Media\Preference::value() To serialize each encoding preference.
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join encoding preferences into a single string.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Encoding\Preference<non-empty-string> $preference <p>
+     * First accepted encoding preference.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Encoding\Preference<non-empty-string> ...$additional [optional] <p>
+     * Additional accepted encoding preferences.
+     * </p>
+     *
+     * @return self Updated request header collection.
+     */
+    public function acceptEncoding (EncodingPreference $preference, EncodingPreference ...$additional):self {
+
+        $values = [];
+
+        foreach ([$preference, ...$additional] as $item)
+            $values[] = $item->value();
+
+        return $this->replace(
+            'Accept-Encoding',
             new Value(Runtime\Str\SB\Delimiter::implode($values, ', '))
         );
 
