@@ -17,6 +17,7 @@ namespace FireHub\Adapter\HTTP\Request;
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
     Encoding\Preference as EncodingPreference,
+    Language\Preference as LanguagePreference,
     Media\Preference as MediaPreference,
     Name, Value
 };
@@ -146,6 +147,52 @@ final readonly class Headers {
 
         return $this->replace(
             'Accept-Encoding',
+            new Value(Runtime\Str\SB\Delimiter::implode($values, ', '))
+        );
+
+    }
+
+    /**
+     * ### Sets the Accept-Language request header
+     *
+     * Specifies the natural languages preferred by the HTTP client.
+     *
+     * Each language preference may include a quality factor indicating its relative priority. Calling this method
+     * replaces any previously configured Accept-Language header.
+     *
+     * <code>
+     * $headers = Headers::empty()->acceptLanguage(
+     *     new LanguagePreference(LanguageType::HR_HR),
+     *     new LanguagePreference(LanguageType::EN_US, new Quality(0.9)),
+     *     new LanguagePreference(LanguageRange::ANY, new Quality(0.1))
+     * );
+     *
+     * // Accept-Language: hr-HR, en-US;q=0.9, *;q=0.1
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Language\Preference::value() To serialize each language preference.
+     * @uses \FireHub\Adapter\HTTP\Request\Headers::replace() To replace the Accept-Language header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Language\Preference<non-empty-string> $preference <p>
+     * First accepted language preference.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Language\Preference<non-empty-string> ...$additional [optional] <p>
+     * Additional accepted language preferences.
+     * </p>
+     *
+     * @return self Updated request header collection.
+     */
+    public function acceptLanguage (LanguagePreference $preference, LanguagePreference ...$additional):self {
+
+        $values = [];
+
+        foreach ([$preference, ...$additional] as $item)
+            $values[] = $item->value();
+
+        return $this->replace(
+            'Accept-Language',
             new Value(Runtime\Str\SB\Delimiter::implode($values, ', '))
         );
 

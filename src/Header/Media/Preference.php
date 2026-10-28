@@ -65,9 +65,8 @@ final readonly class Preference extends ValueObject {
      *
      * @since 1.0.0
      *
-     * @return \FireHub\Adapter\HTTP\Header\Media\Type|\FireHub\Adapter\HTTP\Header\Media\Range|\FireHub\Adapter\HTTP\Header\Media\Custom<non-empty-string> <p>
+     * @return \FireHub\Adapter\HTTP\Header\Media\Type|\FireHub\Adapter\HTTP\Header\Media\Range|\FireHub\Adapter\HTTP\Header\Media\Custom<non-empty-string>
      * Accepted media type or media range.
-     * </p>
      */
     public function media ():Type|Range|Custom {
 
