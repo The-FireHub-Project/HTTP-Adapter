@@ -13,13 +13,13 @@
 
 namespace FireHub\Adapter\HTTP\Header\Exception;
 
-use FireHub\Core\Exception\DomainException;
+use FireHub\Core\Exception\Runtime\InvalidArgumentException;
 
 /**
  * ### Represents an invalid HTTP media preference quality
  * @since 1.0.0
  */
-final class InvalidMediaPreferenceExceptionQuality extends DomainException {
+final class InvalidMediaPreferenceExceptionQuality extends InvalidArgumentException {
 
     protected const string DEFAULT_MESSAGE = 'Invalid media preference quality.';
 

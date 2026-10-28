@@ -13,13 +13,13 @@
 
 namespace FireHub\Adapter\HTTP\Header\Exception;
 
-use FireHub\Core\Exception\DomainException;
+use FireHub\Core\Exception\Runtime\InvalidArgumentException;
 
 /**
  * ### Represents an invalid HTTP header field name
  * @since 1.0.0
  */
-final class InvalidFieldNameException extends DomainException {
+final class InvalidFieldNameException extends InvalidArgumentException {
 
     protected const string DEFAULT_MESSAGE = 'Invalid HTTP header field name.';
 

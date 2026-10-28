@@ -13,13 +13,13 @@
 
 namespace FireHub\Adapter\HTTP\Header\Exception;
 
-use FireHub\Core\Exception\DomainException;
+use FireHub\Core\Exception\Runtime\InvalidArgumentException;
 
 /**
  * ### Represents an invalid HTTP parameter name
  * @since 1.0.0
  */
-final class InvalidParameterNameException extends DomainException {
+final class InvalidParameterNameException extends InvalidArgumentException {
 
     protected const string DEFAULT_MESSAGE = 'Invalid HTTP parameter name.';
 

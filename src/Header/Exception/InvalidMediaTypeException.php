@@ -13,13 +13,13 @@
 
 namespace FireHub\Adapter\HTTP\Header\Exception;
 
-use FireHub\Core\Exception\DomainException;
+use FireHub\Core\Exception\Runtime\InvalidArgumentException;
 
 /**
  * ### Represents an invalid HTTP media type
  * @since 1.0.0
  */
-final class InvalidMediaTypeException extends DomainException {
+final class InvalidMediaTypeException extends InvalidArgumentException {
 
     protected const string DEFAULT_MESSAGE = 'Invalid HTTP media type.';
 
