@@ -13,7 +13,7 @@
 
 namespace FireHub\Tests\Adapter\HTTP\Unit\Message;
 
-use PHPUnit\Framework\TestCase;
+use FireHub\Testing\FireHubTestCase;
 use FireHub\Adapter\HTTP\Header\ {
     Name, Value
 };
@@ -29,7 +29,7 @@ use PHPUnit\Framework\Attributes\ {
 #[Small]
 #[Group('message')]
 #[CoversClass(Headers::class)]
-final class HeadersTest extends TestCase {
+final class HeadersTest extends FireHubTestCase {
 
     /**
      * ### Tests creating an empty collection
