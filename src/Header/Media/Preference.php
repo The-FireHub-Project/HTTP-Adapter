@@ -87,18 +87,7 @@ final readonly class Preference extends ValueObject {
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * <code>
-     * echo (new MediaPreference(MediaType::APPLICATION_JSON))->value();
-     * // application/json
-     *
-     * echo (new MediaPreference(MediaType::TEXT_HTML, new Quality(0.9)))->value();
-     * // text/html;q=0.9
-     *
-     * echo (new MediaPreference(MediaRange::IMAGE, new Quality(0.8)))->value();
-     * // image/*;q=0.8
-     * </code>
+     * @inheritDoc
      *
      * @since 1.0.0
      *
