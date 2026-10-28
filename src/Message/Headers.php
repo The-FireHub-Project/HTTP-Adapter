@@ -41,7 +41,7 @@ final readonly class Headers {
      *
      * @return void
      */
-    public function __construct (
+    private function __construct (
         private array $headers = []
     ) {}
 
