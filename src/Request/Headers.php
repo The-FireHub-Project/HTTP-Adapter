@@ -18,7 +18,8 @@ use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
     Encoding\Preference as EncodingPreference,
     Language\Preference as LanguagePreference,
-    Media\Preference as MediaPreference,
+    Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
+    Media\Preference as MediaPreference, Media\Type as MediaType,
     Name, Value
 };
 use FireHub\Runtime;
@@ -194,6 +195,48 @@ final readonly class Headers {
         return $this->replace(
             'Accept-Language',
             new Value(Runtime\Str\SB\Delimiter::implode($values, ', '))
+        );
+
+    }
+
+    /**
+     * ### Sets the Content-Type request header
+     *
+     * Specifies the media type of the HTTP request body, including optional media type parameters such as charset or
+     * boundary.
+     *
+     * Replaces any previously configured Content-Type header.
+     *
+     * <code>
+     * $headers = Headers::empty()->contentType(
+     *     MediaType::APPLICATION_JSON,
+     *     new MediaParameter('charset', 'utf-8')
+     * );
+     *
+     * // Content-Type: application/json; charset=utf-8
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Media\ContentType::value() To serialize the content type.
+     * @uses \FireHub\Adapter\HTTP\Request\Headers::replace() To replace the Content-Type header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Media\Type|\FireHub\Adapter\HTTP\Header\Media\Custom<non-empty-string> $media <p>
+     * Concrete media type.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Media\Parameter<non-empty-string> ...$parameters <p>
+     * Optional media type parameters.
+     * </p>
+     *
+     * @return self Updated request headers.
+     */
+    public function contentType (MediaType|MediaCustom $media, MediaParameter ...$parameters):self {
+
+        return $this->replace(
+            'Content-Type',
+            new Value(
+                new ContentType($media, ...$parameters)->value()
+            )
         );
 
     }
