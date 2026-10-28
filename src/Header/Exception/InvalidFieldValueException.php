@@ -21,6 +21,6 @@ use FireHub\Core\Exception\DomainException;
  */
 final class InvalidFieldValueException extends DomainException {
 
-    protected const string DEFAULT_MESSAGE = 'Invalid HTTP header field value';
+    protected const string DEFAULT_MESSAGE = 'Invalid HTTP header field value.';
 
 }

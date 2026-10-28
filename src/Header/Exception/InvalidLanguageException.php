@@ -21,6 +21,6 @@ use FireHub\Core\Exception\DomainException;
  */
 final class InvalidLanguageException extends DomainException {
 
-    protected const string DEFAULT_MESSAGE = 'Invalid HTTP language';
+    protected const string DEFAULT_MESSAGE = 'Invalid HTTP language.';
 
 }

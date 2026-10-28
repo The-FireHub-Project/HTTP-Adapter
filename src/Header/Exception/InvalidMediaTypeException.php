@@ -21,6 +21,6 @@ use FireHub\Core\Exception\DomainException;
  */
 final class InvalidMediaTypeException extends DomainException {
 
-    protected const string DEFAULT_MESSAGE = 'Invalid HTTP media type';
+    protected const string DEFAULT_MESSAGE = 'Invalid HTTP media type.';
 
 }

@@ -21,6 +21,6 @@ use FireHub\Core\Exception\DomainException;
  */
 final class InvalidFieldNameException extends DomainException {
 
-    protected const string DEFAULT_MESSAGE = 'Invalid HTTP header field name';
+    protected const string DEFAULT_MESSAGE = 'Invalid HTTP header field name.';
 
 }
