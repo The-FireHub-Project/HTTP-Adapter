@@ -21,6 +21,11 @@ use FireHub\Core\Exception\Runtime\InvalidArgumentException;
  */
 final class InvalidParameterValueException extends InvalidArgumentException {
 
+    /**
+     * @inheritdoc
+     *
+     * @since 1.0.0
+     */
     protected const string DEFAULT_MESSAGE = 'Invalid HTTP parameter value.';
 
 }

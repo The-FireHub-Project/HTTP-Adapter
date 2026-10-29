@@ -21,6 +21,11 @@ use FireHub\Core\Exception\Runtime\InvalidArgumentException;
  */
 final class InvalidFieldNameException extends InvalidArgumentException {
 
+    /**
+     * @inheritdoc
+     *
+     * @since 1.0.0
+     */
     protected const string DEFAULT_MESSAGE = 'Invalid HTTP header field name.';
 
 }

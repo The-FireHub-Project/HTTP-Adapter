@@ -21,6 +21,11 @@ use FireHub\Core\Exception\Runtime\InvalidArgumentException;
  */
 final class InvalidParameterNameException extends InvalidArgumentException {
 
+    /**
+     * @inheritdoc
+     *
+     * @since 1.0.0
+     */
     protected const string DEFAULT_MESSAGE = 'Invalid HTTP parameter name.';
 
 }
