@@ -17,6 +17,7 @@ namespace FireHub\Adapter\HTTP\Request;
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
     Authorization\Credentials,
+    CacheControl\Custom, CacheControl\RequestDirective,
     Encoding\Preference as EncodingPreference,
     Language\Preference as LanguagePreference,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
@@ -218,6 +219,7 @@ final readonly class Headers {
      *
      * @uses \FireHub\Adapter\HTTP\Header\Language\Preference::value() To serialize each language preference.
      * @uses \FireHub\Adapter\HTTP\Request\Headers::replace() To replace the Accept-Language header.
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join language preferences into a single string.
      *
      * @param \FireHub\Adapter\HTTP\Header\Language\Preference<non-empty-string> $preference <p>
      * First accepted language preference.
@@ -259,6 +261,10 @@ final readonly class Headers {
      *
      * @since 1.0.0
      *
+     * @uses \FireHub\Adapter\HTTP\Header\UserAgent\Product::value() To serialize the product.
+     * @uses \FireHub\Adapter\HTTP\Header\UserAgent\Comment::value() To serialize the comment.
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join product and comment values into a single string.
+     *
      * @param \FireHub\Adapter\HTTP\Header\UserAgent\Product $product <p>
      * Primary product.
      * </p>
@@ -279,6 +285,51 @@ final readonly class Headers {
             'User-Agent',
             new Value(
                 Runtime\Str\SB\Delimiter::implode($values, ' ')
+            )
+        );
+
+    }
+
+    /**
+     * ### Sets the Cache-Control request header
+     *
+     * Specifies caching requirements for the HTTP request.
+     *
+     * <code>
+     * $headers = Headers::empty()->cacheControl(
+     *     RequestDirective::noCache(),
+     *     RequestDirective::noStore(),
+     *     RequestDirective::maxAge(3600)
+     * );
+     *
+     * // Cache-Control: no-cache, no-store, max-age=3600
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\RequestDirective::value() To serialize each cache directive.
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join cache directives into a single string.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\CacheControl\RequestDirective|\FireHub\Adapter\HTTP\Header\CacheControl\Custom $directive <p>
+     * First cache directive.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\CacheControl\RequestDirective|\FireHub\Adapter\HTTP\Header\CacheControl\Custom ...$additional <p>
+     * Additional cache directives.
+     * </p>
+     *
+     * @return self Updated request headers.
+     */
+    public function cacheControl (RequestDirective|Custom $directive, RequestDirective|Custom ...$additional):self {
+
+        $values = [];
+
+        foreach ([$directive, ...$additional] as $item)
+            $values[] = $item->value();
+
+        return $this->replace(
+            'Cache-Control',
+            new Value(
+                \FireHub\Runtime\Str\SB\Delimiter::implode($values, ', ')
             )
         );
 
