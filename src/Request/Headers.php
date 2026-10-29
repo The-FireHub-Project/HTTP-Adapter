@@ -16,6 +16,7 @@ namespace FireHub\Adapter\HTTP\Request;
 
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
+    Authorization\Credentials,
     Encoding\Preference as EncodingPreference,
     Language\Preference as LanguagePreference,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
@@ -59,6 +60,47 @@ final readonly class Headers {
     public static function empty ():self {
 
         return new self(MessageHeaders::empty());
+
+    }
+
+    /**
+     * ### Sets the Authorization request header
+     *
+     * Specifies authentication credentials used to authenticate the HTTP request with the target server.
+     *
+     * Replaces any previously configured Authorization header.
+     *
+     * <code>
+     * $headers = Headers::empty()->authorization(
+     *     new Bearer('my-access-token')
+     * );
+     *
+     * // Authorization: Bearer my-access-token
+     *
+     * $headers = Headers::empty()->authorization(
+     *     new Basic('username', 'password')
+     * );
+     *
+     * // Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Authorization\Credentials::value() To serialize authentication credentials.
+     * @uses \FireHub\Adapter\HTTP\Request\Headers::replace() To replace the Authorization header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Authorization\Credentials $credentials <p>
+     * Authentication credentials.
+     * </p>
+     *
+     * @return self Updated request header collection.
+     */
+    public function authorization (Credentials $credentials):self {
+
+        return $this->replace(
+            'Authorization',
+            new Value($credentials->value())
+        );
 
     }
 
