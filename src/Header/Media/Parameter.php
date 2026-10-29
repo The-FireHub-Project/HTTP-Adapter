@@ -13,10 +13,8 @@
 
 namespace FireHub\Adapter\HTTP\Header\Media;
 
-use FireHub\Core\Type\ValueObject;
-use FireHub\Adapter\HTTP\Header\Exception\ {
-    InvalidParameterNameException, InvalidParameterValueException
-};
+use FireHub\Adapter\HTTP\Header\Name;
+use FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException;
 use FireHub\Runtime;
 
 /**
@@ -27,9 +25,9 @@ use FireHub\Runtime;
  *
  * @template TValue of non-empty-string
  *
- * @extends \FireHub\Core\Type\ValueObject<TValue>
+ * @extends \FireHub\Adapter\HTTP\Header\Name<TValue>
  */
-final readonly class Parameter extends ValueObject {
+final readonly class Parameter extends Name {
 
     /**
      * ### Serialized HTTP parameter value
@@ -54,6 +52,7 @@ final readonly class Parameter extends ValueObject {
      * Parameter value.
      * </p>
      *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If the media type is invalid.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
@@ -65,15 +64,7 @@ final readonly class Parameter extends ValueObject {
         private string $value
     ) {
 
-        $this->guard(
-            fn() => Runtime\Str\SB\Regex::match(
-                '/\A[!#$%&\'*+.^_`|~0-9A-Za-z-]+\z/',
-                $name
-            ),
-            fn() => new InvalidParameterNameException(
-                'Invalid media parameter name.'
-            )
-        );
+        parent::__construct($name);
 
         $this->guard(
             fn() => !Runtime\Str\SB\Regex::match(
@@ -136,16 +127,15 @@ final readonly class Parameter extends ValueObject {
      *
      * @since 1.0.0
      *
+     * @uses \FireHub\Runtime\Data::serialize() To serialize the parameter name and value.
      * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the parameter name to lowercase.
-     *
-     * @return array{lowercase-string, string} Comparison value.
      */
-    protected function comparisonValue ():array {
+    protected function comparisonValue ():string {
 
-        return [
+        return Runtime\Data::serialize([
             Runtime\Str\SB\Casing::toLower($this->name),
             $this->value
-        ];
+        ]);
 
     }
 

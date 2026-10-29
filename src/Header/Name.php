@@ -29,7 +29,7 @@ use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException;
  *
  * @extends \FireHub\Core\Type\ValueObject<TValue>
  */
-final readonly class Name extends ValueObject {
+readonly class Name extends ValueObject {
 
     /**
      * ### Constructor
@@ -38,7 +38,7 @@ final readonly class Name extends ValueObject {
      * @uses \FireHub\Core\Type\Identifier::guard() To enforce the invariant that an identifier name cannot be empty.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the HTTP header field name.
      *
-     * @param TValue $name <p>
+     * @param non-empty-string $name <p>
      * HTTP header field name.
      * </p>
      *
@@ -66,6 +66,7 @@ final readonly class Name extends ValueObject {
      */
     public function value ():string {
 
+        /** @var TValue */
         return $this->name;
 
     }

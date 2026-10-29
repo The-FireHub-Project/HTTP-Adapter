@@ -21,6 +21,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Preference as LanguagePreference,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Preference as MediaPreference, Media\Type as MediaType,
+    UserAgent\Product as UserAgentProduct, UserAgent\Comment as UserAgentComment,
     Name, Value
 };
 use FireHub\Runtime;
@@ -237,6 +238,48 @@ final readonly class Headers {
         return $this->replace(
             'Accept-Language',
             new Value(Runtime\Str\SB\Delimiter::implode($values, ', '))
+        );
+
+    }
+
+    /**
+     * ### Sets the User-Agent request header
+     *
+     * Identifies the software originating the HTTP request.
+     *
+     * <code>
+     * $headers = Headers::empty()->userAgent(
+     *     new UserAgentProduct('FireHub', '1.0.0'),
+     *     new UserAgentComment('HTTP Adapter; PHP 8.5'),
+     *     new UserAgentProduct('MyClient', '2.0')
+     * );
+     *
+     * // User-Agent: FireHub/1.0.0 (HTTP Adapter; PHP 8.5) MyClient/2.0
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\UserAgent\Product $product <p>
+     * Primary product.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\UserAgent\Product|\FireHub\Adapter\HTTP\Header\UserAgent\Comment ...$additional <p>
+     * Additional products or comments.
+     * </p>
+     *
+     * @return self Updated request header collection.
+     */
+    public function userAgent (UserAgentProduct $product, UserAgentProduct|UserAgentComment ...$additional):self {
+
+        $values = [];
+
+        foreach ([$product, ...$additional] as $item)
+            $values[] = $item->value();
+
+        return $this->replace(
+            'User-Agent',
+            new Value(
+                Runtime\Str\SB\Delimiter::implode($values, ' ')
+            )
         );
 
     }
