@@ -25,6 +25,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Preference as LanguagePreference,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Preference as MediaPreference, Media\Type as MediaType,
+    Range\ByteRange, Range\SuffixRange, Range\Unit,
     UserAgent\Product as UserAgentProduct, UserAgent\Comment as UserAgentComment,
     Date, Name, Value,
 };
@@ -502,6 +503,62 @@ final readonly class Headers {
         return $this->replace(
             'Content-Length',
             new Value($length->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Range request header
+     *
+     * Requests one or more byte ranges from the target resource.
+     *
+     * <code>
+     * $headers = Headers::empty()->range(
+     *     new ByteRange(0, 1023)
+     * );
+     *
+     * // Range: bytes=0-1023
+     *
+     * $headers = Headers::empty()->range(
+     *     new ByteRange(0, 499),
+     *     new ByteRange(1000, 1499)
+     * );
+     *
+     * // Range: bytes=0-499,1000-1499
+     *
+     * $headers = Headers::empty()->range(
+     *     new SuffixRange(500)
+     * );
+     *
+     * // Range: bytes=-500
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join byte ranges.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Range\ByteRange|\FireHub\Adapter\HTTP\Header\Range\SuffixRange $range <p>
+     * First byte range.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Range\ByteRange|\FireHub\Adapter\HTTP\Header\Range\SuffixRange ...$additional <p>
+     * Additional byte ranges.
+     * </p>
+     *
+     * @return self Updated request header collection.
+     */
+    public function range (ByteRange|SuffixRange $range, ByteRange|SuffixRange ...$additional):self {
+
+        $values = [$range->value()];
+
+        foreach ($additional as $item)
+            $values[] = $item->value();
+
+        return $this->replace(
+            'Range',
+            new Value(
+                Unit::BYTES->value.'='
+                .Runtime\Str\SB\Delimiter::implode($values, ',')
+            )
         );
 
     }
