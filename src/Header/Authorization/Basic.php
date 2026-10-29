@@ -56,7 +56,7 @@ final readonly class Basic extends ValueObject implements Credentials {
     ) {
 
         $this->guard(
-            fn() => Runtime\Str\SB\Regex::match(
+            fn() => !Runtime\Str\SB\Regex::match(
                 '/[\x00-\x1F\x7F]/',
                 $username
             ),
@@ -66,7 +66,7 @@ final readonly class Basic extends ValueObject implements Credentials {
         );
 
         $this->guard(
-            fn() => Runtime\Str\SB\Regex::match(
+            fn() => !Runtime\Str\SB\Regex::match(
                 '/[\x00-\x1F\x7F]/',
                 $password
             ),
