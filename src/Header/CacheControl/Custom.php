@@ -40,6 +40,7 @@ final readonly class Custom extends Name implements Directive {
      * @uses \FireHub\Core\Type\Identifier::guard() To enforce the invariant that an identifier name cannot be empty.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the custom directive name.
      * @uses \FireHub\Runtime\Str\SB\Escape::addCSlashes() To escape the directive value.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the directive name to lowercase.
      *
      * @param non-empty-string $name <p>
      * Custom directive name.
@@ -49,7 +50,8 @@ final readonly class Custom extends Name implements Directive {
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the directive value is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the directive value is invalid or
+     * the name is reserved for standard directives.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
@@ -61,6 +63,17 @@ final readonly class Custom extends Name implements Directive {
     ) {
 
         parent::__construct($name);
+
+        $this->guard(
+            fn() => Request::tryFrom(
+                    Runtime\Str\SB\Casing::toLower($name)
+                ) === null && Response::tryFrom(
+                    Runtime\Str\SB\Casing::toLower($name)
+                ) === null,
+            fn() => new InvalidCacheDirectiveException(
+                "Cache-Control directive '$name' is reserved for standard directives."
+            )
+        );
 
         if ($value !== null) {
 

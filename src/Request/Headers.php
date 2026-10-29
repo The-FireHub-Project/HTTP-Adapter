@@ -299,7 +299,8 @@ final readonly class Headers {
      * $headers = Headers::empty()->cacheControl(
      *     RequestDirective::noCache(),
      *     RequestDirective::noStore(),
-     *     RequestDirective::maxAge(3600)
+     *     RequestDirective::maxAge(3600),
+     *     new Custom('my-extension', 'enabled')
      * );
      *
      * // Cache-Control: no-cache, no-store, max-age=3600
