@@ -14,8 +14,8 @@
 namespace FireHub\Adapter\HTTP\Header;
 
 use FireHub\Core\Type\ValueObject;
-use FireHub\Runtime;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException;
+use FireHub\Runtime;
 
 /**
  * ### Represents an HTTP header field name

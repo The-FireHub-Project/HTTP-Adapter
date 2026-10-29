@@ -19,12 +19,14 @@ use FireHub\Adapter\HTTP\Header\ {
     Authorization\Credentials,
     CacheControl\Custom, CacheControl\RequestDirective,
     Encoding\Preference as EncodingPreference,
+    EntityTag\Tag as EntityTag, EntityTag\Range as EntityTagRange,
     Language\Preference as LanguagePreference,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Preference as MediaPreference, Media\Type as MediaType,
     UserAgent\Product as UserAgentProduct, UserAgent\Comment as UserAgentComment,
-    Name, Value
+    Date, Name, Value,
 };
+use FireHub\Adapter\HTTP\Header\Exception\InvalidEntityTagException;
 use FireHub\Runtime;
 
 /**
@@ -374,6 +376,197 @@ final readonly class Headers {
             new Value(
                 new ContentType($media, ...$parameters)->value()
             )
+        );
+
+    }
+
+    /**
+     * ### Sets the If-Match request header
+     *
+     * Makes the request conditional on the current entity tag of the target resource.
+     *
+     * Uses strong entity tag comparison when the server evaluates the condition.
+     *
+     * <code>
+     * $headers = Headers::empty()->ifMatch(
+     *     new EntityTag('version-123')
+     * );
+     *
+     * // If-Match: "version-123"
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join entity tags.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\EntityTag\Tag|\FireHub\Adapter\HTTP\Header\EntityTag\Range $tag <p>
+     * First entity tag or wildcard.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\EntityTag\Tag ...$additional <p>
+     * Additional entity tags.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidEntityTagException If a wildcard is combined with entity tags.
+     *
+     * @return self Updated request header collection.
+     */
+    public function ifMatch (EntityTag|EntityTagRange $tag, EntityTag ...$additional):self {
+
+        if ($tag instanceof EntityTagRange) {
+
+            if ($additional !== [])
+                throw new InvalidEntityTagException(
+                    'An entity tag wildcard cannot be combined with additional entity tags.'
+                );
+
+            return $this->replace(
+                'If-Match',
+                new Value($tag->value)
+            );
+
+        }
+
+        $values = [$tag->value()];
+
+        foreach ($additional as $item)
+            $values[] = $item->value();
+
+        return $this->replace(
+            'If-Match',
+            new Value(
+                Runtime\Str\SB\Delimiter::implode($values, ', ')
+            )
+        );
+
+    }
+
+    /**
+     * ### Sets the If-None-Match request header
+     *
+     * Makes the request conditional on the current entity tag of the target resource.
+     *
+     * Uses weak entity tag comparison when the server evaluates the condition.
+     *
+     * <code>
+     * $headers = Headers::empty()->ifNoneMatch(
+     *     new EntityTag('abc123'),
+     *     new EntityTag('def456', true)
+     * );
+     *
+     * // If-None-Match: "abc123", W/"def456"
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join entity tags.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\EntityTag\Tag|\FireHub\Adapter\HTTP\Header\EntityTag\Range $tag <p>
+     * First entity tag or wildcard.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\EntityTag\Tag ...$additional <p>
+     * Additional entity tags.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidEntityTagException If a wildcard is combined with entity tags.
+     *
+     * @return self Updated request header collection.
+     */
+    public function ifNoneMatch (EntityTag|EntityTagRange $tag, EntityTag ...$additional):self {
+
+        if ($tag instanceof EntityTagRange) {
+
+            if ($additional !== [])
+                throw new InvalidEntityTagException(
+                    'An entity tag wildcard cannot be combined with additional entity tags.'
+                );
+
+            return $this->replace(
+                'If-None-Match',
+                new Value($tag->value)
+            );
+
+        }
+
+        $values = [$tag->value()];
+
+        foreach ($additional as $item)
+            $values[] = $item->value();
+
+        return $this->replace(
+            'If-None-Match',
+            new Value(
+                Runtime\Str\SB\Delimiter::implode($values, ', ')
+            )
+        );
+
+    }
+
+    /**
+     * ### Sets the If-Modified-Since request header
+     *
+     * Makes the request conditional on the target resource having been modified after the specified date.
+     *
+     * <code>
+     * $headers = Headers::empty()->ifModifiedSince(
+     *     new Date(
+     *         DateTime::from('2026-10-29 10:00:00')
+     *     )
+     * );
+     *
+     * // If-Modified-Since: Thu, 29 Oct 2026 10:00:00 GMT
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Date::value() To serialize the HTTP date.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Date $date <p>
+     * Modification date.
+     * </p>
+     *
+     * @return self Updated request header collection.
+     */
+    public function ifModifiedSince (Date $date):self {
+
+        return $this->replace(
+            'If-Modified-Since',
+            new Value($date->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the If-Unmodified-Since request header
+     *
+     * Makes the request conditional on the target resource not having been modified after the specified date.
+     *
+     * Commonly used to prevent modifications to a resource that has changed since the client last retrieved it.
+     *
+     * <code>
+     * $headers = Headers::empty()->ifUnmodifiedSince(
+     *     new Date(
+     *         DateTime::from('2026-10-29 10:00:00')
+     *     )
+     * );
+     *
+     * // If-Unmodified-Since: Thu, 29 Oct 2026 10:00:00 GMT
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Date::value() To serialize the HTTP date.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Date $date <p>
+     * Last known modification date.
+     * </p>
+     *
+     * @return self Updated request header collection.
+     */
+    public function ifUnmodifiedSince (Date $date):self {
+
+        return $this->replace(
+            'If-Unmodified-Since',
+            new Value($date->value())
         );
 
     }
