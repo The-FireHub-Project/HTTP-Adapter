@@ -18,8 +18,10 @@ use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
     Authorization\Credentials,
     CacheControl\Custom, CacheControl\RequestDirective,
-    Encoding\Preference as EncodingPreference,
+    Content\Length,
+    Encoding\Custom as EncodingCustom, Encoding\Preference as EncodingPreference, Encoding\Type as EncodingType,
     EntityTag\Tag as EntityTag, EntityTag\Range as EntityTagRange,
+    Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Language\Preference as LanguagePreference,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Preference as MediaPreference, Media\Type as MediaType,
@@ -376,6 +378,130 @@ final readonly class Headers {
             new Value(
                 new ContentType($media, ...$parameters)->value()
             )
+        );
+
+    }
+
+    /**
+     * ### Sets the Content-Encoding header
+     *
+     * Specifies the content codings applied to the representation.
+     *
+     * <code>
+     * $headers = Headers::empty()->contentEncoding(
+     *     EncodingType::GZIP
+     * );
+     *
+     * // Content-Encoding: gzip
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Encoding\Type|\FireHub\Adapter\HTTP\Header\Encoding\Custom<non-empty-string> $encoding <p>
+     * First content coding.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Encoding\Type|\FireHub\Adapter\HTTP\Header\Encoding\Custom<non-empty-string> ...$additional <p>
+     * Additional content codings.
+     * </p>
+     *
+     * @return self Updated header collection.
+     */
+    public function contentEncoding (EncodingType|EncodingCustom $encoding, EncodingType|EncodingCustom ...$additional):self {
+
+        $values = [
+            $encoding instanceof EncodingType
+                ? $encoding->value
+                : $encoding->value()
+        ];
+
+        foreach ($additional as $item)
+            $values[] = $item instanceof EncodingType
+                ? $item->value
+                : $item->value();
+
+        return $this->replace(
+            'Content-Encoding',
+            new Value(
+                Runtime\Str\SB\Delimiter::implode($values, ', ')
+            )
+        );
+
+    }
+
+    /**
+     * ### Sets the Content-Language header
+     *
+     * Specifies the natural languages of the intended audience for the representation.
+     *
+     * <code>
+     * $headers = Headers::empty()->contentLanguage(
+     *     LanguageType::EN_US
+     * );
+     *
+     * // Content-Language: en-US
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join content languages.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Language\Type|\FireHub\Adapter\HTTP\Header\Language\Custom<non-empty-string> $language <p>
+     * First content language.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Language\Type|\FireHub\Adapter\HTTP\Header\Language\Custom<non-empty-string> ...$additional <p>
+     * Additional content languages.
+     * </p>
+     *
+     * @return self Updated header collection.
+     */
+    public function contentLanguage (LanguageType|LanguageCustom $language, LanguageType|LanguageCustom ...$additional):self {
+
+        $values = [
+            $language instanceof LanguageType
+                ? $language->value
+                : $language->value()
+        ];
+
+        foreach ($additional as $item)
+            $values[] = $item instanceof LanguageType
+                ? $item->value
+                : $item->value();
+
+        return $this->replace(
+            'Content-Language',
+            new Value(Runtime\Str\SB\Delimiter::implode($values, ', '))
+        );
+
+    }
+
+    /**
+     * ### Sets the Content-Length header
+     *
+     * Specifies the size of the message content in octets.
+     *
+     * <code>
+     * $headers = Headers::empty()->contentLength(
+     *     new Length(1024)
+     * );
+     *
+     * // Content-Length: 1024
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Length::value() To serialize the content length.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Content\Length $length <p>
+     * Content length in octets.
+     * </p>
+     *
+     * @return self Updated header collection.
+     */
+    public function contentLength (Length $length):self {
+
+        return $this->replace(
+            'Content-Length',
+            new Value($length->value())
         );
 
     }
