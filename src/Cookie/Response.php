@@ -16,8 +16,7 @@ namespace FireHub\Adapter\HTTP\Cookie;
 use FireHub\Adapter\HTTP\Cookie;
 use FireHub\Foundation\Temporal\DateTime;
 use FireHub\Adapter\HTTP\Cookie\Exception\ {
-    InvalidCookieDomainException, InvalidCookiePartitionedException, InvalidCookiePathException,
-    InvalidCookiePrefixException, InvalidCookieSameSiteException
+    InvalidCookiePartitionedException, InvalidCookiePrefixException, InvalidCookieSameSiteException
 };
 use FireHub\Runtime;
 
@@ -41,6 +40,8 @@ final readonly class Response extends Cookie {
      *
      * @uses \FireHub\Core\Type\ValueObject::guard() To validate the cookie name and value.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the cookie name and value.
+     * @uses \FireHub\Runtime\Str\SB\Search::startsWith() To validate the cookie name and value.
+     * @uses \FireHub\Adapter\HTTP\Cookie\Path::value() To validate the cookie path.
      *
      * @param non-empty-string $name <p>
      * Cookie name.
@@ -48,10 +49,10 @@ final readonly class Response extends Cookie {
      * @param string $value <p>
      * Cookie value.
      * </p>
-     * @param null|string $domain <p>
+     * @param null|\FireHub\Adapter\HTTP\Cookie\Domain $domain <p>
      * Cookie domain.
      * </p>
-     * @param null|string $path <p>
+     * @param null|\FireHub\Adapter\HTTP\Cookie\Path $path <p>
      * Cookie path.
      * </p>
      * @param null|\FireHub\Foundation\Temporal\DateTime<non-empty-string> $expires <p>
@@ -83,8 +84,8 @@ final readonly class Response extends Cookie {
     public function __construct (
         string $name,
         string $value,
-        private ?string $domain = null,
-        private ?string $path = '/',
+        private ?Domain $domain = null,
+        private ?Path $path = null,
         private ?DateTime $expires = null,
         private ?int $max_age = null,
         private bool $secure = true,
@@ -94,26 +95,6 @@ final readonly class Response extends Cookie {
     ) {
 
         parent::__construct($name, $value);
-
-        $this->guard(
-            fn() => $this->domain === null || (
-                    $this->domain !== ''
-                    && !Runtime\Str\SB\Regex::match(
-                        '/[\x00-\x20\x7F;,\\\\]/',
-                        $this->domain
-                    )
-                ),
-            fn() => new InvalidCookieDomainException
-        );
-
-        $this->guard(
-            fn() => $this->path === null
-                || !Runtime\Str\SB\Regex::match(
-                    '/[\x00-\x1F\x7F;]/',
-                    $this->path
-                ),
-            fn() => new InvalidCookiePathException
-        );
 
         $this->guard(
             fn() => $this->same_site !== SameSite::NONE || $this->secure,
@@ -140,7 +121,7 @@ final readonly class Response extends Cookie {
                 ) || (
                     $this->secure
                     && $this->domain === null
-                    && $this->path === '/'
+                    && $this->path?->value() === '/'
                 ),
             fn() => new InvalidCookiePrefixException
         );
@@ -164,7 +145,7 @@ final readonly class Response extends Cookie {
                     $this->secure
                     && $this->http_only
                     && $this->domain === null
-                    && $this->path === '/'
+                    && $this->path?->value() === '/'
                 ),
             fn() => new InvalidCookiePrefixException
         );
@@ -200,7 +181,8 @@ final readonly class Response extends Cookie {
             $this->max_age,
             $this->secure,
             $this->http_only,
-            $this->same_site
+            $this->same_site,
+            $this->partitioned
         );
 
     }
@@ -209,7 +191,7 @@ final readonly class Response extends Cookie {
      * ### Returns a cookie with a different domain
      * @since 1.0.0
      *
-     * @param null|string $domain <p>
+     * @param null|\FireHub\Adapter\HTTP\Cookie\Domain $domain <p>
      * New cookie domain.
      * </p>
      *
@@ -220,7 +202,7 @@ final readonly class Response extends Cookie {
      *
      * @return self<TValue> New cookie instance.
      */
-    public function withDomain (?string $domain):self {
+    public function withDomain (?Domain $domain):self {
 
         /** @var self<TValue> */
         return new self(
@@ -232,7 +214,8 @@ final readonly class Response extends Cookie {
             $this->max_age,
             $this->secure,
             $this->http_only,
-            $this->same_site
+            $this->same_site,
+            $this->partitioned
         );
 
     }
@@ -258,7 +241,7 @@ final readonly class Response extends Cookie {
      * ### Returns a cookie with a different path
      * @since 1.0.0
      *
-     * @param null|string $path <p>
+     * @param null|\FireHub\Adapter\HTTP\Cookie\Path $path <p>
      * New cookie path.
      * </p>
      *
@@ -269,7 +252,7 @@ final readonly class Response extends Cookie {
      *
      * @return self<TValue> New cookie instance.
      */
-    public function withPath (?string $path):self {
+    public function withPath (?Path $path):self {
 
         /** @var self<TValue> */
         return new self(
@@ -281,7 +264,8 @@ final readonly class Response extends Cookie {
             $this->max_age,
             $this->secure,
             $this->http_only,
-            $this->same_site
+            $this->same_site,
+            $this->partitioned
         );
 
     }
@@ -330,7 +314,8 @@ final readonly class Response extends Cookie {
             $this->max_age,
             $this->secure,
             $this->http_only,
-            $this->same_site
+            $this->same_site,
+            $this->partitioned
         );
 
     }
@@ -379,7 +364,8 @@ final readonly class Response extends Cookie {
             $max_age,
             $this->secure,
             $this->http_only,
-            $this->same_site
+            $this->same_site,
+            $this->partitioned
         );
 
     }
@@ -424,7 +410,8 @@ final readonly class Response extends Cookie {
             $this->max_age,
             true,
             $this->http_only,
-            $this->same_site
+            $this->same_site,
+            $this->partitioned
         );
 
     }
@@ -452,7 +439,8 @@ final readonly class Response extends Cookie {
             $this->max_age,
             false,
             $this->http_only,
-            $this->same_site
+            $this->same_site,
+            $this->partitioned
         );
 
     }
@@ -480,7 +468,8 @@ final readonly class Response extends Cookie {
             $this->max_age,
             $this->secure,
             true,
-            $this->same_site
+            $this->same_site,
+            $this->partitioned
         );
 
     }
@@ -508,7 +497,8 @@ final readonly class Response extends Cookie {
             $this->max_age,
             $this->secure,
             false,
-            $this->same_site
+            $this->same_site,
+            $this->partitioned
         );
 
     }
@@ -540,7 +530,8 @@ final readonly class Response extends Cookie {
             $this->max_age,
             $this->secure,
             $this->http_only,
-            $same_site
+            $same_site,
+            $this->partitioned
         );
 
     }
@@ -624,9 +615,9 @@ final readonly class Response extends Cookie {
      * ### Gets the cookie domain
      * @since 1.0.0
      *
-     * @return null|string Cookie domain.
+     * @return null|\FireHub\Adapter\HTTP\Cookie\Domain Cookie domain.
      */
-    public function domain ():?string {
+    public function domain ():?Domain {
 
         return $this->domain;
 
@@ -636,9 +627,9 @@ final readonly class Response extends Cookie {
      * ### Gets the cookie path
      * @since 1.0.0
      *
-     * @return null|string Cookie path.
+     * @return null|\FireHub\Adapter\HTTP\Cookie\Path Cookie path.
      */
-    public function path ():?string {
+    public function path ():?Path {
 
         return $this->path;
 
@@ -713,6 +704,28 @@ final readonly class Response extends Cookie {
     public function partitioned ():bool {
 
         return $this->partitioned;
+
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @since 1.0.0
+     */
+    protected function comparisonValue ():array {
+
+        return [
+            $this->name,
+            $this->value,
+            $this->domain?->value(),
+            $this->path?->value(),
+            $this->expires?->timestamp(),
+            $this->max_age,
+            $this->secure,
+            $this->http_only,
+            $this->same_site?->value,
+            $this->partitioned
+        ];
 
     }
 

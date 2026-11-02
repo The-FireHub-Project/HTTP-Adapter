@@ -106,7 +106,7 @@ abstract readonly class Cookie extends ValueObject {
      *
      * @since 1.0.0
      *
-     * @return array{non-empty-string, string} Comparison value.
+     * @return list<mixed> Comparison value.
      */
     protected function comparisonValue():array {
 
