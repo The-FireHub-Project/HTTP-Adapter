@@ -16,6 +16,7 @@ namespace FireHub\Adapter\HTTP\Response;
 
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
+    Authorization\Challenge,
     CacheControl\Custom, CacheControl\ResponseDirective,
     Content\Length,
     Cookie\Set as SetCookie,
@@ -66,6 +67,58 @@ final readonly class Headers {
     public static function empty ():self {
 
         return new self(MessageHeaders::empty());
+
+    }
+
+    /**
+     * ### Sets the WWW-Authenticate response header
+     *
+     * Advertises one or more authentication challenges supported by the server.
+     *
+     * Each challenge is stored as a separate WWW-Authenticate header field. Replaces any previously configured
+     * WWW-Authenticate headers.
+     *
+     * <code>
+     * $headers = Headers::empty()->wwwAuthenticate(
+     *     new Basic('FireHub API')
+     * );
+     *
+     * // WWW-Authenticate: Basic realm="FireHub API", charset="UTF-8"
+     *
+     * $headers = Headers::empty()->wwwAuthenticate(
+     *     new Basic('FireHub API'),
+     *     new Bearer('FireHub API')
+     * );
+     *
+     * // WWW-Authenticate: Basic realm="FireHub API", charset="UTF-8"
+     * // WWW-Authenticate: Bearer realm="FireHub API"
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Authorization\Challenge::value() To serialize authentication challenges.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace existing WWW-Authenticate headers.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Authorization\Challenge $challenge <p>
+     * First authentication challenge.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Authorization\Challenge ...$additional <p>
+     * Additional authentication challenges.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function wwwAuthenticate (Challenge $challenge, Challenge ...$additional):self {
+
+        $values = [];
+
+        foreach ([$challenge, ...$additional] as $item)
+            $values[] = new Value($item->value());
+
+        return $this->replace(
+            'WWW-Authenticate',
+            ...$values
+        );
 
     }
 
