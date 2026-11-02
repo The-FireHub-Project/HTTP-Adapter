@@ -29,7 +29,12 @@ use FireHub\Adapter\HTTP\Header\ {
     UserAgent\Product as UserAgentProduct, UserAgent\Comment as UserAgentComment,
     Date, Name, Value,
 };
-use FireHub\Adapter\HTTP\Header\Exception\InvalidEntityTagException;
+use FireHub\Foundation\ {
+    Uri\Component\Path, Uri\KnownScheme, Uri
+};
+use FireHub\Adapter\HTTP\Header\Exception\ {
+    InvalidEntityTagException, InvalidOriginException
+};
 use FireHub\Runtime;
 
 /**
@@ -750,6 +755,133 @@ final readonly class Headers {
         return $this->replace(
             'If-Unmodified-Since',
             new Value($date->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Referer request header
+     *
+     * Specifies the URI reference of the resource from which the target URI was obtained.
+     *
+     * URI fragments and user information are automatically removed to comply with HTTP Referer header requirements.
+     *
+     * <code>
+     * $headers = Headers::empty()->referer(
+     *     Uri::parse('https://example.com/products#details')
+     * );
+     *
+     * // Referer: https://example.com/products
+     *
+     * $headers = Headers::empty()->referer(
+     *     Uri::parse('https://user:password@example.com/products')
+     * );
+     *
+     * // Referer: https://example.com/products
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Foundation\Uri::withoutFragment() To remove the URI fragment.
+     * @uses \FireHub\Foundation\Uri::authority() To retrieve the URI authority.
+     * @uses \FireHub\Foundation\Uri\Component\Authority::withoutUserInfo() To remove user information.
+     * @uses \FireHub\Foundation\Uri::withAuthority() To replace the URI authority.
+     * @uses \FireHub\Foundation\Uri::value() To serialize the URI reference.
+     *
+     * @param \FireHub\Foundation\Uri $referer <p>
+     * URI reference identifying the referring resource.
+     * </p>
+     *
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidUriException If the URI component combination is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Updated request header collection.
+     */
+    public function referer (Uri $referer):self {
+
+        $referer = $referer->withoutFragment();
+
+        $authority = $referer->authority();
+
+        if ($authority !== null && $authority->userInfo() !== null)
+            $referer = $referer->withAuthority(
+                $authority->withoutUserInfo()
+            );
+
+        return $this->replace(
+            'Referer',
+            new Value($referer->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Origin request header
+     *
+     * Specifies the origin that initiated the HTTP request.
+     *
+     * The origin consists of the URI scheme, host, and optional port. Path, query, fragment, and user information
+     * are excluded.
+     *
+     * <code>
+     * $headers = Headers::empty()->origin(
+     *     Uri::parse('https://example.com/products?page=2#details')
+     * );
+     *
+     * // Origin: https://example.com
+     *
+     * $headers = Headers::empty()->origin(
+     *     Uri::parse('http://localhost:8080/api/users')
+     * );
+     *
+     * // Origin: http://localhost:8080
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Foundation\Uri::scheme() To retrieve the URI scheme.
+     * @uses \FireHub\Foundation\Uri::authority() To retrieve the URI authority.
+     * @uses \FireHub\Foundation\Uri\Component\Authority::withoutUserInfo() To remove user information.
+     * @uses \FireHub\Foundation\Uri::withAuthority() To replace the URI authority.
+     * @uses \FireHub\Foundation\Uri::withPath() To remove the URI path.
+     * @uses \FireHub\Foundation\Uri::withoutQuery() To remove the URI query.
+     * @uses \FireHub\Foundation\Uri::withoutFragment() To remove the URI fragment.
+     * @uses \FireHub\Foundation\Uri::value() To serialize the origin.
+     *
+     * @param \FireHub\Foundation\Uri $origin <p>
+     * URI identifying the origin of the request.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidOriginException If the URI cannot represent an HTTP origin.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidUriException If the URI component combination is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Updated request header collection.
+     */
+    public function origin (Uri $origin):self {
+
+        $scheme = $origin->scheme()?->normalized();
+        $authority = $origin->authority();
+
+        if (
+            ($scheme !== KnownScheme::HTTP->value && $scheme !== KnownScheme::HTTPS->value)
+            || $origin->authority() === null
+            || $origin->authority()->host()->value() === ''
+        ) throw new InvalidOriginException;
+
+        return $this->replace(
+            'Origin',
+            new Value(
+                $origin
+                    ->withAuthority($authority->withoutUserInfo())
+                    ->withPath(new Path(''))
+                    ->withoutQuery()
+                    ->withoutFragment()
+                    ->normalize()
+                    ->value()
+            )
         );
 
     }
