@@ -18,12 +18,14 @@ use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
     CacheControl\Custom, CacheControl\ResponseDirective,
     Content\Length,
+    Cookie\Set as SetCookie,
     Encoding\Custom as EncodingCustom, Encoding\Type as EncodingType,
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
     Name, Value
 };
+use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Runtime;
 
 /**
@@ -272,6 +274,60 @@ final readonly class Headers {
         return $this->replace(
             'Content-Length',
             new Value($length->value())
+        );
+
+    }
+
+    /**
+     * ### Adds an HTTP response cookie
+     *
+     * Appends a Set-Cookie header without replacing previously configured cookies.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->setCookie(
+     *         new ResponseCookie(
+     *             name: 'session',
+     *             value: 'abc123',
+     *             path: new Path('/'),
+     *             max_age: 3600
+     *         )
+     *     )
+     *     ->setCookie(
+     *         new ResponseCookie(
+     *             name: 'theme',
+     *             value: 'dark',
+     *             path: new Path('/'),
+     *             http_only: false
+     *         )
+     *     );
+     *
+     * // Set-Cookie: session=abc123; Path=/; Max-Age=3600; Secure; HttpOnly; SameSite=Lax
+     * // Set-Cookie: theme=dark; Path=/; Secure; SameSite=Lax
+     *
+     * // Each cookie is stored as a separate Set-Cookie header field.
+     * // Existing Set-Cookie headers are preserved.
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\SetCookie::value() To serialize the cookie.
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::add() To append the header.
+     *
+     * @param \FireHub\Adapter\HTTP\Cookie\Response<string> $cookie <p>
+     * Response cookie.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function setCookie (ResponseCookie $cookie):self {
+
+        return new self(
+            $this->headers->add(
+                new Name('Set-Cookie'),
+                new Value(
+                    new SetCookie($cookie)->value())
+            )
         );
 
     }

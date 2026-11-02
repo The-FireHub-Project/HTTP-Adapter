@@ -19,6 +19,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Authorization\Credentials,
     CacheControl\Custom, CacheControl\RequestDirective,
     Content\Length,
+    Cookie\Request as Cookie,
     Encoding\Custom as EncodingCustom, Encoding\Preference as EncodingPreference, Encoding\Type as EncodingType,
     EntityTag\Tag as EntityTag, EntityTag\Range as EntityTagRange,
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
@@ -29,6 +30,7 @@ use FireHub\Adapter\HTTP\Header\ {
     UserAgent\Product as UserAgentProduct, UserAgent\Comment as UserAgentComment,
     Date, Name, Value,
 };
+use FireHub\Adapter\HTTP\Cookie\Request as RequestCookie;
 use FireHub\Foundation\ {
     Uri\Component\Path, Uri\KnownScheme, Uri
 };
@@ -882,6 +884,55 @@ final readonly class Headers {
                     ->withoutFragment()
                     ->normalize()
                     ->value()
+            )
+        );
+
+    }
+
+    /**
+     * ### Sets the Cookie request header
+     *
+     * Serializes one or more request cookies into a single Cookie header field.
+     *
+     * Replaces all previously configured Cookie headers. Preserves cookie order and duplicate cookie names.
+     *
+     * <code>
+     * $headers = Headers::empty()->cookie(
+     *     new RequestCookie('session', 'abc123'),
+     *     new RequestCookie('theme', 'dark')
+     * );
+     *
+     * // Cookie: session=abc123; theme=dark
+     *
+     * // Duplicate cookie names are preserved.
+     * $headers = Headers::empty()->cookie(
+     *     new RequestCookie('session', 'abc123'),
+     *     new RequestCookie('session', 'xyz789')
+     * );
+     *
+     * // Cookie: session=abc123; session=xyz789
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Cookie\Request::value() To serialize request cookies.
+     * @uses \FireHub\Adapter\HTTP\Request\Headers::replace() To replace the Cookie header.
+     *
+     * @param \FireHub\Adapter\HTTP\Cookie\Request<string> $cookie <p>
+     * First request cookie.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Cookie\Request<string> ...$additional <p>
+     * Additional request cookies.
+     * </p>
+     *
+     * @return self Updated request header collection.
+     */
+    public function cookie (RequestCookie $cookie, RequestCookie ...$additional):self {
+
+        return $this->replace(
+            'Cookie',
+            new Value(
+                new Cookie($cookie, ...$additional)->value()
             )
         );
 
