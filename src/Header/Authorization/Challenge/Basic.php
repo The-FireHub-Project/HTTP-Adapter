@@ -29,7 +29,7 @@ final readonly class Basic implements Challenge {
      * ### Constructor
      * @since 1.0.0
      *
-     * @uses \FireHub\Runtime\Str\SB\Search::contains() To validate the realm.
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the realm.
      *
      * @param string $realm <p>
      * Authentication protection space.
@@ -48,10 +48,10 @@ final readonly class Basic implements Challenge {
         private bool $utf8 = true
     ) {
 
-        if (
-            Runtime\Str\SB\Search::contains("\r", $realm)
-            || Runtime\Str\SB\Search::contains("\n", $realm)
-        ) throw new InvalidAuthenticationRealmException;
+        if (Runtime\Str\SB\Regex::match(
+            '/[\x00-\x1F\x7F]/',
+            $realm
+        )) throw new InvalidAuthenticationRealmException;
 
     }
 

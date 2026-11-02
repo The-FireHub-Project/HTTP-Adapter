@@ -57,11 +57,11 @@ final readonly class Basic extends ValueObject implements Credentials {
 
         $this->guard(
             fn() => !Runtime\Str\SB\Regex::match(
-                '/[\x00-\x1F\x7F]/',
+                '/[\x00-\x1F\x7F:]/',
                 $username
             ),
             fn() => new InvalidCredentialsFormatException(
-                'Username contains control characters.'
+                'Basic authentication username contains invalid characters.'
             )
         );
 

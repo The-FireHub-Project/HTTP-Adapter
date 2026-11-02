@@ -15,7 +15,9 @@ namespace FireHub\Adapter\HTTP\Header\Cookie;
 
 use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Cookie\Request as RequestCookie;
-use FireHub\Adapter\HTTP\Cookie\Exception\InvalidCookieNameException;
+use FireHub\Adapter\HTTP\Cookie\Exception\ {
+    InvalidCookieNameException, InvalidCookieValueException
+};
 use FireHub\Runtime;
 
 /**
@@ -112,7 +114,7 @@ final readonly class Request extends ValueObject {
                     $cookie_value
                 );
 
-            } catch (InvalidCookieNameException) {
+            } catch (InvalidCookieNameException|InvalidCookieValueException) {
 
                 continue;
 

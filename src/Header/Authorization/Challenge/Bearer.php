@@ -65,14 +65,45 @@ final readonly class Bearer implements Challenge {
         private ?Uri $error_uri = null
     ) {
 
-        foreach ([$realm, $scope, $error_description, $error_uri?->value()] as $value) {
+        if (
+            $realm !== null
+            && Runtime\Str\SB\Regex::match(
+                '/[\x00-\x1F\x7F]/',
+                $realm
+            )
+        ) throw new InvalidAuthenticationParameterException(
+            'Invalid Bearer authentication realm.'
+        );
 
-            if ($value !== null && Runtime\Str\SB\Regex::match('/[\x00-\x1F\x7F]/', $value))
-                throw new InvalidAuthenticationParameterException(
-                    'Invalid Bearer authentication parameter.'
-                );
+        if (
+            $scope !== null
+            && !Runtime\Str\SB\Regex::match(
+                '/\A[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*\z/',
+                $scope
+            )
+        ) throw new InvalidAuthenticationParameterException(
+            'Invalid Bearer authentication scope.'
+        );
 
-        }
+        if (
+            $error_description !== null
+            && !Runtime\Str\SB\Regex::match(
+                '/\A[\x20-\x21\x23-\x5B\x5D-\x7E]*\z/',
+                $error_description
+            )
+        ) throw new InvalidAuthenticationParameterException(
+            'Invalid Bearer authentication error description.'
+        );
+
+        if (
+            $error_uri !== null
+            && !Runtime\Str\SB\Regex::match(
+                '/\A[\x21\x23-\x5B\x5D-\x7E]+\z/',
+                $error_uri->value()
+            )
+        ) throw new InvalidAuthenticationParameterException(
+            'Invalid Bearer authentication error URI.'
+        );
 
     }
 
