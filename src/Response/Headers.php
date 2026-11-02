@@ -20,12 +20,14 @@ use FireHub\Adapter\HTTP\Header\ {
     Content\Length,
     Cookie\Set as SetCookie,
     Encoding\Custom as EncodingCustom, Encoding\Type as EncodingType,
+    EntityTag\Tag as EntityTag,
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    Name, Value
+    Date, Name, Value
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
+use FireHub\Foundation\Uri;
 use FireHub\Runtime;
 
 /**
@@ -328,6 +330,139 @@ final readonly class Headers {
                 new Value(
                     new SetCookie($cookie)->value())
             )
+        );
+
+    }
+
+    /**
+     * ### Sets the ETag response header
+     *
+     * Specifies an entity tag identifying a particular version of the selected resource representation.
+     *
+     * Entity tags may use strong or weak comparison semantics.
+     *
+     * Replaces any previously configured ETag header.
+     *
+     * <code>
+     * $headers = Headers::empty()->etag(
+     *     new EntityTag('version-123')
+     * );
+     *
+     * // ETag: "version-123"
+     *
+     * $headers = Headers::empty()->etag(
+     *     new EntityTag('version-123', true)
+     * );
+     *
+     * // ETag: W/"version-123"
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\EntityTag\Tag::value() To serialize the entity tag.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the ETag header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\EntityTag\Tag $tag <p>
+     * Entity tag identifying the selected representation.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function etag (EntityTag $tag):self {
+
+        return $this->replace(
+            'ETag',
+            new Value($tag->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Last-Modified response header
+     *
+     * Specifies the date and time at which the origin server believes the selected resource representation was last
+     * modified.
+     *
+     * The date is serialized in HTTP-date format using GMT.
+     *
+     * Replaces any previously configured Last-Modified header.
+     *
+     * <code>
+     * $headers = Headers::empty()->lastModified(
+     *     new Date(
+     *         DateTime::from('2026-10-29 10:00:00')
+     *     )
+     * );
+     *
+     * // Last-Modified: Thu, 29 Oct 2026 10:00:00 GMT
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Date::value() To serialize the HTTP date.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the Last-Modified header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Date $date <p>
+     * Date and time when the selected representation was last modified.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function lastModified (Date $date):self {
+
+        return $this->replace(
+            'Last-Modified',
+            new Value($date->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Location response header
+     *
+     * Specifies a URI reference identifying the target resource of a redirect or the primary resource created by a
+     * successful request.
+     *
+     * Supports both absolute and relative URI references.
+     *
+     * Replaces any previously configured Location header.
+     *
+     * <code>
+     * $headers = Headers::empty()->location(
+     *     Uri::parse('https://example.com/dashboard')
+     * );
+     *
+     * // Location: https://example.com/dashboard
+     *
+     * $headers = Headers::empty()->location(
+     *     Uri::parse('/users/123')
+     * );
+     *
+     * // Location: /users/123
+     *
+     * $headers = Headers::empty()->location(
+     *     Uri::parse('../login')
+     * );
+     *
+     * // Location: ../login
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Foundation\Uri::value() To serialize the URI reference.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the Location header.
+     *
+     * @param \FireHub\Foundation\Uri $location <p>
+     * URI reference identifying the target resource.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function location (Uri $location):self {
+
+        return $this->replace(
+            'Location',
+            new Value($location->value())
         );
 
     }
