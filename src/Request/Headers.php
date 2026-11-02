@@ -871,6 +871,7 @@ final readonly class Headers {
             || $origin->authority()->host()->value() === ''
         ) throw new InvalidOriginException;
 
+        /** @var \FireHub\Foundation\Uri\Component\Authority $authority */
         return $this->replace(
             'Origin',
             new Value(
