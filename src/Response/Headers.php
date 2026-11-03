@@ -1181,9 +1181,7 @@ final readonly class Headers {
      *
      * @return self Updated response headers.
      */
-    public function crossOriginEmbedderPolicy (
-        CrossOriginEmbedderPolicy $policy
-    ):self {
+    public function crossOriginEmbedderPolicy (CrossOriginEmbedderPolicy $policy):self {
 
         return $this->replace(
             'Cross-Origin-Embedder-Policy',
@@ -1217,9 +1215,7 @@ final readonly class Headers {
      *
      * @return self Updated response headers.
      */
-    public function crossOriginResourcePolicy (
-        CrossOriginResourcePolicy $policy
-    ):self {
+    public function crossOriginResourcePolicy (CrossOriginResourcePolicy $policy):self {
 
         return $this->replace(
             'Cross-Origin-Resource-Policy',
