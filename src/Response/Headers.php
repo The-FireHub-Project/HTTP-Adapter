@@ -25,8 +25,8 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, ContentSecurityPolicy, Date, Name, ReferrerPolicy,
-    ReportingEndpoints, RetryAfter, StrictTransportSecurity, Value, Vary
+    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, ContentSecurityPolicy, Date, Name, PermissionsPolicy,
+    ReferrerPolicy, ReportingEndpoints, RetryAfter, StrictTransportSecurity, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Adapter\HTTP\Request\Method;
@@ -1083,6 +1083,40 @@ final readonly class Headers {
         return $this->replace(
             'Referrer-Policy',
             new Value($policy->value)
+        );
+
+    }
+
+    /**
+     * ### Sets the Permissions-Policy response header
+     *
+     * Defines which browser capabilities are available to the current document and its embedded browsing contexts.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->permissionsPolicy(
+     *         new PermissionsPolicy()
+     *             ->withFeature(Feature::CAMERA, Allowlist::none())
+     *             ->withFeature(Feature::MICROPHONE, Allowlist::none())
+     *             ->withFeature(Feature::GEOLOCATION, Allowlist::self())
+     *     );
+     *
+     * // Permissions-Policy: camera=(), microphone=(), geolocation=(self)
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\PermissionsPolicy $policy <p>
+     * Permissions policy to apply.
+     * </p>
+     *
+     * @return self Updated response headers.
+     */
+    public function permissionsPolicy (PermissionsPolicy $policy):self {
+
+        return $this->replace(
+            'Permissions-Policy',
+            new Value($policy->value())
         );
 
     }
