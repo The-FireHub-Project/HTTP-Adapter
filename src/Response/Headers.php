@@ -25,7 +25,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    Date, Name, Value
+    Date, Name, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Foundation\Uri;
@@ -516,6 +516,44 @@ final readonly class Headers {
         return $this->replace(
             'Location',
             new Value($location->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Vary response header
+     *
+     * Specifies the request header fields that influence the selection of the response representation.
+     *
+     * Replaces any previously configured Vary header.
+     *
+     * <code>
+     * $headers = Headers::empty()->vary(
+     *     new Vary(
+     *         new Name('Accept-Encoding'),
+     *         new Name('Accept-Language')
+     *     )
+     * );
+     *
+     * // Vary: Accept-Encoding, Accept-Language
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Vary::value() To serialize the Vary header.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the Vary header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Vary $vary <p>
+     * Vary header definition.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function vary (Vary $vary):self {
+
+        return $this->replace(
+            'Vary',
+            new Value($vary->value())
         );
 
     }
