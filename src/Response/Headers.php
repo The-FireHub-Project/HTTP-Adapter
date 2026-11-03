@@ -25,7 +25,8 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, Date, Name, RetryAfter, Value, Vary
+    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, Date, Name, RetryAfter, StrictTransportSecurity,
+    Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Adapter\HTTP\Request\Method;
@@ -847,6 +848,48 @@ final readonly class Headers {
         return $this->replace(
             'Accept-Ranges',
             new Value($ranges->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Strict-Transport-Security response header
+     *
+     * Defines an HTTP Strict Transport Security policy for the target host.
+     *
+     * The policy instructs supporting user agents to use HTTPS for subsequent requests during the specified maximum
+     * age.
+     *
+     * Replaces any previously configured Strict-Transport-Security header.
+     *
+     * <code>
+     * $headers = Headers::empty()->strictTransportSecurity(
+     *     new StrictTransportSecurity(
+     *         max_age: 31536000,
+     *         include_subdomains: true,
+     *         preload: true
+     *     )
+     * );
+     *
+     * // Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\StrictTransportSecurity::value() To serialize the HSTS policy.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the HSTS header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\StrictTransportSecurity $policy <p>
+     * HTTP Strict Transport Security policy.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function strictTransportSecurity (StrictTransportSecurity $policy):self {
+
+        return $this->replace(
+            'Strict-Transport-Security',
+            new Value($policy->value())
         );
 
     }

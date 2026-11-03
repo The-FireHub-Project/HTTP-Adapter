@@ -16,7 +16,7 @@ namespace FireHub\Adapter\HTTP\Header\Exception;
 use FireHub\Core\Exception\Runtime\InvalidArgumentException;
 
 /**
- * ### ### Invalid Content-Disposition exception
+ * ### Invalid Content-Disposition exception
  * @since 1.0.0
  */
 final class InvalidContentDispositionException extends InvalidArgumentException {
