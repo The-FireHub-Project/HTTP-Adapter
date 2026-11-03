@@ -25,7 +25,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    AcceptRanges, Allow, ContentDisposition, ContentRange, Date, Name, RetryAfter, Value, Vary
+    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, Date, Name, RetryAfter, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Adapter\HTTP\Request\Method;
@@ -552,6 +552,84 @@ final readonly class Headers {
         return $this->replace(
             'Last-Modified',
             new Value($date->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Expires response header
+     *
+     * Specifies the date and time after which the response is considered stale.
+     *
+     * The date is serialized using the HTTP IMF-fixdate format.
+     *
+     * Cache-Control directives such as max-age and s-maxage take precedence over Expires when determining response
+     * freshness.
+     *
+     * Replaces any previously configured Expires header.
+     *
+     * <code>
+     * $headers = Headers::empty()->expires(
+     *     new Date($date_time)
+     * );
+     *
+     * // Expires: Tue, 03 Nov 2026 10:00:00 GMT
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Date::value() To serialize the expiration date.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the Expires header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Date $expires <p>
+     * Date and time after which the response is considered stale.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function expires (Date $expires):self {
+
+        return $this->replace(
+            'Expires',
+            new Value($expires->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Age response header
+     *
+     * Specifies the estimated age of the response in seconds.
+     *
+     * The Age field is primarily used by HTTP caches to communicate how long a response has existed since its
+     * generation or validation.
+     *
+     * Replaces any previously configured Age header.
+     *
+     * <code>
+     * $headers = Headers::empty()->age(
+     *     new Age(120)
+     * );
+     *
+     * // Age: 120
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Age::value() To serialize the Age header.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the Age header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Age $age <p>
+     * Estimated response age.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function age (Age $age):self {
+
+        return $this->replace(
+            'Age',
+            new Value($age->value())
         );
 
     }
