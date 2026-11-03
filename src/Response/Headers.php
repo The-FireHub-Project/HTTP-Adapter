@@ -25,7 +25,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    Allow, Date, Name, RetryAfter, Value, Vary
+    Allow, ContentDisposition, Date, Name, RetryAfter, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Adapter\HTTP\Request\Method;
@@ -330,6 +330,46 @@ final readonly class Headers {
         return $this->replace(
             'Content-Length',
             new Value($length->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Content-Disposition response header
+     *
+     * Specifies whether response content should be displayed inline or handled as an attachment.
+     *
+     * Supports UTF-8 filenames through the filename* parameter.
+     *
+     * Replaces any previously configured Content-Disposition header.
+     *
+     * <code>
+     * $headers = Headers::empty()->contentDisposition(
+     *     new ContentDisposition(
+     *         Type::ATTACHMENT,
+     *         'report.pdf'
+     *     )
+     * );
+     *
+     * // Content-Disposition: attachment; filename="report.pdf"
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentDisposition::value() To serialize the disposition.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the Content-Disposition header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentDisposition $disposition <p>
+     * Content disposition definition.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function contentDisposition (ContentDisposition $disposition):self {
+
+        return $this->replace(
+            'Content-Disposition',
+            new Value($disposition->value())
         );
 
     }
