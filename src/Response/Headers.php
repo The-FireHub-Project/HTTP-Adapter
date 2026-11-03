@@ -25,8 +25,9 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, ContentSecurityPolicy, Date, Name, PermissionsPolicy,
-    ReferrerPolicy, ReportingEndpoints, RetryAfter, StrictTransportSecurity, Value, Vary
+    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, ContentSecurityPolicy, CrossOriginEmbedderPolicy,
+    CrossOriginOpenerPolicy, CrossOriginResourcePolicy, Date, Name, PermissionsPolicy, ReferrerPolicy,
+    ReportingEndpoints, RetryAfter, StrictTransportSecurity, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Adapter\HTTP\Request\Method;
@@ -1117,6 +1118,112 @@ final readonly class Headers {
         return $this->replace(
             'Permissions-Policy',
             new Value($policy->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Cross-Origin-Opener-Policy response header
+     *
+     * Controls whether the document shares a browsing context group with other documents, helping isolate
+     * cross-origin browsing contexts.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->crossOriginOpenerPolicy(
+     *         CrossOriginOpenerPolicy::SAME_ORIGIN
+     *     );
+     *
+     * // Cross-Origin-Opener-Policy: same-origin
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\CrossOriginOpenerPolicy $policy <p>
+     * Cross-origin opener policy to apply.
+     * </p>
+     *
+     * @return self Updated response headers.
+     */
+    public function crossOriginOpenerPolicy (CrossOriginOpenerPolicy $policy):self {
+
+        return $this->replace(
+            'Cross-Origin-Opener-Policy',
+            new Value($policy->value)
+        );
+
+    }
+
+    /**
+     * ### Sets the Cross-Origin-Embedder-Policy response header
+     *
+     * Controls whether cross-origin resources can be loaded without explicitly granting permission through CORS or
+     * CORP.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->crossOriginEmbedderPolicy(
+     *         CrossOriginEmbedderPolicy::REQUIRE_CORP
+     *     );
+     *
+     * // Cross-Origin-Embedder-Policy: require-corp
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\CrossOriginEmbedderPolicy $policy <p>
+     * Cross-origin embedder policy to apply.
+     * </p>
+     *
+     * @return self Updated response headers.
+     */
+    public function crossOriginEmbedderPolicy (
+        CrossOriginEmbedderPolicy $policy
+    ):self {
+
+        return $this->replace(
+            'Cross-Origin-Embedder-Policy',
+            new Value($policy->value)
+        );
+
+    }
+
+    /**
+     * ### Sets the Cross-Origin-Resource-Policy response header
+     *
+     * Controls whether the response resource can be loaded by documents from different origins or sites using
+     * no-cors requests.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->crossOriginResourcePolicy(
+     *         CrossOriginResourcePolicy::SAME_ORIGIN
+     *     );
+     *
+     * // Cross-Origin-Resource-Policy: same-origin
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\CrossOriginResourcePolicy $policy <p>
+     * Cross-origin resource policy to apply.
+     * </p>
+     *
+     * @return self Updated response headers.
+     */
+    public function crossOriginResourcePolicy (
+        CrossOriginResourcePolicy $policy
+    ):self {
+
+        return $this->replace(
+            'Cross-Origin-Resource-Policy',
+            new Value($policy->value)
         );
 
     }
