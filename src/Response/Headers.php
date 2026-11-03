@@ -25,8 +25,8 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, ContentSecurityPolicy, Date, Name, RetryAfter,
-    StrictTransportSecurity, Value, Vary
+    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, ContentSecurityPolicy, Date, Name,
+    ReportingEndpoints, RetryAfter, StrictTransportSecurity, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Adapter\HTTP\Request\Method;
@@ -1003,6 +1003,50 @@ final readonly class Headers {
         return $this->replace(
             'Strict-Transport-Security',
             new Value($policy->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Reporting-Endpoints response header
+     *
+     * Defines named endpoints used by supporting browsers to deliver diagnostic and security reports.
+     *
+     * Replaces any previously configured Reporting-Endpoints header.
+     *
+     * <code>
+     * $group = new ReportingGroup('csp-endpoint');
+     *
+     * $endpoints = ReportingEndpoints::create()
+     *     ->withEndpoint(
+     *         new Endpoint(
+     *             $group,
+     *             $uri
+     *         )
+     *     );
+     *
+     * $headers = Headers::empty()
+     *     ->reportingEndpoints($endpoints);
+     *
+     * // Reporting-Endpoints: csp-endpoint="https://example.com/csp-report"
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ReportingEndpoints::value() To serialize the reporting endpoints.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ReportingEndpoints $endpoints <p>
+     * Reporting endpoint definitions.
+     * </p>
+     *
+     * @return self Updated response headers.
+     */
+    public function reportingEndpoints (ReportingEndpoints $endpoints):self {
+
+        return $this->replace(
+            'Reporting-Endpoints',
+            new Value($endpoints->value())
         );
 
     }
