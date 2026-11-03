@@ -25,9 +25,9 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, ContentSecurityPolicy, CrossOriginEmbedderPolicy,
-    CrossOriginOpenerPolicy, CrossOriginResourcePolicy, Date, Name, PermissionsPolicy, ReferrerPolicy,
-    ReportingEndpoints, RetryAfter, StrictTransportSecurity, Value, Vary
+    AcceptRanges, Age, Allow, ClearSiteData, ContentDisposition, ContentRange, ContentSecurityPolicy,
+    CrossOriginEmbedderPolicy, CrossOriginOpenerPolicy, CrossOriginResourcePolicy, Date, Name, PermissionsPolicy,
+    ReferrerPolicy, ReportingEndpoints, RetryAfter, StrictTransportSecurity, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Adapter\HTTP\Request\Method;
@@ -1220,6 +1220,44 @@ final readonly class Headers {
         return $this->replace(
             'Cross-Origin-Resource-Policy',
             new Value($policy->value)
+        );
+
+    }
+
+    /**
+     * ### Sets the Clear-Site-Data response header
+     *
+     * Requests that the browser clear selected categories of site data, such as caches, cookies, and storage.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->clearSiteData(
+     *         ClearSiteData::of(
+     *             Directive::CACHE,
+     *             Directive::COOKIES,
+     *             Directive::STORAGE
+     *         )
+     *     );
+     *
+     * // Clear-Site-Data: "cache", "cookies", "storage"
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ClearSiteData::value() To serialize the directives.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ClearSiteData $policy <p>
+     * Clear-Site-Data policy to apply.
+     * </p>
+     *
+     * @return self Updated response headers.
+     */
+    public function clearSiteData (ClearSiteData $policy):self {
+
+        return $this->replace(
+            'Clear-Site-Data',
+            new Value($policy->value())
         );
 
     }
