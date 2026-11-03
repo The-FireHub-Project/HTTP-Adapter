@@ -16,8 +16,10 @@ namespace FireHub\Adapter\HTTP\Header;
 use FireHub\Core\Type\ValueObject;
 
 use FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ {
-    Directive, SandboxToken, SourceExpression, SourceValidator
+    Directive, ReportingGroup, SandboxToken, SourceExpression, SourceValidator
 };
+use FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException;
+use FireHub\Foundation\Uri;
 use FireHub\Runtime;
 
 /**
@@ -440,6 +442,367 @@ final readonly class ContentSecurityPolicy extends ValueObject {
         return $this->withoutDirective(
             Directive::UPGRADE_INSECURE_REQUESTS
         );
+
+    }
+
+    /**
+     * ### Sets the script element source directive
+     *
+     * Defines allowed sources for JavaScript loaded or executed through script elements.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withSources() To validate and configure the sources.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression ...$sources <p>
+     * Allowed script element sources.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the sources are invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function scriptSrcElem (SourceExpression ...$sources):self {
+
+        return $this->withSources(
+            Directive::SCRIPT_SRC_ELEM,
+            ...$sources
+        );
+
+    }
+
+    /**
+     * ### Sets the script attribute source directive
+     *
+     * Defines restrictions for inline JavaScript event handler attributes, such as onclick and onload.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withSources() To validate and configure the sources.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression ...$sources <p>
+     * Allowed script attribute sources.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the sources are invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function scriptSrcAttr (SourceExpression ...$sources):self {
+
+        return $this->withSources(
+            Directive::SCRIPT_SRC_ATTR,
+            ...$sources
+        );
+
+    }
+
+    /**
+     * ### Sets the style element source directive
+     *
+     * Defines allowed sources for stylesheets loaded through link elements and styles declared within style elements.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withSources() To validate and configure the sources.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression ...$sources <p>
+     * Allowed style element sources.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the sources are invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function styleSrcElem (SourceExpression ...$sources):self {
+
+        return $this->withSources(
+            Directive::STYLE_SRC_ELEM,
+            ...$sources
+        );
+
+    }
+
+    /**
+     * ### Sets the style attribute source directive
+     *
+     * Defines restrictions for inline CSS declarations specified through HTML style attributes.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withSources() To validate and configure the sources.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression ...$sources <p>
+     * Allowed style attribute sources.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the sources are invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function styleSrcAttr (SourceExpression ...$sources):self {
+
+        return $this->withSources(
+            Directive::STYLE_SRC_ATTR,
+            ...$sources
+        );
+
+    }
+
+    /**
+     * ### Sets the frame source directive
+     *
+     * Defines allowed sources for nested browsing contexts, including iframe elements.
+     *
+     * This directive controls which frames the document may load, not which origins may embed the document.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withSources() To validate and configure the sources.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression ...$sources <p>
+     * Allowed frame sources.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the sources are invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function frameSrc (SourceExpression ...$sources):self {
+
+        return $this->withSources(
+            Directive::FRAME_SRC,
+            ...$sources
+        );
+
+    }
+
+    /**
+     * ### Sets the child source directive
+     *
+     * Defines allowed sources for nested browsing contexts and workers, subject to Content Security Policy fallback
+     * rules.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withSources() To validate and configure the sources.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression ...$sources <p>
+     * Allowed child sources.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the sources are invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function childSrc (SourceExpression ...$sources):self {
+
+        return $this->withSources(
+            Directive::CHILD_SRC,
+            ...$sources
+        );
+
+    }
+
+    /**
+     * ### Sets the worker source directive
+     *
+     * Defines allowed sources for Worker, SharedWorker, and ServiceWorker scripts.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withSources() To validate and configure the sources.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression ...$sources <p>
+     * Allowed worker sources.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the sources are invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function workerSrc (SourceExpression ...$sources):self {
+
+        return $this->withSources(
+            Directive::WORKER_SRC,
+            ...$sources
+        );
+
+    }
+
+    /**
+     * ### Sets the manifest source directive
+     *
+     * Defines allowed sources for web application manifests referenced by the protected document.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withSources() To validate and configure the sources.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression ...$sources <p>
+     * Allowed manifest sources.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the sources are invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function manifestSrc (SourceExpression ...$sources):self {
+
+        return $this->withSources(
+            Directive::MANIFEST_SRC,
+            ...$sources
+        );
+
+    }
+
+    /**
+     * ### Sets the base URI directive
+     *
+     * Restricts the URLs that may be used as the document's base URL through the HTML base element.
+     *
+     * This directive does not fall back to default-src.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withSources() To validate and configure the sources.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression ...$sources <p>
+     * Allowed base URI sources.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the sources are invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function baseUri (SourceExpression ...$sources):self {
+
+        return $this->withSources(
+            Directive::BASE_URI,
+            ...$sources
+        );
+
+    }
+
+    /**
+     * ### Sets the form action directive
+     *
+     * Restricts the destinations to which forms may submit their data.
+     *
+     * This directive does not fall back to default-src.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withSources() To validate and configure the sources.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression ...$sources <p>
+     * Allowed form submission destinations.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the sources are invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function formAction (SourceExpression ...$sources):self {
+
+        return $this->withSources(
+            Directive::FORM_ACTION,
+            ...$sources
+        );
+
+    }
+
+    /**
+     * ### Sets the Content Security Policy reporting URIs
+     *
+     * Defines one or more endpoints to which supporting user agents may send Content Security Policy violation reports.
+     *
+     * The report-uri directive is deprecated in favor of report-to, but remains useful for compatibility with older
+     * browsers.
+     *
+     * Relative URI references are supported and resolved by the user agent against the protected document's URL.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Foundation\Uri::value() To validate the URI.
+     * @uses \FireHub\Runtime\Arr\Inspection::inArray() To validate the URIs.
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the URIs.
+     *
+     * @param \FireHub\Foundation\Uri $uri <p>
+     * First reporting endpoint URI.
+     * </p>
+     * @param \FireHub\Foundation\Uri ...$additional <p>
+     * Additional reporting endpoint URIs.
+     * </p>
+     *
+     * @return self Updated policy.
+     */
+    public function reportUri (Uri $uri, Uri ...$additional):self {
+
+        $values = [];
+
+        foreach ([$uri, ...$additional] as $endpoint) {
+
+            $value = $endpoint->value();
+
+            if ($value === '' || Runtime\Str\SB\Regex::match('/[\x00-\x20\x7F;,]/', $value))
+                throw new InvalidContentSecurityPolicyException(
+                    'Invalid CSP reporting endpoint URI.'
+                );
+
+            if (!Runtime\Arr\Inspection::inArray($values, $value))
+                $values[] = $value;
+
+        }
+
+        $directives = $this->directives;
+
+        $directives[Directive::REPORT_URI->value] = $values;
+
+        return new self($directives);
+
+    }
+
+    /**
+     * ### Removes the Content Security Policy reporting URIs
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withoutDirective() To remove the directive.
+     *
+     * @return self Updated policy.
+     */
+    public function withoutReportUri ():self {
+
+        return $this->withoutDirective(Directive::REPORT_URI);
+
+    }
+
+    /**
+     * ### Sets the Content Security Policy reporting group
+     *
+     * Configures the reporting group used to deliver Content Security Policy violation reports.
+     *
+     * The reporting group should be declared using the Reporting-Endpoints HTTP response header.
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup $group <p>
+     * Reporting endpoint group.
+     * </p>
+     *
+     * @return self Updated policy.
+     */
+    public function reportTo (ReportingGroup $group):self {
+
+        $directives = $this->directives;
+
+        $directives[Directive::REPORT_TO->value] = [
+            $group->value()
+        ];
+
+        return new self($directives);
+
+    }
+
+    /**
+     * ### Removes the Content Security Policy reporting group
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withoutDirective() To remove the directive.
+     *
+     * @return self Updated policy.
+     */
+    public function withoutReportTo ():self {
+
+        return $this->withoutDirective(Directive::REPORT_TO);
 
     }
 
