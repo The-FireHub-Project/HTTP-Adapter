@@ -17,10 +17,11 @@ use FireHub\Core\Type\ValueObject;
 
 use FireHub\Adapter\HTTP\Header\Reporting\Group;
 use FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ {
+    TrustedTypes\PolicyName, TrustedTypes\Keyword,
     Directive, SandboxToken, SourceExpression, SourceValidator
 };
-use FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException;
 use FireHub\Foundation\Uri;
+use FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException;
 use FireHub\Runtime;
 
 /**
@@ -804,6 +805,118 @@ final readonly class ContentSecurityPolicy extends ValueObject {
     public function withoutReportTo ():self {
 
         return $this->withoutDirective(Directive::REPORT_TO);
+
+    }
+
+    /**
+     * ### Sets the Trusted Types directive
+     *
+     * Restricts the Trusted Types policies that may be created by JavaScript within the protected document.
+     *
+     * Supports explicit policy names and the special 'none' and 'allow-duplicates' keywords.
+     *
+     * The 'none' keyword cannot be combined with any other policy name or keyword.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\TrustedTypes\PolicyName::value() To validate the policy name.
+     * @uses \FireHub\Runtime\Arr\Inspection::inArray() To validate the policy names and keywords.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To validate the number of policies.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\TrustedTypes\PolicyName|\FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\TrustedTypes\Keyword ...$policies <p>
+     * Allowed Trusted Types policy names and keywords.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the directive configuration is invalid.
+     *
+     * @return self Updated policy.
+     */
+    public function trustedTypes (PolicyName|Keyword ...$policies):self {
+
+        $values = [];
+
+        $has_none = false;
+
+        foreach ($policies as $policy) {
+
+            $value = $policy instanceof PolicyName
+                ? $policy->value()
+                : $policy->value;
+
+            if ($policy instanceof PolicyName)
+                $value = $policy->value();
+
+            if ($policy === Keyword::NONE)
+                $has_none = true;
+
+            if (!Runtime\Arr\Inspection::inArray($values, $value))
+                $values[] = $value;
+
+        }
+
+        if ($has_none && Runtime\Arr\Inspection::count($values) > 1)
+            throw new InvalidContentSecurityPolicyException(
+                "The 'none' keyword cannot be combined with other Trusted Types policies."
+            );
+
+        $directives = $this->directives;
+
+        $directives[Directive::TRUSTED_TYPES->value] = $values;
+
+        return new self($directives);
+
+    }
+
+    /**
+     * ### Requires Trusted Types for script injection sinks
+     *
+     * Enables Trusted Types enforcement for supported DOM APIs that accept potentially dangerous script-related
+     * content.
+     *
+     * This directive helps prevent DOM-based cross-site scripting by requiring Trusted Types values at supported
+     * injection sinks.
+     * @since 1.0.0
+     *
+     * @return self Updated policy.
+     */
+    public function requireTrustedTypesFor ():self {
+
+        $directives = $this->directives;
+
+        $directives[Directive::REQUIRE_TRUSTED_TYPES_FOR->value] = [
+            "'script'"
+        ];
+
+        return new self($directives);
+
+    }
+
+    /**
+     * ### Removes the Trusted Types directive
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withoutDirective() To remove the directive.
+     *
+     * @return self Updated policy.
+     */
+    public function withoutTrustedTypes ():self {
+
+        return $this->withoutDirective(Directive::TRUSTED_TYPES);
+
+    }
+
+    /**
+     * ### Removes the Trusted Types enforcement directive
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::withoutDirective() To remove the directive.
+     *
+     * @return self Updated policy.
+     */
+    public function withoutRequireTrustedTypesFor ():self {
+
+        return $this->withoutDirective(
+            Directive::REQUIRE_TRUSTED_TYPES_FOR
+        );
 
     }
 
