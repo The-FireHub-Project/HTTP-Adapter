@@ -25,7 +25,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    Allow, ContentDisposition, Date, Name, RetryAfter, Value, Vary
+    AcceptRanges, Allow, ContentDisposition, ContentRange, Date, Name, RetryAfter, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Adapter\HTTP\Request\Method;
@@ -375,6 +375,51 @@ final readonly class Headers {
     }
 
     /**
+     * ### Sets the Content-Range response header
+     *
+     * Identifies the byte range represented by the response content, or indicates that the requested range could not
+     * be satisfied.
+     *
+     * Replaces any previously configured Content-Range header.
+     *
+     * <code>
+     * $headers = Headers::empty()->contentRange(
+     *     ContentRange::satisfied(
+     *         new ByteRange(0, 1023),
+     *         4096
+     *     )
+     * );
+     *
+     * // Content-Range: bytes 0-1023/4096
+     *
+     * $headers = Headers::empty()->contentRange(
+     *     ContentRange::unsatisfied(4096)
+     * );
+     *
+     * // Content-Range: bytes /4096'
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\ContentRange::value() To serialize the Content-Range header.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the Content-Range header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentRange $range <p>
+     * Content range definition.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function contentRange (ContentRange $range):self {
+
+        return $this->replace(
+            'Content-Range',
+            new Value($range->value())
+        );
+
+    }
+
+    /**
      * ### Adds an HTTP response cookie
      *
      * Appends a Set-Cookie header without replacing previously configured cookies.
@@ -683,6 +728,47 @@ final readonly class Headers {
         return $this->replace(
             'Retry-After',
             new Value($retry_after->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Accept-Ranges response header
+     *
+     * Advertises the range units supported by the server for the target resource.
+     *
+     * Replaces any previously configured Accept-Ranges header.
+     *
+     * <code>
+     * $headers = Headers::empty()->acceptRanges(
+     *     new AcceptRanges(Unit::BYTES)
+     * );
+     *
+     * // Accept-Ranges: bytes
+     *
+     * $headers = Headers::empty()->acceptRanges(
+     *     AcceptRanges::none()
+     * );
+     *
+     * // Accept-Ranges: none
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\AcceptRanges::value() To serialize the Accept-Ranges header.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the Accept-Ranges header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\AcceptRanges $ranges <p>
+     * Supported range units.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function acceptRanges (AcceptRanges $ranges):self {
+
+        return $this->replace(
+            'Accept-Ranges',
+            new Value($ranges->value())
         );
 
     }
