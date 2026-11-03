@@ -212,6 +212,36 @@ final readonly class Headers {
     }
 
     /**
+     * ### Sets the X-Content-Type-Options response header
+     *
+     * Prevents user agents from MIME-sniffing response content and instructs them to respect the declared Content-Type.
+     *
+     * Sets the only standardized directive, "nosniff".
+     *
+     * Replaces any previously configured X-Content-Type-Options header.
+     *
+     * <code>
+     * $headers = Headers::empty()->xContentTypeOptions();
+     *
+     * // X-Content-Type-Options: nosniff
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the X-Content-Type-Options header.
+     *
+     * @return self Updated response header collection.
+     */
+    public function xContentTypeOptions ():self {
+
+        return $this->replace(
+            'X-Content-Type-Options',
+            new Value('nosniff')
+        );
+
+    }
+
+    /**
      * ### Sets the Content-Encoding header
      *
      * Specifies the content codings applied to the representation.
