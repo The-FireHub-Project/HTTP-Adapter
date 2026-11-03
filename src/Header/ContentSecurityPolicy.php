@@ -15,8 +15,9 @@ namespace FireHub\Adapter\HTTP\Header;
 
 use FireHub\Core\Type\ValueObject;
 
+use FireHub\Adapter\HTTP\Header\Reporting\Group;
 use FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ {
-    Directive, ReportingGroup, SandboxToken, SourceExpression, SourceValidator
+    Directive, SandboxToken, SourceExpression, SourceValidator
 };
 use FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException;
 use FireHub\Foundation\Uri;
@@ -774,13 +775,13 @@ final readonly class ContentSecurityPolicy extends ValueObject {
      * The reporting group should be declared using the Reporting-Endpoints HTTP response header.
      * @since 1.0.0
      *
-     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup $group <p>
+     * @param \FireHub\Adapter\HTTP\Header\Reporting\Group $group <p>
      * Reporting endpoint group.
      * </p>
      *
      * @return self Updated policy.
      */
-    public function reportTo (ReportingGroup $group):self {
+    public function reportTo (Group $group):self {
 
         $directives = $this->directives;
 

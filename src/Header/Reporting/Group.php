@@ -11,23 +11,26 @@
  * @package Adapter\HTTP
  */
 
-namespace FireHub\Adapter\HTTP\Header\ContentSecurityPolicy;
+namespace FireHub\Adapter\HTTP\Header\Reporting;
 
 use FireHub\Core\Type\ValueObject;
-use FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException;
+use FireHub\Adapter\HTTP\Header\Exception\InvalidReportingEndpointException;
 use FireHub\Runtime;
 
 /**
- * ### Represents a Content Security Policy reporting group
+ * ### Reporting Group
  *
- * Identifies a reporting endpoint group configured through the Reporting-Endpoints HTTP response header.
+ * Represents a named reporting endpoint group used by the Reporting API.
  *
- * A reporting group is referenced by the CSP report-to directive.
+ * The group name is serialized as an HTTP Structured Fields dictionary key and may be referenced by the Content
+ * Security Policy report-to directive.
+ *
+ * Group names must conform to the Structured Fields key syntax defined  by RFC 8941.
  * @since 1.0.0
  *
  * @extends \FireHub\Core\Type\ValueObject<non-empty-string>
  */
-final readonly class ReportingGroup extends ValueObject {
+final readonly class Group extends ValueObject {
 
     /**
      * ### Constructor
@@ -40,7 +43,7 @@ final readonly class ReportingGroup extends ValueObject {
      * Reporting group name.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the name is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidReportingEndpointException If the name is invalid.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
@@ -52,10 +55,10 @@ final readonly class ReportingGroup extends ValueObject {
 
         $this->guard(
             fn() => Runtime\Str\SB\Regex::match(
-                    '/^[A-Za-z][A-Za-z0-9_-]*$/D',
-                    $name
-                ),
-            fn() => new InvalidContentSecurityPolicyException(
+                '/^[a-z*][a-z0-9_.*-]*$/D',
+                $name
+            ),
+            fn() => new InvalidReportingEndpointException(
                 'Invalid CSP reporting group name.'
             )
         );

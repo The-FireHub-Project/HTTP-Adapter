@@ -14,7 +14,7 @@
 namespace FireHub\Adapter\HTTP\Header\ReportingEndpoints;
 
 use FireHub\Core\Type\ValueObject;
-use FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup;
+use FireHub\Adapter\HTTP\Header\Reporting\Group;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidReportingEndpointException;
 use FireHub\Foundation\Uri;
 use FireHub\Runtime;
@@ -39,7 +39,7 @@ final readonly class Endpoint extends ValueObject {
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the reporting endpoint syntax.
      * @uses \FireHub\Foundation\Uri::value() To get the URI value.
      *
-     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup $group <p>
+     * @param \FireHub\Adapter\HTTP\Header\Reporting\Group $group <p>
      * Reporting group name.
      * </p>
      * @param \FireHub\Foundation\Uri $uri <p>
@@ -53,7 +53,7 @@ final readonly class Endpoint extends ValueObject {
      * @return void
      */
     public function __construct (
-        private ReportingGroup $group,
+        private Group $group,
         private Uri $uri
     ) {
 
@@ -75,9 +75,9 @@ final readonly class Endpoint extends ValueObject {
      * ### Gets the reporting group
      * @since 1.0.0
      *
-     * @return \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup Reporting group.
+     * @return \FireHub\Adapter\HTTP\Header\Reporting\Group Reporting group.
      */
-    public function group ():ReportingGroup {
+    public function group ():Group {
 
         return $this->group;
 
@@ -101,7 +101,7 @@ final readonly class Endpoint extends ValueObject {
      * @since 1.0.0
      *
      * @uses \FireHub\Foundation\Uri::value() To get the URI value.
-     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup::value() To get the reporting group name.
+     * @uses \FireHub\Adapter\HTTP\Header\Reporting\Group::value() To get the reporting group name.
      * @uses \FireHub\Runtime\Str\SB\Replace::replace() To escape the URI.
      *
      * @return non-empty-string Serialized endpoint.

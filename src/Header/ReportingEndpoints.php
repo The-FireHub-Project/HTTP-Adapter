@@ -14,7 +14,7 @@
 namespace FireHub\Adapter\HTTP\Header;
 
 use FireHub\Core\Type\ValueObject;
-use FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup;
+use FireHub\Adapter\HTTP\Header\Reporting\Group;
 use FireHub\Adapter\HTTP\Header\ReportingEndpoints\Endpoint;
 use FireHub\Runtime;
 
@@ -65,7 +65,7 @@ final readonly class ReportingEndpoints extends ValueObject {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\ReportingEndpoints\Endpoint::group() To get the reporting group.
-     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup::value() To get the reporting group name.
+     * @uses \FireHub\Adapter\HTTP\Header\Reporting\Group::value() To get the reporting group name.
      *
      * @param \FireHub\Adapter\HTTP\Header\ReportingEndpoints\Endpoint $endpoint <p>
      * Reporting endpoint.
@@ -87,15 +87,15 @@ final readonly class ReportingEndpoints extends ValueObject {
      * ### Removes a reporting endpoint
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup::value() To get the reporting group name.
+     * @uses \FireHub\Adapter\HTTP\Header\Reporting\Group::value() To get the reporting group name.
      *
-     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup $group <p>
+     * @param \FireHub\Adapter\HTTP\Header\Reporting\Group $group <p>
      * Reporting group.
      * </p>
      *
      * @return self Updated collection.
      */
-    public function withoutEndpoint (ReportingGroup $group):self {
+    public function withoutEndpoint (Group $group):self {
 
         $endpoints = $this->endpoints;
 
@@ -109,15 +109,15 @@ final readonly class ReportingEndpoints extends ValueObject {
      * ### Checks whether a reporting group exists
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup::value() To get the reporting group name.
+     * @uses \FireHub\Adapter\HTTP\Header\Reporting\Group::value() To get the reporting group name.
      *
-     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup $group <<p>
+     * @param \FireHub\Adapter\HTTP\Header\Reporting\Group $group <<p>
      * Reporting group.
      * </p>
      *
      * @return bool True if the group exists.
      */
-    public function hasEndpoint (ReportingGroup $group):bool {
+    public function hasEndpoint (Group $group):bool {
 
         return isset($this->endpoints[$group->value()]);
 
@@ -127,15 +127,15 @@ final readonly class ReportingEndpoints extends ValueObject {
      * ### Gets a reporting endpoint
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup::value() To get the reporting group name.
+     * @uses \FireHub\Adapter\HTTP\Header\Reporting\Group::value() To get the reporting group name.
      *
-     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ReportingGroup $group <p>
+     * @param \FireHub\Adapter\HTTP\Header\Reporting\Group $group <p>
      * Reporting group.
      * </p>
      *
      * @return null|\FireHub\Adapter\HTTP\Header\ReportingEndpoints\Endpoint Matching endpoint or null.
      */
-    public function endpoint (ReportingGroup $group):?Endpoint {
+    public function endpoint (Group $group):?Endpoint {
 
         return $this->endpoints[$group->value()] ?? null;
 
