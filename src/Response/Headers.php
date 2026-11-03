@@ -25,7 +25,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, ContentSecurityPolicy, Date, Name,
+    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, ContentSecurityPolicy, Date, Name, ReferrerPolicy,
     ReportingEndpoints, RetryAfter, StrictTransportSecurity, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
@@ -1047,6 +1047,42 @@ final readonly class Headers {
         return $this->replace(
             'Reporting-Endpoints',
             new Value($endpoints->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Referrer-Policy response header
+     *
+     * Controls how much referrer information browsers may include when navigating to other resources or making
+     * requests.
+     *
+     * Replaces any previously configured Referrer-Policy header.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->referrerPolicy(
+     *         ReferrerPolicy::STRICT_ORIGIN_WHEN_CROSS_ORIGIN
+     *     );
+     *
+     * // Referrer-Policy: strict-origin-when-cross-origin
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ReferrerPolicy $policy <p>
+     * Referrer policy to apply.
+     * </p>
+     *
+     * @return self Updated response headers.
+     */
+    public function referrerPolicy (ReferrerPolicy $policy):self {
+
+        return $this->replace(
+            'Referrer-Policy',
+            new Value($policy->value)
         );
 
     }
