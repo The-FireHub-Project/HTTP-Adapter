@@ -25,7 +25,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    Allow, Date, Name, Value, Vary
+    Allow, Date, Name, RetryAfter, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Adapter\HTTP\Request\Method;
@@ -600,6 +600,49 @@ final readonly class Headers {
             new Value(
                 new Allow(...$methods)->value()
             )
+        );
+
+    }
+
+    /**
+     * ### Sets the Retry-After response header
+     *
+     * Indicates how long a client should wait before making a follow-up request.
+     *
+     * Supports a non-negative delay in seconds or an absolute HTTP date.
+     *
+     * Replaces any previously configured Retry-After header.
+     *
+     * <code>
+     * $headers = Headers::empty()->retryAfter(
+     *     new RetryAfter(120)
+     * );
+     *
+     * // Retry-After: 120
+     *
+     * $headers = Headers::empty()->retryAfter(
+     *     new RetryAfter(new Date($date_time))
+     * );
+     *
+     * // Retry-After: Wed, 04 Nov 2026 12:00:00 GMT
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\RetryAfter::value() To serialize the Retry-After header.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the Retry-After header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\RetryAfter $retry_after <p>
+     * Retry delay or absolute HTTP date.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function retryAfter (RetryAfter $retry_after):self {
+
+        return $this->replace(
+            'Retry-After',
+            new Value($retry_after->value())
         );
 
     }
