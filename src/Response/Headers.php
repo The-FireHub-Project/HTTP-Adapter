@@ -25,9 +25,10 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    Date, Name, Value, Vary
+    Allow, Date, Name, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
+use FireHub\Adapter\HTTP\Request\Method;
 use FireHub\Foundation\Uri;
 use FireHub\Runtime;
 
@@ -554,6 +555,51 @@ final readonly class Headers {
         return $this->replace(
             'Vary',
             new Value($vary->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Allow response header
+     *
+     * Specifies the HTTP request methods currently supported by the target resource.
+     *
+     * Replaces any previously configured Allow header.
+     *
+     * An empty method list is permitted.
+     *
+     * <code>
+     * $headers = Headers::empty()->allow(
+     *     Standard::GET,
+     *     Standard::HEAD,
+     *     Standard::OPTIONS
+     * );
+     *
+     * // Allow: GET, HEAD, OPTIONS
+     *
+     * $headers = Headers::empty()->allow();
+     *
+     * // Allow:
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Allow::value() To serialize the allowed methods.
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::replace() To replace the Allow header.
+     *
+     * @param \FireHub\Adapter\HTTP\Request\Method ...$methods <p>
+     * HTTP request methods supported by the target resource.
+     * </p>
+     *
+     * @return self Updated response header collection.
+     */
+    public function allow (Method ...$methods):self {
+
+        return $this->replace(
+            'Allow',
+            new Value(
+                new Allow(...$methods)->value()
+            )
         );
 
     }
