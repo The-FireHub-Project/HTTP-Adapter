@@ -16,9 +16,8 @@ namespace FireHub\Adapter\HTTP\Header;
 use FireHub\Core\Type\ValueObject;
 
 use FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\ {
-    Directive, Source, SourceExpression, SandboxToken
+    Directive, SandboxToken, SourceExpression, SourceValidator
 };
-use FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException;
 use FireHub\Runtime;
 
 /**
@@ -73,11 +72,9 @@ final readonly class ContentSecurityPolicy extends ValueObject {
      * The 'none' keyword cannot be combined with other source expressions.
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy::isSourceDirective() To validate the directive.
-     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression::value() To validate the source
-     * expressions.
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceValidator::validate() To validate the sources.
+     * @uses \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression::value() To get the source expression.
      * @uses \FireHub\Runtime\Arr\Inspection::inArray() To validate the source expressions.
-     * @uses \FireHub\Runtime\Arr\Inspection::count() To validate the source expressions.
      *
      * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\Directive $directive <p>
      * Source-list directive.
@@ -87,16 +84,13 @@ final readonly class ContentSecurityPolicy extends ValueObject {
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentSecurityPolicyException If the directive or
-     * sources are invalid.
+     * source expressions are invalid.
      *
      * @return self Updated policy.
      */
     public function withSources (Directive $directive, SourceExpression ...$sources):self {
 
-        if (!self::isSourceDirective($directive))
-            throw new InvalidContentSecurityPolicyException(
-                'The specified directive does not accept source expressions.'
-            );
+        SourceValidator::validate($directive, ...$sources);
 
         $values = [];
 
@@ -107,15 +101,6 @@ final readonly class ContentSecurityPolicy extends ValueObject {
             if (!Runtime\Arr\Inspection::inArray($values, $value))
                 $values[] = $value;
 
-        }
-
-        if (
-            Runtime\Arr\Inspection::count($values) > 1
-            && Runtime\Arr\Inspection::inArray($values, Source::NONE->value)
-        ) {
-            throw new InvalidContentSecurityPolicyException(
-                "The 'none' source cannot be combined with other sources."
-            );
         }
 
         $directives = $this->directives;
@@ -522,30 +507,6 @@ final readonly class ContentSecurityPolicy extends ValueObject {
         }
 
         return Runtime\Str\SB\Delimiter::implode($parts, '; ');
-
-    }
-
-    /**
-     * ### Checks whether a directive accepts source expressions
-     * @since 1.0.0
-     *
-     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\Directive $directive <p>
-     * Directive to check.
-     * </p>
-     *
-     * @return bool True if the directive accepts source expressions.
-     */
-    private static function isSourceDirective (Directive $directive):bool {
-
-        return match ($directive) {
-            Directive::DEFAULT_SRC, Directive::SCRIPT_SRC, Directive::SCRIPT_SRC_ELEM, Directive::SCRIPT_SRC_ATTR,
-            Directive::STYLE_SRC, Directive::STYLE_SRC_ELEM, Directive::STYLE_SRC_ATTR, Directive::IMG_SRC,
-            Directive::FONT_SRC, Directive::CONNECT_SRC, Directive::MEDIA_SRC, Directive::OBJECT_SRC,
-            Directive::FRAME_SRC, Directive::CHILD_SRC, Directive::WORKER_SRC, Directive::MANIFEST_SRC,
-            Directive::BASE_URI, Directive::FORM_ACTION, Directive::FRAME_ANCESTORS
-                => true,
-            default => false
-        };
 
     }
 

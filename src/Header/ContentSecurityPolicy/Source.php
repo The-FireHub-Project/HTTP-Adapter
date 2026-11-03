@@ -19,7 +19,7 @@ namespace FireHub\Adapter\HTTP\Header\ContentSecurityPolicy;
  * Provides standardized source expressions used to control resource loading, script execution, and style application.
  * @since 1.0.0
  */
-enum Source:string {
+enum Source:string implements SourceExpression{
 
     /**
      * ### Same-origin source
@@ -92,5 +92,16 @@ enum Source:string {
      * @since 1.0.0
      */
     case REPORT_SAMPLE = "'report-sample'";
+
+    /**
+     * @inheritDoc
+     *
+     * @since 1.0.0
+     */
+    public function value ():string {
+
+        return $this->value;
+
+    }
 
 }

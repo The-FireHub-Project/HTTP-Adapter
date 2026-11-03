@@ -11,9 +11,10 @@
  * @package Adapter\HTTP
  */
 
-namespace FireHub\Adapter\HTTP\Header\ContentSecurityPolicy;
+namespace FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\Source;
 
 use FireHub\Core\Type\ValueObject;
+use FireHub\Adapter\HTTP\Header\ContentSecurityPolicy\SourceExpression;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidCSPSourceException;
 use FireHub\Runtime;
 

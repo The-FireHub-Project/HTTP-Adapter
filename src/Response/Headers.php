@@ -25,8 +25,8 @@ use FireHub\Adapter\HTTP\Header\ {
     Language\Custom as LanguageCustom, Language\Type as LanguageType,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Type as MediaType,
-    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, Date, Name, RetryAfter, StrictTransportSecurity,
-    Value, Vary
+    AcceptRanges, Age, Allow, ContentDisposition, ContentRange, ContentSecurityPolicy, Date, Name, RetryAfter,
+    StrictTransportSecurity, Value, Vary
 };
 use FireHub\Adapter\HTTP\Cookie\Response as ResponseCookie;
 use FireHub\Adapter\HTTP\Request\Method;
@@ -446,6 +446,89 @@ final readonly class Headers {
         return $this->replace(
             'Content-Range',
             new Value($range->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Content-Security-Policy response header
+     *
+     * Defines an enforced security policy controlling resource loading and other supported browser behaviors.
+     *
+     * <code>
+     * $nonce = Nonce::generate();
+     *
+     * $policy = ContentSecurityPolicy::create()
+     *     ->defaultSrc(Source::SELF)
+     *     ->scriptSrc(
+     *         Source::SELF,
+     *         new Host('cdn.example.com', 'https'),
+     *         $nonce
+     *     )
+     *     ->styleSrc(Source::SELF)
+     *     ->imgSrc(
+     *         Source::SELF,
+     *         new Scheme('data')
+     *     )
+     *     ->objectSrc(Source::NONE)
+     *     ->frameAncestors(Source::NONE)
+     *     ->upgradeInsecureRequests();
+     *
+     * $headers = Headers::empty()->contentSecurityPolicy($policy);
+     *
+     * // Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.example.com 'nonce-...'; style-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy $policy <p>
+     * Security policy.
+     * </p>
+     *
+     * @return self Updated response headers.
+     */
+    public function contentSecurityPolicy (ContentSecurityPolicy $policy):self {
+
+        return $this->replace(
+            'Content-Security-Policy',
+            new Value($policy->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Content-Security-Policy-Report-Only response header
+     *
+     * Reports violations of a security policy without enforcing its supported restrictions.
+     *
+     * <code>
+     * $policy = ContentSecurityPolicy::create()
+     *     ->defaultSrc(Source::SELF)
+     *     ->scriptSrc(
+     *         Source::SELF,
+     *         new Host('cdn.example.com', 'https')
+     *     )
+     *     ->styleSrc(Source::SELF)
+     *     ->objectSrc(Source::NONE);
+     *
+     * $headers = Headers::empty()->contentSecurityPolicyReportOnly($policy);
+     *
+     * // Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' https://cdn.example.com; style-src 'self'; object-src 'none'
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\ContentSecurityPolicy $policy <p>
+     * Reporting policy.
+     * </p>
+     *
+     * @return self Updated response headers.
+     */
+    public function contentSecurityPolicyReportOnly (ContentSecurityPolicy $policy):self {
+
+        return $this->replace(
+            'Content-Security-Policy-Report-Only',
+            new Value($policy->value())
         );
 
     }
