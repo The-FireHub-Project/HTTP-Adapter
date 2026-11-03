@@ -14,7 +14,7 @@
 namespace FireHub\Adapter\HTTP;
 
 use FireHub\Adapter\HTTP\Request\ {
-    Method, Headers
+    Headers, Method, Target
 };
 use FireHub\Adapter\HTTP\Message\Version;
 
@@ -43,23 +43,23 @@ final readonly class Request {
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
      * HTTP request method.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Request\Headers|null $headers [optional] <p>
-     * HTTP request headers.
-     * </p>
-     * @param string $target <p>
+     * @param \FireHub\Adapter\HTTP\Request\Target $target <p>
      * HTTP request target.
      * </p>
      * @param \FireHub\Adapter\HTTP\Message\Version $version [optional] <p>
      * HTTP request version.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Request\Headers|null $headers [optional] <p>
+     * HTTP request headers.
      * </p>
      *
      * @return void
      */
     public function __construct (
         private Method $method,
-        ?Headers $headers = null,
-        private string $target,
-        private Version $version = Version::HTTP_1_1
+        private Target $target,
+        private Version $version = Version::HTTP_1_1,
+        ?Headers $headers = null
     ) {
 
         $this->headers = $headers ?? Headers::empty();
@@ -82,9 +82,9 @@ final readonly class Request {
 
         return new self(
             $method,
-            $this->headers,
             $this->target,
-            $this->version
+            $this->version,
+            $this->headers
         );
 
     }
@@ -105,32 +105,30 @@ final readonly class Request {
 
         return new self(
             $this->method,
-            $headers,
             $this->target,
-            $this->version
+            $this->version,
+            $headers
         );
 
     }
 
     /**
-     * ### Returns a request with a different request target
-     *
-     * Preserves the existing method, protocol version, and headers.
+     * ### Returns a request with a different HTTP target
      * @since 1.0.0
      *
-     * @param string $target <p>
-     * New HTTP request target.
+     * @param \FireHub\Adapter\HTTP\Request\Target $target <p>
+     * New HTTP target.
      * </p>
      *
      * @return self New request instance.
      */
-    public function withTarget (string $target):self {
+    public function withTarget (Target $target):self {
 
         return new self(
             $this->method,
-            $this->headers,
             $target,
-            $this->version
+            $this->version,
+            $this->headers
         );
 
     }
@@ -151,9 +149,9 @@ final readonly class Request {
 
         return new self(
             $this->method,
-            $this->headers,
             $this->target,
-            $version
+            $version,
+            $this->headers
         );
 
     }
@@ -186,9 +184,9 @@ final readonly class Request {
      * ### Gets the HTTP request target
      * @since 1.0.0
      *
-     * @return string HTTP request target.
+     * @return \FireHub\Adapter\HTTP\Request\Target HTTP request target.
      */
-    public function target ():string {
+    public function target ():Target {
 
         return $this->target;
 
