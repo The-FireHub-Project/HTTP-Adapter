@@ -13,7 +13,6 @@
 
 namespace FireHub\Adapter\HTTP;
 
-use FireHub\Adapter\HTTP\Body;
 use FireHub\Adapter\HTTP\Request\ {
     Headers, Method, Target
 };
@@ -57,10 +56,10 @@ final readonly class Request {
      * @param \FireHub\Adapter\HTTP\Message\Version $version [optional] <p>
      * HTTP request version.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Request\Headers|null $headers [optional] <p>
+     * @param null|\FireHub\Adapter\HTTP\Request\Headers $headers [optional] <p>
      * HTTP request headers.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Body|null $body [optional] <p>
+     * @param null|\FireHub\Adapter\HTTP\Body $body [optional] <p>
      * HTTP request body.
      * </p>
      *

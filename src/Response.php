@@ -13,11 +13,11 @@
 
 namespace FireHub\Adapter\HTTP;
 
-use FireHub\Adapter\HTTP\Message\Version;
 use FireHub\Adapter\HTTP\Response\ {
-    Headers, Status
+    Status\Standard, Headers, Status
 };
-use FireHub\Adapter\HTTP\Response\Status\Standard;
+use FireHub\Adapter\HTTP\Message\Version;
+use FireHub\Adapter\HTTP\Body\Str;
 
 /**
  * ### Represents an immutable HTTP response
@@ -38,6 +38,12 @@ final readonly class Response {
     private Headers $headers;
 
     /**
+     * ### Response body
+     * @since 1.0.0
+     */
+    private Body $body;
+
+    /**
      * ### Constructor
      * @since 1.0.0
      *
@@ -46,26 +52,28 @@ final readonly class Response {
      * @param \FireHub\Adapter\HTTP\Response\Status $status [optional] <p>
      * HTTP response status.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Response\Headers|null $headers [optional] <p>
-     * HTTP response headers.
-     * </p>
-     * @param string $body [optional] <p>
-     * HTTP response content.
-     * </p>
      * @param \FireHub\Adapter\HTTP\Message\Version $version [optional] <p>
      * HTTP protocol version.
+     * </p>
+     * @param null|\FireHub\Adapter\HTTP\Response\Headers $headers [optional] <p>
+     * HTTP response headers.
+     * </p>
+     * @param null|\FireHub\Adapter\HTTP\Body $body [optional] <p>
+     * HTTP response content.
      * </p>
      *
      * @return void
      */
     public function __construct (
         private Status $status = Standard::OK,
+        private Version $version = Version::HTTP_1_1,
         ?Headers $headers = null,
-        private string $body = '',
-        private Version $version = Version::HTTP_1_1
+        ?Body $body = null
     ) {
 
         $this->headers = $headers ?? Headers::empty();
+
+        $this->body = $body ?? new Str('');
 
     }
 
@@ -85,55 +93,9 @@ final readonly class Response {
 
         return new self(
             $status,
+            $this->version,
             $this->headers,
-            $this->body,
-            $this->version
-        );
-
-    }
-
-    /**
-     * ### Returns a response with different HTTP headers
-     *
-     * Preserves the existing status, body, and protocol version.
-     * @since 1.0.0
-     *
-     * @param \FireHub\Adapter\HTTP\Response\Headers $headers <p>
-     * New HTTP response headers.
-     * </p>
-     *
-     * @return self New response instance.
-     */
-    public function withHeaders (Headers $headers):self {
-
-        return new self(
-            $this->status,
-            $headers,
-            $this->body,
-            $this->version
-        );
-
-    }
-
-    /**
-     * ### Returns a response with different content
-     *
-     * Preserves the existing status, headers, and protocol version.
-     * @since 1.0.0
-     *
-     * @param string $body <p>
-     * New HTTP response content.
-     * </p>
-     *
-     * @return self New response instance.
-     */
-    public function withBody (string $body):self {
-
-        return new self(
-            $this->status,
-            $this->headers,
-            $body,
-            $this->version
+            $this->body
         );
 
     }
@@ -154,9 +116,55 @@ final readonly class Response {
 
         return new self(
             $this->status,
+            $version,
             $this->headers,
-            $this->body,
-            $version
+            $this->body
+        );
+
+    }
+
+    /**
+     * ### Returns a response with different HTTP headers
+     *
+     * Preserves the existing status, body, and protocol version.
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Response\Headers $headers <p>
+     * New HTTP response headers.
+     * </p>
+     *
+     * @return self New response instance.
+     */
+    public function withHeaders (Headers $headers):self {
+
+        return new self(
+            $this->status,
+            $this->version,
+            $headers,
+            $this->body
+        );
+
+    }
+
+    /**
+     * ### Returns a response with different content
+     *
+     * Preserves the existing status, headers, and protocol version.
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Body $body <p>
+     * New HTTP response content.
+     * </p>
+     *
+     * @return self New response instance.
+     */
+    public function withBody (Body $body):self {
+
+        return new self(
+            $this->status,
+            $this->version,
+            $this->headers,
+            $body
         );
 
     }
@@ -170,6 +178,18 @@ final readonly class Response {
     public function status ():Status {
 
         return $this->status;
+
+    }
+
+    /**
+     * ### Gets the HTTP protocol version
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Message\Version HTTP protocol version.
+     */
+    public function version ():Version {
+
+        return $this->version;
 
     }
 
@@ -189,23 +209,11 @@ final readonly class Response {
      * ### Gets the HTTP response body
      * @since 1.0.0
      *
-     * @return string HTTP response content.
+     * @return \FireHub\Adapter\HTTP\Body HTTP response content.
      */
-    public function body ():string {
+    public function body ():Body {
 
         return $this->body;
-
-    }
-
-    /**
-     * ### Gets the HTTP protocol version
-     * @since 1.0.0
-     *
-     * @return \FireHub\Adapter\HTTP\Message\Version HTTP protocol version.
-     */
-    public function version ():Version {
-
-        return $this->version;
 
     }
 
