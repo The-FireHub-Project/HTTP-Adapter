@@ -13,10 +13,12 @@
 
 namespace FireHub\Adapter\HTTP;
 
+use FireHub\Adapter\HTTP\Body;
 use FireHub\Adapter\HTTP\Request\ {
     Headers, Method, Target
 };
 use FireHub\Adapter\HTTP\Message\Version;
+use FireHub\Adapter\HTTP\Body\Str;
 
 /**
  * ### Represents an HTTP request
@@ -33,6 +35,12 @@ final readonly class Request {
      * @since 1.0.0
      */
     private Headers $headers;
+
+    /**
+     * ### Request body
+     * @since 1.0.0
+     */
+    private Body $body;
 
     /**
      * ### Constructor
@@ -52,6 +60,9 @@ final readonly class Request {
      * @param \FireHub\Adapter\HTTP\Request\Headers|null $headers [optional] <p>
      * HTTP request headers.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Body|null $body [optional] <p>
+     * HTTP request body.
+     * </p>
      *
      * @return void
      */
@@ -59,10 +70,13 @@ final readonly class Request {
         private Method $method,
         private Target $target,
         private Version $version = Version::HTTP_1_1,
-        ?Headers $headers = null
+        ?Headers $headers = null,
+        ?Body $body = null
     ) {
 
         $this->headers = $headers ?? Headers::empty();
+
+        $this->body = $body ?? new Str('');
 
     }
 
@@ -84,30 +98,8 @@ final readonly class Request {
             $method,
             $this->target,
             $this->version,
-            $this->headers
-        );
-
-    }
-
-    /**
-     * ### Returns a request with different HTTP headers
-     *
-     * Preserves the existing method, request target, and protocol version.
-     * @since 1.0.0
-     *
-     * @param \FireHub\Adapter\HTTP\Request\Headers $headers <p>
-     * New HTTP request headers.
-     * </p>
-     *
-     * @return self New request instance.
-     */
-    public function withHeaders (Headers $headers):self {
-
-        return new self(
-            $this->method,
-            $this->target,
-            $this->version,
-            $headers
+            $this->headers,
+            $this->body
         );
 
     }
@@ -128,7 +120,8 @@ final readonly class Request {
             $this->method,
             $target,
             $this->version,
-            $this->headers
+            $this->headers,
+            $this->body
         );
 
     }
@@ -151,7 +144,54 @@ final readonly class Request {
             $this->method,
             $this->target,
             $version,
-            $this->headers
+            $this->headers,
+            $this->body
+        );
+
+    }
+
+    /**
+     * ### Returns a request with different HTTP headers
+     *
+     * Preserves the existing method, request target, and protocol version.
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Request\Headers $headers <p>
+     * New HTTP request headers.
+     * </p>
+     *
+     * @return self New request instance.
+     */
+    public function withHeaders (Headers $headers):self {
+
+        return new self(
+            $this->method,
+            $this->target,
+            $this->version,
+            $headers,
+            $this->body
+        );
+
+    }
+
+    /**
+     * ### Returns a request with a different body
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Body $body <p>
+     * New HTTP request body.
+     * </p>
+     *
+     * @return self New request instance.
+     */
+    public function withBody (Body $body):self {
+
+        return new self(
+            $this->method,
+            $this->target,
+            $this->version,
+            $this->headers,
+            $body
         );
 
     }
@@ -165,18 +205,6 @@ final readonly class Request {
     public function method ():Method {
 
         return $this->method;
-
-    }
-
-    /**
-     * ### Gets the HTTP request headers
-     * @since 1.0.0
-     *
-     * @return \FireHub\Adapter\HTTP\Request\Headers HTTP request headers.
-     */
-    public function headers ():Headers {
-
-        return $this->headers;
 
     }
 
@@ -201,6 +229,30 @@ final readonly class Request {
     public function version ():Version {
 
         return $this->version;
+
+    }
+
+    /**
+     * ### Gets the HTTP request headers
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Request\Headers HTTP request headers.
+     */
+    public function headers ():Headers {
+
+        return $this->headers;
+
+    }
+
+    /**
+     * ### Gets the HTTP request body
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Body HTTP request body.
+     */
+    public function body ():Body {
+
+        return $this->body;
 
     }
 
