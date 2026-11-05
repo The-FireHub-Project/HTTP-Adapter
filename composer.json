@@ -63,7 +63,10 @@
       "layer": "adapter",
       "edition": "standard",
       "role": "integration",
-      "criticality": "high"
+      "criticality": "high",
+      "ci": {
+        "php-versions": ["8.5"]
+      }
     }
   }
 }
