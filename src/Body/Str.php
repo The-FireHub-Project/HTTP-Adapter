@@ -13,7 +13,6 @@
 
 namespace FireHub\Adapter\HTTP\Body;
 
-use FireHub\Adapter\HTTP\Body;
 use FireHub\Foundation\Str as BaseStr;
 use FireHub\Runtime;
 
@@ -30,7 +29,7 @@ use FireHub\Runtime;
  *
  * @extends \FireHub\Foundation\Str<string>
  */
-final readonly class Str extends BaseStr implements Body {
+final readonly class Str extends BaseStr implements Materializable {
 
     /**
      * @inheritDoc
@@ -50,12 +49,11 @@ final readonly class Str extends BaseStr implements Body {
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Foundation\Str::value() To return the body size.
-     * @uses \FireHub\Runtime\Str\SB\Inspection::length() To get the length of the string.
+     * @uses \FireHub\Foundation\Str::bytes() To return the body size in bytes.
      */
     public function size ():int {
 
-        return Runtime\Str\SB\Inspection::length($this->value());
+        return $this->bytes();
 
     }
 
