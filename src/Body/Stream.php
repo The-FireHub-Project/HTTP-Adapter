@@ -44,9 +44,9 @@ final readonly class Stream implements Body {
      * Underlying readable I/O stream.
      * </p>
      * @param null|non-negative-int $size [optional] <p>
-     * Explicit total HTTP body size in bytes.
+     * The declared body size represents the exact number of bytes expected to be transmitted.
      *
-     * When omitted, the underlying stream size is used.
+     * The caller is responsible for providing an accurate size.
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Body\Exception\InvalidStreamBodyException If the stream is invalid.
@@ -76,12 +76,10 @@ final readonly class Stream implements Body {
      * @inheritDoc
      *
      * @since 1.0.0
-     *
-     * @uses \FireHub\Core\Boundary\IO\Stream\Readable::size() To get the underlying stream size.
      */
     public function size ():?int {
 
-        return $this->size ?? $this->stream->size();
+        return $this->size;
 
     }
 
