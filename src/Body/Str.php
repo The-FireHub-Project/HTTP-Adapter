@@ -14,7 +14,6 @@
 namespace FireHub\Adapter\HTTP\Body;
 
 use FireHub\Foundation\Str as BaseStr;
-use FireHub\Runtime;
 
 /**
  * Represents an HTTP message body stored entirely in memory.
