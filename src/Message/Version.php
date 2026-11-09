@@ -45,4 +45,30 @@ enum Version:string {
      */
     case HTTP_3 = '3';
 
+    /**
+     * ### Parses an HTTP protocol version
+     *
+     * Accepts canonical HTTP version values and equivalent dotted representations of HTTP/2 and HTTP/3.
+     *
+     * Returns null when the version is unsupported.
+     * @since 1.0.0
+     *
+     * @param string $version <p>
+     * HTTP protocol version without the HTTP/ prefix.
+     * </p>
+     *
+     * @return null|self Parsed HTTP version, or null if unsupported.
+     */
+    public static function parse (string $version):?self {
+
+        return self::tryFrom(
+            match ($version) {
+                '2.0' => self::HTTP_2->value,
+                '3.0' => self::HTTP_3->value,
+                default => $version
+            }
+        );
+
+    }
+
 }
