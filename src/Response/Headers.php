@@ -1263,13 +1263,13 @@ final readonly class Headers {
     }
 
     /**
-     * ### Adds a custom HTTP response header
+     * ### Adds a new HTTP response header
      *
      * Preserves existing headers with the same name.
      *
      * <code>
      * $headers = Headers::empty()
-     *     ->custom(new Name('X-Request-ID'), new Value('123'));
+     *     ->add(new Name('X-Request-ID'), new Value('123'));
      * </code>
      *
      * @since 1.0.0
@@ -1285,7 +1285,7 @@ final readonly class Headers {
      *
      * @return self Updated response header collection.
      */
-    public function custom (Name $name, Value $value):self {
+    public function add (Name $name, Value $value):self {
 
         return new self(
             $this->headers->add($name, $value)

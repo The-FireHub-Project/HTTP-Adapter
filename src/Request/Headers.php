@@ -939,12 +939,12 @@ final readonly class Headers {
     }
 
     /**
-     * ### Adds a custom HTTP request header
+     * ### Adds a new HTTP request header
      *
      * <code>
      * $headers = Headers::empty()
-     *     ->custom(new Name('X-Request-ID'), new Value('123'))
-     *     ->custom(new Name('X-Request-ID'), new Value('456'));
+     *     ->add(new Name('X-Request-ID'), new Value('123'))
+     *     ->add(new Name('X-Request-ID'), new Value('456'));
      * </code>
      *
      * @since 1.0.0
@@ -960,7 +960,7 @@ final readonly class Headers {
      *
      * @return self Updated request header collection.
      */
-    public function custom (Name $name, Value $value):self {
+    public function add (Name $name, Value $value):self {
 
         return new self(
             $this->headers->add($name, $value)
@@ -973,8 +973,8 @@ final readonly class Headers {
      *
      * <code>
      * $headers = Headers::empty()
-     *     ->custom(new Name('Accept'), new Value('application/json'))
-     *     ->custom(new Name('X-Request-ID'), new Value('123'));
+     *     ->add(new Name('Accept'), new Value('application/json'))
+     *     ->add(new Name('X-Request-ID'), new Value('123'));
      *
      * foreach ($headers->all() as $header) {
      *     echo $header['name']->value();
