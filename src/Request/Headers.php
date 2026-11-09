@@ -939,6 +939,71 @@ final readonly class Headers {
     }
 
     /**
+     * ### Checks whether an HTTP request header exists
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Content-Type'), new Value('application/json'));
+     *
+     * $headers->has(new Name('Content-Type')); // true
+     * $headers->has(new Name('content-type')); // true
+     * $headers->has(new Name('CONTENT-TYPE')); // true
+     * $headers->has(new Name('Authorization')); // false
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::has() Checks whether a custom HTTP message header exists.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * HTTP header name.
+     * </p>
+     *
+     * @return bool True if the header exists.
+     */
+    public function has (Name $name):bool {
+
+        return $this->headers->has($name);
+
+    }
+
+    /**
+     * ### Gets HTTP request header values
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Accept'), new Value('application/json'))
+     *     ->add(new Name('Accept'), new Value('text/html'));
+     *
+     * $values = $headers->get(new Name('accept'));
+     *
+     * foreach ($values as $value)
+     *     echo $value->value() . PHP_EOL;
+     *
+     * // application/json
+     * // text/html
+     *
+     * // Missing headers return an empty list.
+     * $headers->get(new Name('Authorization')); // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() Gets all values for a custom HTTP message header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * HTTP header name.
+     * </p>
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Value<string>> Matching header values.
+     */
+    public function get (Name $name):array {
+
+        return $this->headers->get($name);
+
+    }
+
+    /**
      * ### Adds a new HTTP request header
      *
      * <code>

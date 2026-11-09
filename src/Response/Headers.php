@@ -1263,6 +1263,76 @@ final readonly class Headers {
     }
 
     /**
+     * ### Checks whether an HTTP response header exists
+     *
+     * Determines whether the specified HTTP response header exists to use case-insensitive matching.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Content-Type'), new Value('application/json'))
+     *     ->add(new Name('Cache-Control'), new Value('no-store'));
+     *
+     * $headers->has(new Name('Content-Type')); // true
+     * $headers->has(new Name('content-type')); // true
+     * $headers->has(new Name('CACHE-CONTROL')); // true
+     * $headers->has(new Name('Set-Cookie')); // false
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::has() Checks whether a custom HTTP message header exists.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * HTTP header name.
+     * </p>
+     *
+     * @return bool True if the header exists.
+     */
+    public function has (Name $name):bool {
+
+        return $this->headers->has($name);
+
+    }
+
+    /**
+     * ### Gets HTTP response header values
+     *
+     * Returns all values associated with the specified HTTP response header name using case-insensitive matching.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Set-Cookie'), new Value('session=abc123; Path=/; HttpOnly'))
+     *     ->add(new Name('Set-Cookie'), new Value('theme=dark; Path=/'));
+     *
+     * $values = $headers->get(new Name('set-cookie'));
+     *
+     * foreach ($values as $value)
+     *     echo $value->value() . PHP_EOL;
+     *
+     * // session=abc123; Path=/; HttpOnly
+     * // theme=dark; Path=/
+     *
+     * // Missing headers return an empty list.
+     * $headers->get(new Name('Location')); // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() Gets all values for a custom HTTP message header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * HTTP header name.
+     * </p>
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Value<string>> Matching header values.
+     */
+    public function get (Name $name):array {
+
+        return $this->headers->get($name);
+
+    }
+
+    /**
      * ### Adds a new HTTP response header
      *
      * Preserves existing headers with the same name.
