@@ -44,7 +44,7 @@ final class Parser {
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If the parameter syntax is invalid.
      *
-     * @return list<array{name: non-empty-string, value: string}> Parsed parameters.
+     * @return list<array{name: non-empty-string, value: string,  quoted: bool}> Parsed parameters.
      */
     public static function parse (string $value):array {
 
@@ -94,7 +94,9 @@ final class Parser {
                     'Missing HTTP parameter value.'
                 );
 
-            if ($value[$position] === '"') {
+            $quoted = $value[$position] === '"';
+
+            if ($quoted) {
 
                 $position++;
                 $parsed = '';
@@ -164,7 +166,8 @@ final class Parser {
 
             $parameters[] = [
                 'name' => $name,
-                'value' => $parsed
+                'value' => $parsed,
+                'quoted' => $quoted
             ];
 
             self::skipWhitespace($value, $position, $length);
@@ -188,7 +191,7 @@ final class Parser {
 
         }
 
-        /** @var list<array{name: non-empty-string, value: string}> */
+        /** @var list<array{name: non-empty-string, value: string, quoted: bool}> */
         return $parameters;
 
     }

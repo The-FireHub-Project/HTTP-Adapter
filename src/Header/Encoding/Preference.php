@@ -116,6 +116,11 @@ final readonly class Preference extends ValueObject {
             'Accept-Encoding supports only one q parameter.'
         );
 
+        if ($parameters[0]['quoted']) // @phpstan-ignore offsetAccess.notFound
+            throw new InvalidEncodingException(
+                'Accept-Encoding quality factor must not be quoted.'
+            );
+
         return new self(
             $type,
             Quality::parse($parameters[0]['value']) // @phpstan-ignore offsetAccess.notFound
