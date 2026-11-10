@@ -13,8 +13,6 @@
 
 namespace FireHub\Adapter\HTTP\Header\Language;
 
-namespace FireHub\Adapter\HTTP\Header\Language;
-
 /**
  * ### Supported HTTP language tags
  *

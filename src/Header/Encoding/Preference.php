@@ -59,11 +59,10 @@ final readonly class Preference extends ValueObject {
      * @since 1.0.0
      *
      * @uses \FireHub\Runtime\Str\SB\Search::firstPosition() To find the separator between encoding and parameters.
-     * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the encoding.
+     * @uses \FireHub\Adapter\HTTP\Header\Quality::parse() To parse the quality factor.
      * @uses \FireHub\Runtime\Str\SB\Transform::trim() To remove optional whitespace.
      * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize content coding identifiers.
      * @uses \FireHub\Runtime\Arr\Inspection::count() To validate the number of parameters.
-     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the quality factor.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter\Parser::parse() To parse quality parameters.
      *
      * @param string $value <p>
@@ -117,18 +116,9 @@ final readonly class Preference extends ValueObject {
             'Accept-Encoding supports only one q parameter.'
         );
 
-        $raw_quality = $parameters[0]['value']; // @phpstan-ignore offsetAccess.notFound
-
-        if (!Runtime\Str\SB\Regex::match(
-            '/\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/',
-            $raw_quality
-        )) throw new InvalidEncodingException(
-            'Invalid Accept-Encoding quality syntax.'
-        );
-
         return new self(
             $type,
-            new Quality((float)$raw_quality)
+            Quality::parse($parameters[0]['value']) // @phpstan-ignore offsetAccess.notFound
         );
 
     }

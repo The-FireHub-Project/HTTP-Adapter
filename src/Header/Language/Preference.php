@@ -56,12 +56,13 @@ final readonly class Preference extends ValueObject {
      * Converts a raw language preference into a validated language range and its optional quality factor.
      * @since 1.0.0
      *
+     * @uses \FireHub\Adapter\HTTP\Header\Parameter\Parser::parse() To parse quality parameters.
+     * @uses \FireHub\Adapter\HTTP\Header\Quality::parse() To parse the quality factor.
      * @uses \FireHub\Runtime\Str\SB\Search::firstPosition() To find the separator between language and parameters.
      * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the language.
      * @uses \FireHub\Runtime\Str\SB\Transform::trim() To remove optional whitespace.
      * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize language tags.
      * @uses \FireHub\Runtime\Arr\Inspection::count() To validate the number of parameters.
-     * @uses \FireHub\Adapter\HTTP\Header\Parameter\Parser::parse() To parse quality parameters.
      *
      * @param string $value <p>
      * Raw Accept-Language preference.
@@ -129,18 +130,9 @@ final readonly class Preference extends ValueObject {
             'Accept-Language supports only one q parameter.'
         );
 
-        $raw_quality = $parameters[0]['value']; // @phpstan-ignore offsetAccess.notFound
-
-        if (!Runtime\Str\SB\Regex::match(
-            '/\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/',
-            $raw_quality
-        )) throw new InvalidLanguageException(
-            'Invalid Accept-Language quality syntax.'
-        );
-
         return new self(
             $type,
-            new Quality((float)$raw_quality)
+            Quality::parse($parameters[0]['value']) // @phpstan-ignore offsetAccess.notFound
         );
 
     }

@@ -64,6 +64,40 @@ final readonly class Quality extends ValueObject {
     }
 
     /**
+     * ### Parses an HTTP quality factor
+     *
+     * Parses an HTTP q-value according to RFC 9110.
+     *
+     * Accepts values between 0 and 1 with a maximum of three decimal places. Scientific notation, signs, and values
+     * outside the permitted range are rejected.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate HTTP qvalue syntax.
+     *
+     * @param string $value <p>
+     * Raw HTTP quality factor.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaPreferenceExceptionQuality If the quality factor is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Parsed quality factor.
+     */
+    public static function parse (string $value):self {
+
+        if (!Runtime\Str\SB\Regex::match(
+            '/\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/',
+            $value
+        )) throw new InvalidMediaPreferenceExceptionQuality(
+            'Invalid HTTP quality factor.'
+        );
+
+        return new self((float)$value);
+
+    }
+
+    /**
      * @inheritDoc
      *
      * @since 1.0.0

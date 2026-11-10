@@ -105,11 +105,11 @@ final readonly class Preference extends ValueObject {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\Parameter\Parser::parse() To parse HTTP parameters.
+     * @uses \FireHub\Adapter\HTTP\Header\Quality::parse() To parse the quality factor.
      * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize media types and parameter names.
      * @uses \FireHub\Runtime\Str\SB\Search::firstPosition() To find the position of the first ';' character.
      * @uses \FireHub\Runtime\Str\SB\Transform::trim() To trim the media type and parameters.
      * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the parameter value.
-     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the quality factor.
      *
      * @param string $value <p>
      * Raw Accept media preference.
@@ -175,14 +175,7 @@ final readonly class Preference extends ValueObject {
 
                 $raw_quality = $parameter['value'];
 
-                if (!Runtime\Str\SB\Regex::match(
-                    '/\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/',
-                    $raw_quality
-                )) throw new InvalidMediaTypeException(
-                    'Invalid Accept quality syntax.'
-                );
-
-                $quality = new Quality((float)$raw_quality);
+                $quality = Quality::parse($raw_quality);
 
                 continue;
 
