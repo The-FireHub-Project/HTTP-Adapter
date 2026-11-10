@@ -14,6 +14,7 @@
 namespace FireHub\Adapter\HTTP\Header\Media;
 
 use FireHub\Core\Type\ValueObject;
+use FireHub\Adapter\HTTP\Header\Parameter\Parser;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException;
 use FireHub\Runtime;
 
@@ -67,15 +68,11 @@ final readonly class ContentType extends ValueObject {
      * Converts a raw Content-Type value into a validated media type and its optional parameters.
      * @since 1.0.0
      *
-     * @uses \FireHub\Runtime\Str\SB\Regex::split() To split the Content-Type value into media type and parameters.
      * @uses \FireHub\Runtime\Str\SB\Transform::trim() To trim the media type and parameters.
-     * @uses \FireHub\Runtime\Arr\Mutation::shift() To remove the media type from the parameters array.
      * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the media type to lower case.
-     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the parameter syntax.
-     * @uses \FireHub\Runtime\Str\SB\Inspection::length() To validate the parameter value length.
-     * @uses \FireHub\Runtime\Str\SB\Search::startsWith() To validate the parameter value.
-     * @uses \FireHub\Runtime\Str\SB\Regex::replace() To unescape the parameter value.
      * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the parameter value.
+     * @uses \FireHub\Runtime\Str\SB\Search::firstPosition() To find the position of the first ';' character.
+     * @uses \FireHub\Adapter\HTTP\Header\Media\Parser::parse() To parse the parameter list.
      *
      * @param string $value <p>
      * Raw Content-Type header value.
@@ -87,57 +84,54 @@ final readonly class ContentType extends ValueObject {
      */
     public static function parse (string $value):self {
 
-        $parts = Runtime\Str\SB\Regex::split(
-            '/;(?=(?:[^"]*"[^"]*")*[^"]*$)/',
-            $value
+        $separator = Runtime\Str\SB\Search::firstPosition(';', $value);
+
+        $media = Runtime\Str\SB\Transform::trim(
+            $separator === false
+                ? $value
+                : Runtime\Str\SB\Access::part($value, 0, $separator), characters: " \t"
         );
 
-        if ($parts === [])
+        if ($media === '')
             throw new InvalidMediaTypeException(
-                'Invalid Content-Type header.'
+                'Content-Type media type cannot be empty.'
             );
 
-        /** @var non-empty-string $media */
-        $media = Runtime\Str\SB\Transform::trim(Runtime\Arr\Mutation::shift($parts), characters: " \t"); // @phpstan-ignore argument.type
+        $normalized = Runtime\Str\SB\Casing::toLower($media);
 
-        $type = Type::tryFrom(Runtime\Str\SB\Casing::toLower($media)) ?? new Custom($media);
+        /** @var non-empty-string&lowercase-string $normalized */
+        $type = Type::tryFrom($normalized) ?? new Custom($normalized);
 
-        $parameters = [];
+        if ($separator === false)
+            return new self($type);
 
-        foreach ($parts as $part) {
+        $raw = Runtime\Str\SB\Access::part(
+            $value,
+            $separator + 1
+        );
 
-            $part = Runtime\Str\SB\Transform::trim($part, characters: " \t");
+        if ($raw === '' || Runtime\Str\SB\Transform::trim($raw, characters: " \t") === '')
+            throw new InvalidMediaTypeException(
+                'Content-Type parameter list cannot be empty.'
+            );
 
-            if (!Runtime\Str\SB\Regex::match('/\A([^=]+)=(.*)\z/s', $part, result: $matches)) // @phpstan-ignore argument.type
+        $parameters = []; $names = [];
+        foreach (Parser::parse($raw) as $parameter) {
+
+            $name = Runtime\Str\SB\Casing::toLower(
+                $parameter['name']
+            );
+
+            if (isset($names[$name]))
                 throw new InvalidMediaTypeException(
-                    'Invalid Content-Type parameter.'
+                    "Duplicate Content-Type parameter: $name."
                 );
 
-            /** @var non-empty-string $name */
-            $name = Runtime\Str\SB\Transform::trim($matches[1], characters: " \t"); // @phpstan-ignore offsetAccess.notFound, argument.type
-            $parameter_value = Runtime\Str\SB\Transform::trim($matches[2], characters: " \t"); // @phpstan-ignore offsetAccess.notFound, argument.type
-
-            if (
-                Runtime\Str\SB\Inspection::length($parameter_value) >= 2
-                && $parameter_value[0] === '"'
-                && Runtime\Str\SB\Search::startsWith('"', $parameter_value)
-            ) {
-                $parameter_value = Runtime\Str\SB\Access::part(
-                    $parameter_value,
-                    1,
-                    -1
-                );
-
-                $parameter_value = Runtime\Str\SB\Regex::replace(
-                    '/\\\\(.)/s',
-                    '$1',
-                    $parameter_value
-                );
-            }
+            $names[$name] = true;
 
             $parameters[] = new Parameter(
-                $name,
-                $parameter_value
+                $parameter['name'],
+                $parameter['value']
             );
 
         }
