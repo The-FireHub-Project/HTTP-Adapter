@@ -624,6 +624,47 @@ final readonly class Headers {
     }
 
     /**
+     * ### Sets the Content-Location request header
+     *
+     * Identifies a URI corresponding to the representation enclosed in the HTTP request message.
+     *
+     * Supports both absolute and relative URIs.
+     *
+     * <code>
+     * $headers = Headers::empty()->contentLocation(
+     *     Uri::parse('/documents/report.pdf')
+     * );
+     *
+     * // Content-Location: /documents/report.pdf
+     *
+     * $headers = Headers::empty()->contentLocation(
+     *     Uri::parse('https://example.com/documents/report.pdf')
+     * );
+     *
+     * // Content-Location: https://example.com/documents/report.pdf
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Foundation\Uri::value() To serialize the URI.
+     * @uses \FireHub\Adapter\HTTP\Request\Headers::replace() To replace the Content-Location header.
+     *
+     * @param \FireHub\Foundation\Uri $uri <p>
+     * URI identifying the enclosed representation.
+     * </p>
+     *
+     * @return self Updated request header collection.
+     */
+    public function contentLocation (Uri $uri):self {
+
+        return $this->replace(
+            'Content-Location',
+            new Value($uri->value())
+        );
+
+    }
+
+    /**
      * ### Sets the Range request header
      *
      * Requests one or more byte ranges from the target resource.
@@ -1540,7 +1581,8 @@ final readonly class Headers {
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidLanguageException If a language tag is invalid.
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If list syntax is invalid.
      *
-     * @return list<LanguageType|LanguageCustom> Parsed content languages.
+     * @return list<\FireHub\Adapter\HTTP\Header\Language\Type|\FireHub\Adapter\HTTP\Header\Language\Custom<non-empty-string>>
+     * Parsed content languages.
      */
     public function getContentLanguage ():array {
 
@@ -1567,6 +1609,61 @@ final readonly class Headers {
             }
 
         return $languages;
+
+    }
+
+    /**
+     * ### Gets the Content-Location request header
+     *
+     * Returns the URI identifying the representation enclosed in the HTTP request message.
+     *
+     * <code>
+     * $headers = Headers::empty()->add(
+     *     new Name('Content-Location'),
+     *     new Value('/documents/report.pdf')
+     * );
+     *
+     * $uri = $headers->getContentLocation();
+     *
+     * // /documents/report.pdf
+     *
+     * Headers::empty()->getContentLocation();
+     *
+     * // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Content-Location header values.
+     * @uses \FireHub\Foundation\Uri::parse() To parse the URI.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To check if the header has a value.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If multiple Content-Location fields are present.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidUriException If the URI is invalid.
+     *
+     * @return null|\FireHub\Foundation\Uri Parsed Content-Location URI, or null if absent.
+     */
+    public function getContentLocation ():?Uri {
+
+        $values = $this->headers->get(
+            new Name('Content-Location')
+        );
+
+        if ($values === []) return null;
+
+        if (Runtime\Arr\Inspection::count($values) !== 1)
+            throw new InvalidParameterValueException(
+                'Content-Location header must contain exactly one URI.'
+            );
+
+        $value = $values[0]->value();
+
+        if ($value === '')
+            throw new InvalidParameterValueException(
+                'Content-Location header cannot be empty.'
+            );
+
+        return Uri::parse($value);
 
     }
 
