@@ -18,6 +18,7 @@ use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
     Authorization\Credentials,
     CacheControl\Custom, CacheControl\RequestDirective,
+    Connection\Type as ConnectionType, Connection\Custom as ConnectionCustom, Connection\Parser as ConnectionParser,
     Content\Length,
     Cookie\Request as Cookie,
     Encoding\Custom as EncodingCustom, Encoding\Preference as EncodingPreference, Encoding\Type as EncodingType,
@@ -115,6 +116,62 @@ final readonly class Headers {
         return $this->replace(
             'Authorization',
             new Value($credentials->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the Connection request header
+     *
+     * Specifies HTTP/1.x connection options.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Request\Headers;
+     * use FireHub\Adapter\HTTP\Header\Connection\Type;
+     * use FireHub\Adapter\HTTP\Header\Connection\Custom;
+     *
+     * $headers = Headers::empty()->connection(
+     *     Type::KEEP_ALIVE,
+     *     Type::UPGRADE,
+     *     new Custom('X-Custom-Connection')
+     * );
+     *
+     * // Connection: keep-alive, upgrade, X-Custom-Connection
+     *
+     * $headers = Headers::empty()->connection(Type::CLOSE);
+     *
+     * // Connection: close
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Connection\Type::value() To get a standard connection option.
+     * @uses \FireHub\Adapter\HTTP\Header\Connection\Custom::value() To get a custom connection option.
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join connection options.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Connection\Type|\FireHub\Adapter\HTTP\Header\Connection\Custom $option <p>
+     * First connection option.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Connection\Type|\FireHub\Adapter\HTTP\Header\Connection\Custom ...$additional <p>
+     * Additional connection options.
+     * </p>
+     *
+     * @return self Updated request headers.
+     */
+    public function connection (ConnectionType|ConnectionCustom $option, ConnectionType|ConnectionCustom ...$additional):self {
+
+        $options = [];
+
+        foreach ([$option, ...$additional] as $item)
+            $options[] = $item instanceof ConnectionType
+                ? $item->value
+                : $item->value();
+
+        return $this->replace(
+            'Connection',
+            new Value(
+                Runtime\Str\SB\Delimiter::implode($options, ', ')
+            )
         );
 
     }
@@ -1529,6 +1586,53 @@ final readonly class Headers {
             );
 
         return $authority;
+
+    }
+
+    /**
+     * ### Gets the parsed Connection request header
+     *
+     * Returns standard and custom HTTP connection options.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Header\Connection\Type;
+     * use FireHub\Adapter\HTTP\Header\Connection\Custom;
+     *
+     * $options = $headers->getConnection();
+     *
+     * foreach ($options as $option) {
+     *
+     *     if ($option === Type::KEEP_ALIVE) {
+     *         // Keep-alive option.
+     *     }
+     *
+     *     if ($option instanceof Custom) {
+     *         // Custom connection option.
+     *     }
+     *
+     * }
+     *
+     * // Missing Connection header.
+     * Headers::empty()->getConnection(); // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Connection header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Connection\Parser::parse() To parse connection options.
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Connection\Type|\FireHub\Adapter\HTTP\Header\Connection\Custom>
+     * Parsed connection options.
+     */
+    public function getConnection ():array {
+
+        $options = [];
+
+        foreach ($this->headers->get(new Name('Connection')) as $value)
+            foreach (ConnectionParser::parse($value->value()) as $option)
+                $options[] = $option;
+
+        return $options;
 
     }
 
