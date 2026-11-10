@@ -1464,7 +1464,7 @@ final readonly class Headers {
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\Encoding\Parser::parse() To parse the content encoding.
+     * @uses \FireHub\Adapter\HTTP\Header\Listing\Parser::parse() To parse content encoding types.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To match the content encoding.
      * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the content encoding to lowercase.
      *
@@ -1502,6 +1502,71 @@ final readonly class Headers {
         }
 
         return $encodings;
+
+    }
+
+    /**
+     * ### Gets the Content-Language request header
+     *
+     * Returns the natural languages of the intended audience for the representation.
+     *
+     * Supports multiple Content-Language header fields and comma-separated language tags while preserving their
+     * original order.
+     *
+     * <code>
+     * $headers = Headers::empty()->contentLanguage(
+     *     Type::HR_HR,
+     *     Type::EN_US,
+     *     new Custom('bs-BA')
+     * );
+     *
+     * // Content-Language: hr-HR, en-US, bs-BA
+     *
+     * $languages = $headers->getContentLanguage();
+     *
+     * // [Type::HR_HR, Type::EN_US, new Custom('bs-BA')]
+     *
+     * Headers::empty()->getContentLanguage();
+     *
+     * // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Content-Language header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Listing\Parser::parse() To parse language lists.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize language tags.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidLanguageException If a language tag is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If list syntax is invalid.
+     *
+     * @return list<LanguageType|LanguageCustom> Parsed content languages.
+     */
+    public function getContentLanguage ():array {
+
+        $languages = [];
+
+        foreach ($this->headers->get(new Name('Content-Language')) as $value)
+            foreach (ListingParser::parse($value->value()) as $language) {
+
+                $normalized = Runtime\Str\SB\Casing::toLower($language);
+
+                $type = null;
+
+                foreach (LanguageType::cases() as $case)
+                    if (Runtime\Str\SB\Casing::toLower($case->value) === $normalized) {
+
+                        $type = $case;
+
+                        break;
+
+                    }
+
+                $languages[] = $type ?? new LanguageCustom($language);
+
+            }
+
+        return $languages;
 
     }
 
