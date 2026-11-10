@@ -38,7 +38,7 @@ use FireHub\Foundation\ {
 };
 use FireHub\Adapter\HTTP\Header\Exception\ {
     InvalidContentLengthException, InvalidEntityTagException, InvalidHostException, InvalidMediaTypeException,
-    InvalidOriginException
+    InvalidOriginException, InvalidParameterValueException
 };
 use FireHub\Runtime;
 
@@ -1438,6 +1438,70 @@ final readonly class Headers {
         return ContentType::parse(
             $values[0]->value()
         );
+
+    }
+
+    /**
+     * ### Gets the Content-Encoding request header
+     *
+     * Returns content codings in the order in which they were applied.
+     *
+     * <code>
+     *
+     * $headers = Headers::empty()->contentEncoding(
+     *     Type::GZIP,
+     *     Type::BR
+     * );
+     *
+     * $encodings = $headers->getContentEncoding();
+     *
+     * // [Type::GZIP, Type::BR]
+     *
+     * Headers::empty()->getContentEncoding();
+     *
+     * // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Encoding\Parser::parse() To parse the content encoding.
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To match the content encoding.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the content encoding to lowercase.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If a content coding is invalid.
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Encoding\Type|\FireHub\Adapter\HTTP\Header\Encoding\Custom<non-empty-string>>
+     * Parsed content codings.
+     */
+    public function getContentEncoding ():array {
+
+        $encodings = [];
+
+        foreach (
+            $this->headers->get(new Name('Content-Encoding'))
+            as $value
+        ) {
+
+            foreach (ListingParser::parse($value->value()) as $encoding) {
+
+                if (!Runtime\Str\SB\Regex::match(
+                    "/\A[!#$%&'*+.^_`|~0-9A-Za-z-]+\z/",
+                    $encoding
+                )) throw new InvalidParameterValueException(
+                    'Invalid Content-Encoding header value.'
+                );
+
+                $normalized = Runtime\Str\SB\Casing::toLower($encoding);
+
+                $type = EncodingType::tryFrom($normalized);
+
+                $encodings[] = $type ?? new EncodingCustom($encoding);
+
+            }
+
+        }
+
+        return $encodings;
 
     }
 
