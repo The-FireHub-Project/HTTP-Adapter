@@ -16,7 +16,7 @@ namespace FireHub\Adapter\HTTP\Request;
 
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
-    Authorization\Credentials,
+    Authorization\Credentials, Authorization\Parser as AuthorizationParser,
     CacheControl\Custom, CacheControl\RequestDirective,
     Connection\Type as ConnectionType, Connection\Custom as ConnectionCustom, Connection\Parser as ConnectionParser,
     Content\Length,
@@ -37,8 +37,8 @@ use FireHub\Foundation\ {
     Uri\Component\Authority, Uri\Component\Path, Uri\KnownScheme, Uri
 };
 use FireHub\Adapter\HTTP\Header\Exception\ {
-    InvalidContentLengthException, InvalidEntityTagException, InvalidHostException, InvalidMediaTypeException,
-    InvalidOriginException, InvalidParameterValueException
+    InvalidContentLengthException, InvalidCredentialsFormatException, InvalidEntityTagException,
+    InvalidHostException, InvalidMediaTypeException, InvalidOriginException, InvalidParameterValueException
 };
 use FireHub\Runtime;
 
@@ -1279,6 +1279,61 @@ final readonly class Headers {
     public function all ():array {
 
         return $this->headers->all();
+
+    }
+
+    /**
+     * ### Gets the Authorization request header
+     *
+     * Parses the Authorization header into strongly typed authentication credentials.
+     *
+     * Returns null if the Authorization header is not present.
+     *
+     * <code>
+     * $headers = Headers::empty()->authorization(
+     *     new Bearer('my-access-token')
+     * );
+     *
+     * $credentials = $headers->getAuthorization();
+     *
+     * // Bearer
+     *
+     * Headers::empty()->getAuthorization();
+     *
+     * // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve the Authorization header values.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To validate the number of Authorization header fields.
+     * @uses \FireHub\Adapter\HTTP\Header\Authorization\Parser::parse() To parse authentication credentials.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCredentialsFormatException If multiple Authorization headers
+     * are present or the credentials are malformed.
+     * @throws \FireHub\Core\Exception\FireHubException If a credential validation condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If a credential validation exception is not a
+     * FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Authorization\Credentials Parsed authentication credentials, or null
+     * if the header is absent.
+     */
+    public function getAuthorization ():?Credentials {
+
+        $values = $this->headers->get(
+            new Name('Authorization')
+        );
+
+        if ($values === []) return null;
+
+        if (Runtime\Arr\Inspection::count($values) !== 1)
+            throw new InvalidCredentialsFormatException(
+                'Multiple Authorization header fields are not allowed.'
+            );
+
+        return AuthorizationParser::parse(
+            $values[0]->value()
+        );
 
     }
 
