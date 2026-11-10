@@ -43,6 +43,7 @@ final readonly class ContentType extends ValueObject {
      * @since 1.0.0
      *
      * @uses \FireHub\Runtime\Arr\Access::values() To remove the keys from the parameters array.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the parameter name to lower case.
      *
      * @param \FireHub\Adapter\HTTP\Header\Media\Type|\FireHub\Adapter\HTTP\Header\Media\Custom<non-empty-string> $media <p>
      * Concrete media type.
@@ -51,12 +52,31 @@ final readonly class ContentType extends ValueObject {
      * Optional media type parameters.
      * </p>
      *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If the media type is invalid.
+     *
      * @return void
      */
     public function __construct (
         private Type|Custom $media,
         Parameter ...$parameters
     ) {
+
+        $names = [];
+
+        foreach ($parameters as $parameter) {
+
+            $name = Runtime\Str\SB\Casing::toLower(
+                $parameter->parameterName()
+            );
+
+            if (isset($names[$name]))
+                throw new InvalidMediaTypeException(
+                    "Duplicate Content-Type parameter: $name."
+                );
+
+            $names[$name] = true;
+
+        }
 
         $this->parameters = Runtime\Arr\Access::values($parameters);
 
@@ -69,7 +89,6 @@ final readonly class ContentType extends ValueObject {
      * @since 1.0.0
      *
      * @uses \FireHub\Runtime\Str\SB\Transform::trim() To trim the media type and parameters.
-     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the media type to lower case.
      * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the parameter value.
      * @uses \FireHub\Runtime\Str\SB\Search::firstPosition() To find the position of the first ';' character.
      * @uses \FireHub\Adapter\HTTP\Header\Media\Parser::parse() To parse the parameter list.
@@ -115,26 +134,13 @@ final readonly class ContentType extends ValueObject {
                 'Content-Type parameter list cannot be empty.'
             );
 
-        $parameters = []; $names = [];
-        foreach (Parser::parse($raw) as $parameter) {
+        $parameters = [];
 
-            $name = Runtime\Str\SB\Casing::toLower(
-                $parameter['name']
-            );
-
-            if (isset($names[$name]))
-                throw new InvalidMediaTypeException(
-                    "Duplicate Content-Type parameter: $name."
-                );
-
-            $names[$name] = true;
-
+        foreach (Parser::parse($raw) as $parameter)
             $parameters[] = new Parameter(
                 $parameter['name'],
                 $parameter['value']
             );
-
-        }
 
         return new self($type, ...$parameters);
 
