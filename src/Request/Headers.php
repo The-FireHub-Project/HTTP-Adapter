@@ -28,6 +28,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Preference as MediaPreference, Media\Type as MediaType,
     Range\ByteRange, Range\SuffixRange, Range\Unit,
+    Upgrade\Protocol as UpgradeProtocol, Upgrade\Parser as UpgradeParser,
     UserAgent\Product as UserAgentProduct, UserAgent\Comment as UserAgentComment, UserAgent\Parser as UserAgentParser,
     Date, Name, Value,
 };
@@ -171,6 +172,56 @@ final readonly class Headers {
             'Connection',
             new Value(
                 Runtime\Str\SB\Delimiter::implode($options, ', ')
+            )
+        );
+
+    }
+
+    /**
+     * ### Sets the Upgrade request header
+     *
+     * Specifies protocols supported for an HTTP/1.1 protocol upgrade.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Header\Upgrade\Type;
+     * use FireHub\Adapter\HTTP\Header\Upgrade\Protocol;
+     *
+     * $headers = Headers::empty()->upgrade(
+     *     new Protocol(Type::WEBSOCKET),
+     *     new Protocol(Type::H2C)
+     * );
+     *
+     * // Upgrade: websocket, h2c
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Upgrade\Protocol::value() To get a protocol upgrade option.
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join protocol upgrade options.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Upgrade\Protocol $protocol <p>
+     * First upgrade protocol.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Upgrade\Protocol ...$additional <p>
+     * Additional protocols.
+     * </p>
+     *
+     * @return self Updated request headers.
+     */
+    public function upgrade (UpgradeProtocol $protocol, UpgradeProtocol ...$additional):self {
+
+        $protocols = [];
+
+        foreach ([$protocol, ...$additional] as $item)
+            $protocols[] = $item->value();
+
+        return $this->replace(
+            'Upgrade',
+            new Value(
+                Runtime\Str\SB\Delimiter::implode(
+                    $protocols,
+                    ', '
+                )
             )
         );
 
@@ -1191,6 +1242,79 @@ final readonly class Headers {
     }
 
     /**
+     * ### Gets the parsed Connection request header
+     *
+     * Returns standard and custom HTTP connection options.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Header\Connection\Type;
+     * use FireHub\Adapter\HTTP\Header\Connection\Custom;
+     *
+     * $options = $headers->getConnection();
+     *
+     * foreach ($options as $option) {
+     *
+     *     if ($option === Type::KEEP_ALIVE) {
+     *         // Keep-alive option.
+     *     }
+     *
+     *     if ($option instanceof Custom) {
+     *         // Custom connection option.
+     *     }
+     *
+     * }
+     *
+     * // Missing Connection header.
+     * Headers::empty()->getConnection(); // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Connection header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Connection\Parser::parse() To parse connection options.
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Connection\Type|\FireHub\Adapter\HTTP\Header\Connection\Custom>
+     * Parsed connection options.
+     */
+    public function getConnection ():array {
+
+        $options = [];
+
+        foreach ($this->headers->get(new Name('Connection')) as $value)
+            foreach (ConnectionParser::parse($value->value()) as $option)
+                $options[] = $option;
+
+        return $options;
+
+    }
+
+    /**
+     * ### Gets the parsed Upgrade request header
+     *
+     * <code>
+     * $protocols = $headers->getUpgrade();
+     *
+     * foreach ($protocols as $protocol)
+     *     echo $protocol->value();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Upgrade\Protocol> Parsed upgrade protocols.
+     */
+    public function getUpgrade ():array {
+
+        $protocols = [];
+
+        foreach ($this->headers->get(new Name('Upgrade')) as $value)
+            foreach (UpgradeParser::parse($value->value()) as $protocol)
+                $protocols[] = $protocol;
+
+        return $protocols;
+
+    }
+
+    /**
      * ### Gets the parsed Content-Length request header
      *
      * Returns the content length as a validated value object.
@@ -1586,53 +1710,6 @@ final readonly class Headers {
             );
 
         return $authority;
-
-    }
-
-    /**
-     * ### Gets the parsed Connection request header
-     *
-     * Returns standard and custom HTTP connection options.
-     *
-     * <code>
-     * use FireHub\Adapter\HTTP\Header\Connection\Type;
-     * use FireHub\Adapter\HTTP\Header\Connection\Custom;
-     *
-     * $options = $headers->getConnection();
-     *
-     * foreach ($options as $option) {
-     *
-     *     if ($option === Type::KEEP_ALIVE) {
-     *         // Keep-alive option.
-     *     }
-     *
-     *     if ($option instanceof Custom) {
-     *         // Custom connection option.
-     *     }
-     *
-     * }
-     *
-     * // Missing Connection header.
-     * Headers::empty()->getConnection(); // []
-     * </code>
-     *
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Connection header values.
-     * @uses \FireHub\Adapter\HTTP\Header\Connection\Parser::parse() To parse connection options.
-     *
-     * @return list<\FireHub\Adapter\HTTP\Header\Connection\Type|\FireHub\Adapter\HTTP\Header\Connection\Custom>
-     * Parsed connection options.
-     */
-    public function getConnection ():array {
-
-        $options = [];
-
-        foreach ($this->headers->get(new Name('Connection')) as $value)
-            foreach (ConnectionParser::parse($value->value()) as $option)
-                $options[] = $option;
-
-        return $options;
 
     }
 
