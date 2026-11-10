@@ -32,10 +32,11 @@ use FireHub\Adapter\HTTP\Header\ {
 };
 use FireHub\Adapter\HTTP\Cookie\Request as RequestCookie;
 use FireHub\Foundation\ {
-    Uri\Component\Path, Uri\KnownScheme, Uri
+    Uri\Component\Authority, Uri\Component\Path, Uri\KnownScheme, Uri
 };
 use FireHub\Adapter\HTTP\Header\Exception\ {
-    InvalidContentLengthException, InvalidEntityTagException, InvalidMediaTypeException, InvalidOriginException
+    InvalidContentLengthException, InvalidEntityTagException, InvalidHostException, InvalidMediaTypeException,
+    InvalidOriginException
 };
 use FireHub\Runtime;
 
@@ -890,6 +891,76 @@ final readonly class Headers {
     }
 
     /**
+     * ### Sets the Host request header
+     *
+     * <code>
+     * // Set the Host header.
+     * $headers = Headers::empty()->host(
+     *     new Authority(
+     *         new Host('localhost'),
+     *         new Port(222)
+     *     )
+     * );
+     *
+     * // Host: localhost:222
+     *
+     * // Get the parsed Host header.
+     * $authority = $headers->getHost();
+     *
+     * $authority?->host()->value(); // localhost
+     * $authority?->port()?->value(); // 222
+     *
+     * // Host without a port.
+     * $headers = Headers::empty()->host(
+     *     new Authority(new Host('example.com'))
+     * );
+     *
+     * // Host: example.com
+     *
+     * // IPv6 host with a port.
+     * $headers = Headers::empty()->host(
+     *     new Authority(
+     *         new Host('[::1]'),
+     *         new Port(8080)
+     *     )
+     * );
+     *
+     * // Host: [::1]:8080
+     *
+     * // Missing Host header.
+     * Headers::empty()->getHost(); // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Foundation\Uri\Component\Authority::host() To retrieve the host component.
+     * @uses \FireHub\Foundation\Uri\Component\Authority::userInfo() To retrieve the user information component.
+     *
+     * @param \FireHub\Foundation\Uri\Component\Authority $authority <p>
+     * HTTP target authority.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidHostException If the authority is invalid.
+     *
+     * @return self Updated request header collection.
+     */
+    public function host (Authority $authority):self {
+
+        if (
+            $authority->userInfo() !== null
+            || $authority->host()->isEmpty()
+        ) throw new InvalidHostException(
+            'Invalid HTTP Host authority.'
+        );
+
+        return $this->replace(
+            'Host',
+            new Value($authority->value())
+        );
+
+    }
+
+    /**
      * ### Sets the Cookie request header
      *
      * Serializes one or more request cookies into a single Cookie header field.
@@ -1370,8 +1441,7 @@ final readonly class Headers {
             new Name('User-Agent')
         );
 
-        if ($values === [])
-            return null;
+        if ($values === []) return null;
 
         if (Runtime\Arr\Inspection::count($values) !== 1)
             throw new \FireHub\Adapter\HTTP\Header\Exception\InvalidUserAgentProductException(
@@ -1381,6 +1451,84 @@ final readonly class Headers {
         return UserAgentParser::parse(
             $values[0]->value()
         );
+
+    }
+
+    /**
+     * ### Gets the parsed Host request header
+     *
+     * Returns the HTTP request target authority, including the host and optional network port.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(
+     *         new Name('Host'),
+     *         new Value('localhost:222')
+     *     );
+     *
+     * $authority = $headers->getHost();
+     *
+     * $authority?->host()->value(); // localhost
+     * $authority?->port()?->value(); // 222
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Host header values.
+     * @uses \FireHub\Foundation\Uri\Component\Authority::parse() To parse the host and port.
+     * @uses \FireHub\Foundation\Uri\Component\Authority::host() To retrieve the host component.
+     * @uses \FireHub\Foundation\Uri\Component\Authority::port() To retrieve the port component.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To check if the header contains a port.
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To check if the header contains a port.
+     * @uses \FireHub\Runtime\Str\SB\Search::endsWith() To check if the header contains a port.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidHostException If the Host header is invalid.
+     *
+     * @return null|\FireHub\Foundation\Uri\Component\Authority Parsed authority, or null if absent.
+     */
+    public function getHost ():?Authority {
+
+        $values = $this->headers->get(
+            new Name('Host')
+        );
+
+        if ($values === []) return null;
+
+        if (Runtime\Arr\Inspection::count($values) !== 1)
+            throw new InvalidHostException(
+                'Multiple Host header fields are not allowed.'
+            );
+
+        $value = $values[0]->value();
+
+        if ($value === '')
+            throw new InvalidHostException(
+                'Host header cannot be empty.'
+            );
+
+        if (Runtime\Str\SB\Regex::match('/[@\/?#\s]/', $value))
+            throw new InvalidHostException(
+                'Invalid HTTP Host header syntax.'
+            );
+
+        if (Runtime\Str\SB\Search::endsWith(':', $value))
+            throw new InvalidHostException(
+                'Host header port cannot be empty.'
+            );
+
+        $authority = Authority::parse($value);
+
+        if ($authority->host()->isEmpty())
+            throw new InvalidHostException(
+                'Host header cannot contain an empty hostname.'
+            );
+
+        if ($authority->userInfo() !== null)
+            throw new InvalidHostException(
+                'Host header cannot contain user information.'
+            );
+
+        return $authority;
 
     }
 
