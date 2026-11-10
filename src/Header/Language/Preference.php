@@ -70,7 +70,8 @@ final readonly class Preference extends ValueObject {
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidLanguageException If the language preference is invalid.
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If parameter syntax is invalid.
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaPreferenceExceptionQuality If the quality factor is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaPreferenceExceptionQuality If the quality factor is
+     * invalid.
      *
      * @return self<non-empty-string> Parsed language preference.
      */

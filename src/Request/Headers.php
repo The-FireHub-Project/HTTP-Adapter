@@ -23,11 +23,11 @@ use FireHub\Adapter\HTTP\Header\ {
     Encoding\Custom as EncodingCustom, Encoding\Preference as EncodingPreference, Encoding\Type as EncodingType,
     EntityTag\Tag as EntityTag, EntityTag\Range as EntityTagRange,
     Language\Custom as LanguageCustom, Language\Type as LanguageType, Language\Preference as LanguagePreference,
-    Listing\Parser,
+    Listing\Parser as ListingParser,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Preference as MediaPreference, Media\Type as MediaType,
     Range\ByteRange, Range\SuffixRange, Range\Unit,
-    UserAgent\Product as UserAgentProduct, UserAgent\Comment as UserAgentComment,
+    UserAgent\Product as UserAgentProduct, UserAgent\Comment as UserAgentComment, UserAgent\Parser as UserAgentParser,
     Date, Name, Value,
 };
 use FireHub\Adapter\HTTP\Cookie\Request as RequestCookie;
@@ -1233,7 +1233,7 @@ final readonly class Headers {
         $preferences = [];
 
         foreach ($this->headers->get(new Name('Accept')) as $value)
-            foreach (Parser::parse($value->value()) as $member)
+            foreach (ListingParser::parse($value->value()) as $member)
                 $preferences[] = MediaPreference::parse($member);
 
         return $preferences;
@@ -1282,7 +1282,7 @@ final readonly class Headers {
         $preferences = [];
 
         foreach ($this->headers->get(new Name('Accept-Encoding')) as $value)
-            foreach (Parser::parse($value->value()) as $member)
+            foreach (ListingParser::parse($value->value()) as $member)
                 $preferences[] = EncodingPreference::parse($member);
 
         return $preferences;
@@ -1322,8 +1322,10 @@ final readonly class Headers {
      * @uses \FireHub\Adapter\HTTP\Header\Listing\Parser::parse() To split comma-separated preferences.
      * @uses \FireHub\Adapter\HTTP\Header\Language\Preference::parse() To parse language preferences.
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidLanguageException If a language preference is invalid.
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If the header syntax is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidLanguageException If the language preference is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If parameter syntax is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaPreferenceExceptionQuality If the quality factor is
+     * invalid.
      *
      * @return list<\FireHub\Adapter\HTTP\Header\Language\Preference<non-empty-string>> Parsed language preferences.
      */
@@ -1332,10 +1334,53 @@ final readonly class Headers {
         $preferences = [];
 
         foreach ($this->headers->get(new Name('Accept-Language')) as $value)
-            foreach (Parser::parse($value->value()) as $member)
+            foreach (ListingParser::parse($value->value()) as $member)
                 $preferences[] = LanguagePreference::parse($member);
 
         return $preferences;
+
+    }
+
+    /**
+     * ### Gets the parsed User-Agent request header
+     *
+     * Returns the product and comment components of the HTTP User-Agent header.
+     *
+     * <code>
+     * $components = $headers->getUserAgent();
+     *
+     * foreach ($components ?? [] as $component)
+     *     echo $component->value() . PHP_EOL;
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve User-Agent header values.
+     * @uses \FireHub\Adapter\HTTP\Header\UserAgent\Parser::parse() To parse the User-Agent header.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To check if the header contains multiple components.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidUserAgentProductException If the syntax is invalid.
+     *
+     * @return null|non-empty-list<\FireHub\Adapter\HTTP\Header\UserAgent\Product|\FireHub\Adapter\HTTP\Header\UserAgent\Comment>
+     * Parsed User-Agent components, or null if absent.
+     */
+    public function getUserAgent ():?array {
+
+        $values = $this->headers->get(
+            new Name('User-Agent')
+        );
+
+        if ($values === [])
+            return null;
+
+        if (Runtime\Arr\Inspection::count($values) !== 1)
+            throw new \FireHub\Adapter\HTTP\Header\Exception\InvalidUserAgentProductException(
+                'Multiple User-Agent header fields are not allowed.'
+            );
+
+        return UserAgentParser::parse(
+            $values[0]->value()
+        );
 
     }
 
