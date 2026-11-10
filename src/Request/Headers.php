@@ -22,8 +22,8 @@ use FireHub\Adapter\HTTP\Header\ {
     Cookie\Request as Cookie,
     Encoding\Custom as EncodingCustom, Encoding\Preference as EncodingPreference, Encoding\Type as EncodingType,
     EntityTag\Tag as EntityTag, EntityTag\Range as EntityTagRange,
-    Language\Custom as LanguageCustom, Language\Type as LanguageType,
-    Language\Preference as LanguagePreference,
+    Language\Custom as LanguageCustom, Language\Type as LanguageType, Language\Preference as LanguagePreference,
+    Listing\Parser,
     Media\ContentType, Media\Custom as MediaCustom, Media\Parameter as MediaParameter,
     Media\Preference as MediaPreference, Media\Type as MediaType,
     Range\ByteRange, Range\SuffixRange, Range\Unit,
@@ -1186,6 +1186,57 @@ final readonly class Headers {
         return ContentType::parse(
             $values[0]->value()
         );
+
+    }
+
+    /**
+     * ### Gets the parsed "Accept request header"
+     *
+     * Returns the media preferences accepted by the HTTP client.
+     *
+     * Supports multiple Accept header fields and comma-separated medi preferences while preserving their original
+     * order.
+     *
+     * Commas inside quoted parameter values are not treated as separators.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(
+     *         new Name('Accept'),
+     *         new Value('text/html, application/json;q=0.9')
+     *     );
+     *
+     * $preferences = $headers->getAccept();
+     *
+     * $preferences[0]->media(); // Type::TEXT_HTML
+     * $preferences[1]->media(); // Type::APPLICATION_JSON
+     * $preferences[1]->quality()->value(); // 0.9
+     *
+     * // Missing Accept header.
+     * Headers::empty()->getAccept(); // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Accept header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Media\Preference::parse() To parse individual media preferences.
+     * @uses \FireHub\Adapter\HTTP\Header\Listing\Parser::parse() To parse the Accept header.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If the Accept header is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If parameter syntax is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaPreferenceExceptionQuality If quality is invalid.
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Media\Preference<non-empty-string>> Parsed media preferences.
+     */
+    public function getAccept ():array {
+
+        $preferences = [];
+
+        foreach ($this->headers->get(new Name('Accept')) as $value)
+            foreach (Parser::parse($value->value()) as $member)
+                $preferences[] = MediaPreference::parse($member);
+
+        return $preferences;
 
     }
 
