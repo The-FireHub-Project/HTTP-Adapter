@@ -60,6 +60,7 @@ final readonly class RequestFactory {
      * @uses \FireHub\Adapter\HTTP\Server\Php\RequestFactory::target() To resolve the HTTP request target.
      * @uses \FireHub\Adapter\HTTP\Server\Php\RequestFactory::version() To resolve the HTTP protocol version.
      * @uses \FireHub\Adapter\HTTP\Server\Php\RequestFactory::headers() To resolve HTTP request headers.
+     * @uses \FireHub\Runtime\Http\Request::headers() To retrieve the HTTP request headers.
      *
      * @throws \FireHub\Adapter\HTTP\Exception\InvalidServerEnvironmentException If the request method is missing or
      * invalid.
@@ -89,7 +90,7 @@ final readonly class RequestFactory {
         $server = $_SERVER;
 
         /** @var array<non-empty-string, string> $headers */
-        $headers = getallheaders();
+        $headers = Runtime\Http\Request::headers();
 
         return new Request(
             $this->method($server),
