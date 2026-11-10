@@ -14,7 +14,10 @@
 namespace FireHub\Adapter\HTTP\Header\Content;
 
 use FireHub\Core\Type\ValueObject;
+use FireHub\Core\Meta\Enum\Side;
+use FireHub\Core\Foundation\Constant\Numeric\IntegerLimits;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidContentLengthException;
+use FireHub\Runtime;
 
 /**
  * ### Represents an HTTP content length
@@ -54,6 +57,61 @@ final readonly class Length extends ValueObject {
                 'Content length cannot be negative.'
             )
         );
+
+    }
+
+    /**
+     * ### Parses an HTTP content length
+     *
+     * Converts a decimal string into a validated content length.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the content length.
+     * @uses \FireHub\Runtime\Str\SB\Transform::trim() To trim leading zeros.
+     * @uses \FireHub\Core\Meta\Enum\Side::LEFT To trim leading zeros.
+     * @uses \FireHub\Runtime\Str\SB\Inspection::length() To validate the content length.
+     * @uses \FireHub\Runtime\Str\SB\Compare::lexical() To validate the content length.
+     * @uses \FireHub\Core\Foundation\Constant\Numeric\IntegerLimits::MAX To validate the content length.
+     *
+     * @param string $value <p>
+     * Raw Content-Length header value.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentLengthException If the value is not a valid
+     * content length.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Parsed content length.
+     */
+    public static function parse (string $value):self {
+
+        if (!Runtime\Str\SB\Regex::match('/^[0-9]+$/D', $value))
+            throw new InvalidContentLengthException(
+                'Content-Length must contain only decimal digits.'
+            );
+
+        $normalized = Runtime\Str\SB\Transform::trim($value, Side::LEFT, '0');
+        $normalized = $normalized === '' ? '0' : $normalized;
+
+        $max = (string)IntegerLimits::MAX;
+
+        if (
+            Runtime\Str\SB\Inspection::length($normalized)
+            > Runtime\Str\SB\Inspection::length($max)
+            || (
+                Runtime\Str\SB\Inspection::length($normalized)
+                === Runtime\Str\SB\Inspection::length($max)
+                && Runtime\Str\SB\Compare::lexical($normalized, $max) > 0
+            )
+        ) throw new InvalidContentLengthException(
+            'Content-Length exceeds the supported integer range.'
+        );
+
+        /** @var non-negative-int $normalized */
+        $normalized = (int)$normalized;
+
+        return new self($normalized);
 
     }
 

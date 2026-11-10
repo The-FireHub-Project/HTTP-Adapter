@@ -35,7 +35,7 @@ use FireHub\Foundation\ {
     Uri\Component\Path, Uri\KnownScheme, Uri
 };
 use FireHub\Adapter\HTTP\Header\Exception\ {
-    InvalidEntityTagException, InvalidOriginException
+    InvalidContentLengthException, InvalidEntityTagException, InvalidMediaTypeException, InvalidOriginException
 };
 use FireHub\Runtime;
 
@@ -1059,6 +1059,133 @@ final readonly class Headers {
     public function all ():array {
 
         return $this->headers->all();
+
+    }
+
+    /**
+     * ### Gets the parsed Content-Length request header
+     *
+     * Returns the content length as a validated value object.
+     *
+     * Identical repeated values are accepted, while conflicting values are rejected.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Content-Length'), new Value('1024'));
+     *
+     * $length = $headers->getContentLength();
+     *
+     * echo $length?->length(); // 1024
+     *
+     * // Missing Content-Length header.
+     * Headers::empty()->getContentLength(); // null
+     *
+     * // Identical repeated values.
+     * $headers = Headers::empty()
+     *     ->add(new Name('Content-Length'), new Value('1024'))
+     *     ->add(new Name('Content-Length'), new Value('1024'));
+     *
+     * echo $headers->getContentLength()?->length(); // 1024
+     *
+     * // Conflicting values throw InvalidContentLengthException.
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve the header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Length::parse() To parse the content length.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Length::length() To compare parsed lengths.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Length::value() To retrieve the header value.
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::explode() To split the header value.
+     * @uses \FireHub\Runtime\Str\SB\Transform::trim() To trim the header value.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidContentLengthException If the header contains invalid or
+     * conflicting values.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Content\Length Parsed content length, or null if absent.
+     */
+    public function getContentLength ():?Length {
+
+        $values = $this->headers->get(
+            new Name('Content-Length')
+        );
+
+        if ($values === []) return null;
+
+        $length = null;
+
+        foreach ($values as $value) {
+
+            foreach (Runtime\Str\SB\Delimiter::explode($value->value(), ',') as $part) {
+
+                $current = Length::parse(Runtime\Str\SB\Transform::trim($part, characters: " \t"));
+
+                if (
+                    $length !== null
+                    && $length->length() !== $current->length()
+                ) throw new InvalidContentLengthException(
+                    'Conflicting Content-Length header values.'
+                );
+
+                $length = $current;
+
+            }
+
+        }
+
+        return $length;
+
+    }
+
+    /**
+     * ### Gets the parsed Content-Type request header
+     *
+     * Returns the media type and its parameters as a validated ContentType value object.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(
+     *         new Name('Content-Type'),
+     *         new Value('application/json; charset=utf-8')
+     *     );
+     *
+     * $content_type = $headers->getContentType();
+     *
+     * echo $content_type?->value();
+     *
+     * // application/json; charset=utf-8
+     *
+     * // Missing Content-Type header.
+     * Headers::empty()->getContentType(); // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve the header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Media\ContentType::parse() To parse the media type.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To check if the media type has parameters.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If the Content-Type header is invalid.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Media\ContentType<non-empty-string> Parsed content type, or null if
+     * absent.
+     */
+    public function getContentType ():?ContentType {
+
+        $values = $this->headers->get(
+            new Name('Content-Type')
+        );
+
+        if ($values === []) return null;
+
+        if (Runtime\Arr\Inspection::count($values) !== 1)
+            throw new InvalidMediaTypeException(
+                'Multiple Content-Type headers are not allowed.'
+            );
+
+        return ContentType::parse(
+            $values[0]->value()
+        );
 
     }
 
