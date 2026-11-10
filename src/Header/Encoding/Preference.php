@@ -15,6 +15,8 @@ namespace FireHub\Adapter\HTTP\Header\Encoding;
 
 use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Header\Quality;
+use FireHub\Adapter\HTTP\Header\Parameter\Parser;
+use FireHub\Adapter\HTTP\Header\Exception\InvalidEncodingException;
 use FireHub\Runtime;
 
 /**
@@ -49,6 +51,87 @@ final readonly class Preference extends ValueObject {
         private Type|Range|Custom $encoding,
         private Quality $quality = new Quality(1.0)
     ) {}
+
+    /**
+     * ### Parses an HTTP Accept-Encoding preference
+     *
+     * Converts a raw content coding preference into a validated encoding and its optional quality factor.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Search::firstPosition() To find the separator between encoding and parameters.
+     * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the encoding.
+     * @uses \FireHub\Runtime\Str\SB\Transform::trim() To remove optional whitespace.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize content coding identifiers.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To validate the number of parameters.
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the quality factor.
+     * @uses \FireHub\Adapter\HTTP\Header\Parameter\Parser::parse() To parse quality parameters.
+     *
+     * @param string $value <p>
+     * Raw Accept-Encoding preference.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidEncodingException If the encoding preference is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If parameter syntax is invalid.
+     *
+     * @return self<non-empty-string> Parsed encoding preference.
+     */
+    public static function parse (string $value):self {
+
+        $separator = Runtime\Str\SB\Search::firstPosition(';', $value);
+
+        $encoding = Runtime\Str\SB\Transform::trim(
+            $separator === false
+                ? $value
+                : Runtime\Str\SB\Access::part($value, 0, $separator),
+            characters: " \t"
+        );
+
+        if ($encoding === '')
+            throw new InvalidEncodingException(
+                'Accept-Encoding content coding cannot be empty.'
+            );
+
+        $normalized = Runtime\Str\SB\Casing::toLower($encoding);
+
+        /** @var non-empty-string&lowercase-string $normalized */
+        $type = Range::tryFrom($normalized)
+            ?? Type::tryFrom($normalized)
+            ?? new Custom($encoding);
+
+        if ($separator === false)
+            return new self($type);
+
+        $raw = Runtime\Str\SB\Access::part($value, $separator + 1);
+
+        if (Runtime\Str\SB\Transform::trim($raw, characters: " \t") === '')
+            throw new InvalidEncodingException(
+                'Accept-Encoding quality parameter cannot be empty.'
+            );
+
+        $parameters = Parser::parse($raw);
+
+        if (
+            Runtime\Arr\Inspection::count($parameters) !== 1
+            || Runtime\Str\SB\Casing::toLower($parameters[0]['name']) !== 'q' // @phpstan-ignore offsetAccess.notFound
+        ) throw new InvalidEncodingException(
+            'Accept-Encoding supports only one q parameter.'
+        );
+
+        $raw_quality = $parameters[0]['value']; // @phpstan-ignore offsetAccess.notFound
+
+        if (!Runtime\Str\SB\Regex::match(
+            '/\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/',
+            $raw_quality
+        )) throw new InvalidEncodingException(
+            'Invalid Accept-Encoding quality syntax.'
+        );
+
+        return new self(
+            $type,
+            new Quality((float)$raw_quality)
+        );
+
+    }
 
     /**
      * ### Gets the accepted content coding or range

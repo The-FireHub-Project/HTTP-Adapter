@@ -1241,6 +1241,105 @@ final readonly class Headers {
     }
 
     /**
+     * ### Gets the parsed Accept-Encoding request header
+     *
+     * Returns the content codings accepted by the HTTP client.
+     *
+     * Supports multiple Accept-Encoding header fields and comma-separated encoding preferences while preserving
+     * their original order.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(
+     *         new Name('Accept-Encoding'),
+     *         new Value('gzip, deflate, br, zstd')
+     *     );
+     *
+     * $preferences = $headers->getAcceptEncoding();
+     *
+     * $preferences[0]->encoding(); // Type::GZIP
+     * $preferences[1]->encoding(); // Type::DEFLATE
+     * $preferences[2]->encoding(); // Type::BR
+     * $preferences[3]->encoding(); // Type::ZSTD
+     *
+     * // Missing Accept-Encoding header.
+     * Headers::empty()->getAcceptEncoding(); // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Accept-Encoding header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Listing\Parser::parse() To split comma-separated preferences.
+     * @uses \FireHub\Adapter\HTTP\Header\Encoding\Preference::parse() To parse encoding preferences.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidEncodingException If an encoding preference is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If the header syntax is invalid.
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Encoding\Preference<non-empty-string>> Parsed encoding preferences.
+     */
+    public function getAcceptEncoding ():array {
+
+        $preferences = [];
+
+        foreach ($this->headers->get(new Name('Accept-Encoding')) as $value)
+            foreach (Parser::parse($value->value()) as $member)
+                $preferences[] = EncodingPreference::parse($member);
+
+        return $preferences;
+
+    }
+
+    /**
+     * ### Gets the parsed Accept-Language request header
+     *
+     * Returns the language preferences accepted by the HTTP client.
+     *
+     * Supports multiple Accept-Language header fields and comma-separated language preferences while preserving
+     * their original order.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(
+     *         new Name('Accept-Language'),
+     *         new Value('en-US,en;q=0.9')
+     *     );
+     *
+     * $preferences = $headers->getAcceptLanguage();
+     *
+     * $preferences[0]->language(); // Type::EN_US
+     * $preferences[0]->quality()->value(); // 1.0
+     *
+     * $preferences[1]->language(); // Type::EN
+     * $preferences[1]->quality()->value(); // 0.9
+     *
+     * // Missing Accept-Language header.
+     * Headers::empty()->getAcceptLanguage(); // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Accept-Language header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Listing\Parser::parse() To split comma-separated preferences.
+     * @uses \FireHub\Adapter\HTTP\Header\Language\Preference::parse() To parse language preferences.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidLanguageException If a language preference is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If the header syntax is invalid.
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Language\Preference<non-empty-string>> Parsed language preferences.
+     */
+    public function getAcceptLanguage ():array {
+
+        $preferences = [];
+
+        foreach ($this->headers->get(new Name('Accept-Language')) as $value)
+            foreach (Parser::parse($value->value()) as $member)
+                $preferences[] = LanguagePreference::parse($member);
+
+        return $preferences;
+
+    }
+
+    /**
      * ### Replaces an HTTP request header
      *
      * Replaces all existing occurrences of the specified HTTP header with a new value. If the header does not exist,
