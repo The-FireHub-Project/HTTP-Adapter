@@ -15,10 +15,13 @@ namespace FireHub\Adapter\HTTP\Header\CacheControl;
 
 use FireHub\Core\Type\ValueObject;
 
+use FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException;
+
 /**
  * ### Represents an HTTP request cache directive
  *
- * Encapsulates a validated Cache-Control request directive.
+ * Encapsulates structured Cache-Control request directives, including their type
+ * and optional delta-seconds or response field-name parameters.
  * @since 1.0.0
  *
  * @extends \FireHub\Core\Type\ValueObject<non-empty-string>
@@ -29,130 +32,190 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      * ### Constructor
      * @since 1.0.0
      *
+     * @param \FireHub\Adapter\HTTP\Header\CacheControl\Request $type <p>
+     * Cache directive type.
+     * </p>
      * @param non-empty-string $serialized <p>
-     * Serialized directive.
+     * Validated serialized directive.
+     * </p>
+     * @param null|int<0, max> $seconds <p>
+     * Optional delta-seconds value.
      * </p>
      *
      * @return void
      */
     private function __construct (
-        private string $serialized
+        private Request $type,
+        private string $serialized,
+        private ?int $seconds = null
     ) {}
 
     /**
-     * ### Creates a maximum-age directive
+     * ### Creates the max-age request directive
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize the maximum age.
-     *
-     * @param positive-int $seconds <p>
-     * Maximum age in seconds.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
+
+     * @param int<0, max> $seconds <p>
+     * Delta-seconds value.
      * </p>
+
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the seconds are negative.
-     *
-     * @return self Updated request directive.
+     * @return self New request cache directive.
      */
     public static function maxAge (int $seconds):self {
 
         return new self(
-            Serializer::seconds(Request::MAX_AGE->value, $seconds)
+            Request::MAX_AGE,
+            Serializer::seconds(Request::MAX_AGE->value, $seconds),
+            $seconds
         );
 
     }
 
     /**
-     * ### Creates a maximum-stale directive
+     * ### Creates the max-stale request directive
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the maximum stale directive.
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize the maximum stale directive.
-     *
-     * @param null|positive-int $seconds <p>
-     * Maximum stale age in seconds.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize a specified maximum staleness.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize an unspecified maximum staleness.
+
+     * @param null|int<0, max> $seconds <p>
+     * Optional maximum staleness in seconds.
      * </p>
+
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the seconds are negative.
-     *
-     * @return self Updated request directive.
+     * @return self New request cache directive.
      */
     public static function maxStale (?int $seconds = null):self {
 
         return new self(
+            Request::MAX_STALE,
             $seconds === null
                 ? Serializer::flag(Request::MAX_STALE->value)
-                : Serializer::seconds(Request::MAX_STALE->value, $seconds)
+                : Serializer::seconds(Request::MAX_STALE->value, $seconds),
+            $seconds
         );
 
     }
 
     /**
-     * ### Creates a minimum-fresh directive
+     * ### Creates the min-fresh request directive
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize the minimum fresh age.
-     *
-     * @param positive-int $seconds <p>
-     * Minimum fresh age in seconds.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
+
+     * @param int<0, max> $seconds <p>
+     * Delta-seconds value.
      * </p>
+
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the seconds are negative.
-     *
-     * @return self Updated request directive.
+     * @return self New request cache directive.
      */
     public static function minFresh (int $seconds):self {
 
         return new self(
-            Serializer::seconds(Request::MIN_FRESH->value, $seconds)
+            Request::MIN_FRESH,
+            Serializer::seconds(Request::MIN_FRESH->value, $seconds),
+            $seconds
         );
 
     }
 
     /**
-     * ### Creates a no-cache directive
+     * ### Creates the no-cache request directive
      * @since 1.0.0
      *
-     * @return self Updated request directive.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
+     *
+     * @return self New request cache directive.
      */
     public static function noCache ():self {
 
-        return new self(Request::NO_CACHE->value);
+        return new self(
+            Request::NO_CACHE,
+            Serializer::flag(Request::NO_CACHE->value)
+        );
 
     }
 
     /**
-     * ### Creates a no-store directive
+     * ### Creates the no-store request directive
      * @since 1.0.0
      *
-     * @return self Updated request directive.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
+     *
+     * @return self New request cache directive.
      */
     public static function noStore ():self {
 
-        return new self(Request::NO_STORE->value);
+        return new self(
+            Request::NO_STORE,
+            Serializer::flag(Request::NO_STORE->value)
+        );
 
     }
 
     /**
-     * ### Creates a no-transform directive
+     * ### Creates the no-transform request directive
      * @since 1.0.0
      *
-     * @return self Updated request directive.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
+     *
+     * @return self New request cache directive.
      */
     public static function noTransform ():self {
 
-        return new self(Request::NO_TRANSFORM->value);
+        return new self(
+            Request::NO_TRANSFORM,
+            Serializer::flag(Request::NO_TRANSFORM->value)
+        );
 
     }
 
     /**
-     * ### Creates an only-if-cached directive
+     * ### Creates the only-if-cached request directive
      * @since 1.0.0
      *
-     * @return self Updated request directive.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
+     *
+     * @return self New request cache directive.
      */
     public static function onlyIfCached ():self {
 
-        return new self(Request::ONLY_IF_CACHED->value);
+        return new self(
+            Request::ONLY_IF_CACHED,
+            Serializer::flag(Request::ONLY_IF_CACHED->value)
+        );
+
+    }
+
+    /**
+     * ### Gets the cache directive type
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Header\CacheControl\Request Cache directive type.
+     */
+    public function type ():Request {
+
+        return $this->type;
+
+    }
+
+    /**
+     * ### Gets the directive delta-seconds value
+     *
+     * Returns null if the directive has no specified delta-seconds value.
+     * @since 1.0.0
+     *
+     * @return null|int<0, max> Delta-seconds value, or null if absent.
+     */
+    public function seconds ():?int {
+
+        return $this->seconds;
 
     }
 
