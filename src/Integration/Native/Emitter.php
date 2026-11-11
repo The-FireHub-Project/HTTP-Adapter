@@ -21,6 +21,19 @@ use FireHub\Runtime;
  * ### Emits HTTP responses using native PHP functions
  *
  * Sends HTTP response metadata through the native PHP SAPI.
+ *
+ * <code>
+ * use FireHub\Adapter\HTTP\Integration\Native\Emitter;
+ * use FireHub\Adapter\HTTP\Response;
+ * use FireHub\Adapter\HTTP\Response\Status\Standard;
+ *
+ * $response = new Response(
+ *     Standard::OK
+ * );
+ *
+ * $emitter = new Emitter($response);
+ * </code>
+ *
  * @since 1.0.0
  */
 final readonly class Emitter {
@@ -41,6 +54,21 @@ final readonly class Emitter {
 
     /**
      * ### Emits the HTTP response
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Integration\Native\Emitter;
+     * use FireHub\Adapter\HTTP\Response;
+     * use FireHub\Adapter\HTTP\Response\Status\Standard;
+     *
+     * $response = new Response(
+     *     Standard::CREATED
+     * );
+     *
+     * (new Emitter($response))->emit();
+     *
+     * // HTTP response status: 201 Created
+     * </code>
+     *
      * @since 1.0.0
      *
      * @uses \FireHub\Runtime\Http\Response::headersSent() To check if headers have already been sent.

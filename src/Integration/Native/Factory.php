@@ -35,6 +35,19 @@ use FireHub\Runtime;
  * Converts native PHP server variables into FireHub HTTP request objects.
  *
  * This factory does not depend on a specific web server.
+ *
+ * <code>
+ * use FireHub\Adapter\HTTP\Integration\Native\Factory;
+ *
+ * $factory = new Factory([
+ *     'SERVER_PROTOCOL' => 'HTTP/1.1',
+ *     'REQUEST_METHOD' => 'GET',
+ *     'REQUEST_URI' => '/users?page=1'
+ * ]);
+ *
+ * $request = $factory->create();
+ * </code>
+ *
  * @since 1.0.0
  */
 final readonly class Factory {
@@ -55,6 +68,15 @@ final readonly class Factory {
 
     /**
      * ### Creates a request from the current PHP environment
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Integration\Native\Factory;
+     *
+     * $factory = Factory::fromGlobals();
+     *
+     * $request = $factory->create();
+     * </code>
+     *
      * @since 1.0.0
      *
      * @return self HTTP request.
@@ -68,6 +90,22 @@ final readonly class Factory {
 
     /**
      * ### Creates a request from native PHP server variables
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Integration\Native\Factory;
+     *
+     * $request = Factory::fromGlobals()->create();
+     *
+     * $request->method()->value();
+     * // GET
+     *
+     * $request->target()->value();
+     * // /users?page=1
+     *
+     * $request->version()->value;
+     * // 1.1
+     * </code>
+     *
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::version() To resolve the HTTP protocol version.
