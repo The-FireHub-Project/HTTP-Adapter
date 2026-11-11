@@ -13,7 +13,6 @@
 
 namespace FireHub\Adapter\HTTP;
 
-use FireHub\Adapter\HTTP\Message\Version;
 use FireHub\Adapter\HTTP\Response\Status;
 
 /**
@@ -32,9 +31,6 @@ final readonly class Response {
      * ### Constructor
      * @since 1.0.0
      *
-     * @param \FireHub\Adapter\HTTP\Message\Version $version <p>
-     * HTTP protocol version.
-     * </p>
      * @param \FireHub\Adapter\HTTP\Response\Status $status <p>
      * HTTP response status.
      * </p>
@@ -42,21 +38,8 @@ final readonly class Response {
      * @return void
      */
     public function __construct (
-        private Version $version,
         private Status $status
     ) {}
-
-    /**
-     * ### Gets the HTTP protocol version
-     * @since 1.0.0
-     *
-     * @return \FireHub\Adapter\HTTP\Message\Version HTTP protocol version.
-     */
-    public function version ():Version {
-
-        return $this->version;
-
-    }
 
     /**
      * ### Gets the HTTP response status
