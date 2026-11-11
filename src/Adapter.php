@@ -15,6 +15,7 @@ namespace FireHub\Adapter\HTTP;
 
 use FireHub\Kernel\Lifecycle\Engine;
 use FireHub\Application\Application;
+use FireHub\Application\ExecutionContext as ApplicationContext;
 use FireHub\Kernel\Lifecycle\Exception\ {
     InvalidLifecycleStateException, LifecycleExecutionException
 };
@@ -386,6 +387,43 @@ final readonly class Adapter {
     public function application ():Application {
 
         return $this->application;
+
+    }
+
+    /**
+     * ### Handles an HTTP request
+     *
+     * Executes an HTTP request handler within an isolated application execution scope.
+     *
+     * Creates an HTTP execution context containing the request and its associated application execution context.
+     *
+     * The application manages the dependency injection scope lifecycle, while the HTTP adapter ensures that execution
+     * is permitted only while the adapter is initialized.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Adapter::execute() To execute the handler within the application scope.
+     * @uses \FireHub\Adapter\HTTP\ExecutionContext::__construct() To create the HTTP execution context.
+     *
+     * @param \FireHub\Adapter\HTTP\Request $request <p>
+     * HTTP request to process.
+     * </p>
+     * @param Closure(\FireHub\Adapter\HTTP\ExecutionContext):\FireHub\Adapter\HTTP\Response $handler <p>
+     * HTTP request handler.
+     * </p>
+     *
+     * @throws \FireHub\Kernel\Lifecycle\Exception\InvalidLifecycleStateException If the adapter is not initialized.
+     * @throws \FireHub\Adapter\HTTP\Exception\InvalidHttpAdapterStateException If the adapter is not available.
+     * @throws \FireHub\Application\Exception\InvalidApplicationStateException If the application is not initialized.
+     *
+     * @return \FireHub\Adapter\HTTP\Response HTTP response.
+     */
+    public function handle (Request $request, Closure $handler):Response {
+
+        return $this->execute(
+            fn(ApplicationContext $context):Response => $handler(
+                new ExecutionContext($request, $context)
+            )
+        );
 
     }
 
