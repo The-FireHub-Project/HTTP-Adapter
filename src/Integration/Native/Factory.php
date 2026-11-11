@@ -1,0 +1,224 @@
+<?php declare(strict_types = 1);
+
+/**
+ * This file is part of the FireHub Project ecosystem
+ *
+ * @author Danijel Galić <danijel.galic@outlook.com>
+ * @copyright 2026-present The FireHub Project - All rights reserved
+ * @license https://opensource.org/license/Apache-2-0 Apache License, Version 2.0
+ *
+ * @php-version >=8.2
+ * @package Adapter\HTTP
+ */
+
+namespace FireHub\Adapter\HTTP\Integration\Native;
+
+use FireHub\Adapter\HTTP\Request;
+use FireHub\Adapter\HTTP\Message\Version;
+use FireHub\Adapter\HTTP\Request\ {
+    Method, Target
+};
+use FireHub\Adapter\HTTP\Request\Method\ {
+    Custom, Standard
+};
+use FireHub\Adapter\HTTP\Request\Target\ {
+    Asterisk, Authority, Absolute, Origin, Validator
+};
+use FireHub\Adapter\HTTP\Exception\ {
+    InvalidServerEnvironmentException, InvalidServerProtocolException
+};
+use FireHub\Runtime;
+
+/**
+ * ### Creates HTTP requests from the native PHP environment
+ *
+ * Converts native PHP server variables into FireHub HTTP request objects.
+ *
+ * This factory does not depend on a specific web server.
+ * @since 1.0.0
+ */
+final readonly class Factory {
+
+    /**
+     * ### Constructor
+     * @since 1.0.0
+     *
+     * @param array<non-empty-string, mixed> $server <p>
+     * Native PHP server variables.
+     * </p>
+     *
+     * @return void
+     */
+    public function __construct (
+        private array $server
+    ) {}
+
+    /**
+     * ### Creates a request from the current PHP environment
+     * @since 1.0.0
+     *
+     * @return self HTTP request.
+     */
+    public static function fromGlobals ():self {
+
+        /** @var array<non-empty-string, mixed> $_SERVER */
+        return new self($_SERVER);
+
+    }
+
+    /**
+     * ### Creates a request from native PHP server variables
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::version() To resolve the HTTP protocol version.
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::method() To resolve the HTTP request method.
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::target() To resolve the HTTP request target.
+     * @uses \FireHub\Adapter\HTTP\Request\Target\Validator::http11() To validate the HTTP/1.1 request target.
+     *
+     * @throws \FireHub\Adapter\HTTP\Request\Target\Exception\InvalidTargetCombinationException If the combination is
+     * invalid.
+     * @throws \FireHub\Adapter\HTTP\Exception\InvalidServerProtocolException If the protocol version is not supported.
+     * @throws \FireHub\Adapter\HTTP\Request\Method\Exception\InvalidMethodNameException If the method token is invalid.
+     * @throws \FireHub\Adapter\HTTP\Request\Target\Exception\InvalidTargetException If the authority is invalid.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidUriException If the authority or port is invalid.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidPortException If port is not between 0 and 65535.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidSchemeException If scheme has invalid pattern.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidPathException If path has invalid pattern.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidQueryException If query has invalid pattern.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidFragmentException If fragment has invalid pattern.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return \FireHub\Adapter\HTTP\Request HTTP request.
+     */
+    public function create ():Request {
+
+        $version = $this->version();
+        $method = $this->method();
+        $target = $this->target($method);
+
+        if ($version === Version::HTTP_1_1)
+            Validator::http11($method, $target);
+
+        return new Request(
+            version: $version,
+            method: $method,
+            target: $target
+        );
+
+    }
+
+    /**
+     * ### Resolves the HTTP protocol version
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::required() To get the required server variable.
+     * @uses \FireHub\Adapter\HTTP\Message\Version::parse() To parse the protocol version.
+     *
+     * @throws \FireHub\Adapter\HTTP\Exception\InvalidServerEnvironmentException If the variable is missing or invalid.
+     * @throws \FireHub\Adapter\HTTP\Exception\InvalidServerProtocolException If the protocol version is not supported.
+     *
+     * @return \FireHub\Adapter\HTTP\Message\Version HTTP protocol version.
+     */
+    private function version ():Version {
+
+        $protocol = $this->required('SERVER_PROTOCOL');
+
+        return Version::parse($protocol)
+            ?? throw new InvalidServerProtocolException(
+                'Unsupported HTTP protocol version.'
+            );
+
+    }
+
+    /**
+     * ### Resolves the HTTP request method
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::required() To get the required server variable.
+     *
+     * @throws \FireHub\Adapter\HTTP\Exception\InvalidServerEnvironmentException If the variable is missing or invalid.
+     * @throws \FireHub\Adapter\HTTP\Request\Method\Exception\InvalidMethodNameException If the method token is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return \FireHub\Adapter\HTTP\Request\Method HTTP request method.
+     */
+    private function method ():Method {
+
+        $method = $this->required('REQUEST_METHOD');
+
+        return Standard::tryFrom($method) ?? new Custom($method);
+
+    }
+
+    /**
+     * ### Resolves the HTTP request target
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::required() To get the required server variable.
+     * @uses \FireHub\Adapter\HTTP\Request\Target\Authority::parse() To parse the authority target.
+     * @uses \FireHub\Adapter\HTTP\Request\Target\Absolute::parse() To parse the absolute target.
+     * @uses \FireHub\Adapter\HTTP\Request\Target\Origin::parse() To parse the origin target.
+     * @uses \FireHub\Runtime\Str\SB\Search::startsWith() To check if the target starts with a specific string.
+     *
+     * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
+     * HTTP request method.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Exception\InvalidServerEnvironmentException If the variable is missing or invalid.
+     * @throws \FireHub\Adapter\HTTP\Request\Target\Exception\InvalidTargetException If the authority is invalid.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidUriException If the authority or port is invalid.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidPortException If port is not between 0 and 65535.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidSchemeException If scheme has invalid pattern.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidPathException If path has invalid pattern.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidQueryException If query has invalid pattern.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidFragmentException If fragment has invalid pattern.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return \FireHub\Adapter\HTTP\Request\Target HTTP request target.
+     */
+    private function target (Method $method):Target {
+
+        $target = $this->required('REQUEST_URI');
+
+        return match (true) {
+            $target === '*' => Asterisk::ASTERISK,
+            $method === Standard::CONNECT => Authority::parse($target),
+            Runtime\Str\SB\Search::startsWith('http://', $target),
+            Runtime\Str\SB\Search::startsWith('https://', $target)
+                => Absolute::parse($target),
+            default => Origin::parse($target)
+        };
+
+    }
+
+    /**
+     * ### Gets a required PHP server variable
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\DataIs::string() To validate the variable value.
+     *
+     * @param non-empty-string $name <p>
+     * Server variable name.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Exception\InvalidServerEnvironmentException If the variable is missing or invalid.
+     *
+     * @return non-empty-string Server variable value.
+     */
+    private function required (string $name):string {
+
+        $value = $this->server[$name] ?? null;
+
+        if ($value === '' || !Runtime\DataIs::string($value))
+            throw new InvalidServerEnvironmentException(
+                "Missing or invalid PHP server variable: $name."
+            );
+
+        return $value;
+
+    }
+
+}
