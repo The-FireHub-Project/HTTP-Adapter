@@ -68,7 +68,7 @@ final readonly class Origin implements Target {
         private ?Query $query = null
     ) {
 
-        if (!$path->isAbsolute() && $path->isEmpty())
+        if (!$path->isAbsolute() || $path->isEmpty())
             throw new InvalidTargetException(
                 'Origin-form request target requires an absolute path.'
             );
