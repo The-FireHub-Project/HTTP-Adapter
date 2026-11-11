@@ -15,10 +15,13 @@ namespace FireHub\Adapter\HTTP\Header\CacheControl;
 
 use FireHub\Core\Type\ValueObject;
 
+use FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException;
+
 /**
  * ### Represents an HTTP response cache directive
  *
- * Encapsulates a validated Cache-Control response directive.
+ * Encapsulates structured Cache-Control response directives, including their type
+ * and optional delta-seconds or response field-name parameters.
  * @since 1.0.0
  *
  * @extends \FireHub\Core\Type\ValueObject<non-empty-string>
@@ -29,222 +32,352 @@ final readonly class ResponseDirective extends ValueObject implements Directive 
      * ### Constructor
      * @since 1.0.0
      *
+     * @param \FireHub\Adapter\HTTP\Header\CacheControl\Response $type <p>
+     * Cache directive type.
+     * </p>
      * @param non-empty-string $serialized <p>
-     * Serialized directive.
+     * Validated serialized directive.
+     * </p>
+     * @param null|int<0, max> $seconds <p>
+     * Optional delta-seconds value.
+     * </p>
+     * @param list<non-empty-string> $fields <p>
+     * Optional response field names.
      * </p>
      *
      * @return void
      */
     private function __construct (
-        private string $serialized
+        private Response $type,
+        private string $serialized,
+        private ?int $seconds = null,
+        private array $fields = []
     ) {}
 
     /**
-     * ### Creates a maximum-age directive
+     * ### Creates the max-age response directive
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize the maximum age.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
+
+     * @param int<0, max> $seconds <p>
+     * Delta-seconds value.
+     * </p>
+
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the seconds are negative.
-     *
-     * @return self Updated response directive.
+     * @return self New response cache directive.
      */
     public static function maxAge (int $seconds):self {
 
         return new self(
-            Serializer::seconds(Response::MAX_AGE->value, $seconds)
+            Response::MAX_AGE,
+            Serializer::seconds(Response::MAX_AGE->value, $seconds),
+            $seconds
         );
 
     }
 
     /**
-     * ### Creates a no-cache directive
+     * ### Creates the no-cache response directive
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::fields() To serialize the no-cache directive.
-     *
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::fields() To serialize field names when present.
+
      * @param non-empty-string ...$fields <p>
-     * Optional response field names.
+     * Optional response header field names.
      * </p>
+
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If a field name is invalid.
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the field name is invalid or
-     * the list is empty.
-     *
-     * @return self Updated response directive.
+     * @return self New response cache directive.
      */
     public static function noCache (string ...$fields):self {
 
+        foreach ($fields as $field) {
+
+            if ($field === '')
+                throw new InvalidCacheDirectiveException(
+                    'Cache-Control field name cannot be empty.'
+                );
+
+        }
+
         return new self(
+            Response::NO_CACHE,
             $fields === []
-                ? Response::NO_CACHE->value
-                : Serializer::fields(Response::NO_CACHE->value, $fields) // @phpstan-ignore argument.type
+                ? Serializer::flag(Response::NO_CACHE->value)
+                : Serializer::fields(Response::NO_CACHE->value, $fields),
+            null,
+            $fields
         );
 
     }
 
     /**
-     * ### Creates a no-store directive
+     * ### Creates the no-store response directive
      * @since 1.0.0
      *
-     * @return self Updated response directive.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
+     *
+     * @return self New response cache directive.
      */
     public static function noStore ():self {
 
-        return new self(Response::NO_STORE->value);
-
-    }
-
-    /**
-     * ### Creates a no-transform directive
-     * @since 1.0.0
-     *
-     * @return self Updated response directive.
-     */
-    public static function noTransform ():self {
-
-        return new self(Response::NO_TRANSFORM->value);
-
-    }
-
-    /**
-     * ### Creates a must-revalidate directive
-     * @since 1.0.0
-     *
-     * @return self Updated response directive.
-     */
-    public static function mustRevalidate ():self {
-
-        return new self(Response::MUST_REVALIDATE->value);
-
-    }
-
-    /**
-     * ### Creates a proxy-revalidate directive
-     * @since 1.0.0
-     *
-     * @return self Updated response directive.
-     */
-    public static function proxyRevalidate ():self {
-
-        return new self(Response::PROXY_REVALIDATE->value);
-
-    }
-
-    /**
-     * ### Creates a public directive
-     * @since 1.0.0
-     *
-     * @return self Updated response directive.
-     */
-    public static function public ():self {
-
-        return new self(Response::PUBLIC->value);
-
-    }
-
-    /**
-     * ### Creates a private directive
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::fields() To serialize the private directive.
-     *
-     * @param non-empty-string ...$fields <p>
-     * Optional response field names.
-     * </p>
-     *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the field name is invalid or
-     * the list is empty.
-     *
-     * @return self Updated response directive.
-     */
-    public static function private (string ...$fields):self {
-
         return new self(
-            $fields === []
-                ? Response::PRIVATE->value
-                : Serializer::fields(Response::PRIVATE->value, $fields) // @phpstan-ignore argument.type
+            Response::NO_STORE,
+            Serializer::flag(Response::NO_STORE->value)
         );
 
     }
 
     /**
-     * ### Creates a shared-cache maximum-age directive
+     * ### Creates the no-transform response directive
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize the maximum age.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the seconds are negative.
+     * @return self New response cache directive.
+     */
+    public static function noTransform ():self {
+
+        return new self(
+            Response::NO_TRANSFORM,
+            Serializer::flag(Response::NO_TRANSFORM->value)
+        );
+
+    }
+
+    /**
+     * ### Creates the must-revalidate response directive
+     * @since 1.0.0
      *
-     * @return self Updated response directive.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
+     *
+     * @return self New response cache directive.
+     */
+    public static function mustRevalidate ():self {
+
+        return new self(
+            Response::MUST_REVALIDATE,
+            Serializer::flag(Response::MUST_REVALIDATE->value)
+        );
+
+    }
+
+    /**
+     * ### Creates the proxy-revalidate response directive
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
+     *
+     * @return self New response cache directive.
+     */
+    public static function proxyRevalidate ():self {
+
+        return new self(
+            Response::PROXY_REVALIDATE,
+            Serializer::flag(Response::PROXY_REVALIDATE->value)
+        );
+
+    }
+
+    /**
+     * ### Creates the public response directive
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
+     *
+     * @return self New response cache directive.
+     */
+    public static function public ():self {
+
+        return new self(
+            Response::PUBLIC,
+            Serializer::flag(Response::PUBLIC->value)
+        );
+
+    }
+
+    /**
+     * ### Creates the private response directive
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::fields() To serialize field names when present.
+
+     * @param non-empty-string ...$fields <p>
+     * Optional response header field names.
+     * </p>
+
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If a field name is invalid.
+     *
+     * @return self New response cache directive.
+     */
+    public static function private (string ...$fields):self {
+
+        foreach ($fields as $field) {
+
+            if ($field === '')
+                throw new InvalidCacheDirectiveException(
+                    'Cache-Control field name cannot be empty.'
+                );
+
+        }
+
+        return new self(
+            Response::PRIVATE,
+            $fields === []
+                ? Serializer::flag(Response::PRIVATE->value)
+                : Serializer::fields(Response::PRIVATE->value, $fields),
+            null,
+            $fields
+        );
+
+    }
+
+    /**
+     * ### Creates the s-maxage response directive
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
+
+     * @param int<0, max> $seconds <p>
+     * Delta-seconds value.
+     * </p>
+
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
+     *
+     * @return self New response cache directive.
      */
     public static function sMaxAge (int $seconds):self {
 
         return new self(
-            Serializer::seconds(Response::S_MAXAGE->value, $seconds)
+            Response::S_MAXAGE,
+            Serializer::seconds(Response::S_MAXAGE->value, $seconds),
+            $seconds
         );
 
     }
 
     /**
-     * ### Creates an immutable directive
+     * ### Creates the immutable response directive
      * @since 1.0.0
      *
-     * @return self Updated response directive.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
+     *
+     * @return self New response cache directive.
      */
     public static function immutable ():self {
 
-        return new self(Response::IMMUTABLE->value);
+        return new self(
+            Response::IMMUTABLE,
+            Serializer::flag(Response::IMMUTABLE->value)
+        );
 
     }
 
     /**
-     * ### Creates a stale-while-revalidate directive
+     * ### Creates the stale-while-revalidate response directive
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize the maximum age.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
+
+     * @param int<0, max> $seconds <p>
+     * Delta-seconds value.
+     * </p>
+
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the seconds are negative.
-     *
-     * @return self Updated response directive.
+     * @return self New response cache directive.
      */
     public static function staleWhileRevalidate (int $seconds):self {
 
         return new self(
-            Serializer::seconds(
-                Response::STALE_WHILE_REVALIDATE->value,
-                $seconds
-            )
+            Response::STALE_WHILE_REVALIDATE,
+            Serializer::seconds(Response::STALE_WHILE_REVALIDATE->value, $seconds),
+            $seconds
         );
 
     }
 
     /**
-     * ### Creates a stale-if-error directive
+     * ### Creates the stale-if-error response directive
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize the maximum age.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
+
+     * @param int<0, max> $seconds <p>
+     * Delta-seconds value.
+     * </p>
+
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the seconds are negative.
-     *
-     * @return self Updated response directive.
+     * @return self New response cache directive.
      */
     public static function staleIfError (int $seconds):self {
 
         return new self(
-            Serializer::seconds(Response::STALE_IF_ERROR->value, $seconds)
+            Response::STALE_IF_ERROR,
+            Serializer::seconds(Response::STALE_IF_ERROR->value, $seconds),
+            $seconds
         );
 
     }
 
     /**
-     * ### Creates a must-understand directive
+     * ### Creates the must-understand response directive
      * @since 1.0.0
      *
-     * @return self Updated response directive.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the directive.
+     *
+     * @return self New response cache directive.
      */
     public static function mustUnderstand ():self {
 
-        return new self(Response::MUST_UNDERSTAND->value);
+        return new self(
+            Response::MUST_UNDERSTAND,
+            Serializer::flag(Response::MUST_UNDERSTAND->value)
+        );
+
+    }
+
+    /**
+     * ### Gets the cache directive type
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Header\CacheControl\Response Cache directive type.
+     */
+    public function type ():Response {
+
+        return $this->type;
+
+    }
+
+    /**
+     * ### Gets the directive delta-seconds value
+     *
+     * Returns null if the directive has no specified delta-seconds value.
+     * @since 1.0.0
+     *
+     * @return null|int<0, max> Delta-seconds value, or null if absent.
+     */
+    public function seconds ():?int {
+
+        return $this->seconds;
+
+    }
+
+    /**
+     * ### Gets the response header field names
+     *
+     * Returns an empty list if no field-name parameters were specified.
+     * @since 1.0.0
+     *
+     * @return list<non-empty-string> Response field names.
+     */
+    public function fields ():array {
+
+        return $this->fields;
 
     }
 
