@@ -25,6 +25,16 @@ use FireHub\Runtime;
  *
  * Supports extension methods not defined by the Standard enumeration. Method tokens are case-sensitive and must
  * follow HTTP token syntax.
+ *
+ * <code>
+ * use FireHub\Adapter\HTTP\Request\Method\Custom;
+ *
+ * $method = new Custom('PROPFIND');
+ *
+ * // PROPFIND
+ * echo $method->value();
+ * </code>
+ *
  * @since 1.0.0
  *
  * @extends \FireHub\Core\Type\ValueObject<non-empty-string>

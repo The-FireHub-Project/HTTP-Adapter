@@ -14,6 +14,7 @@
 namespace FireHub\Adapter\HTTP\Request\Target;
 
 use FireHub\Adapter\HTTP\Request\Target;
+use FireHub\Foundation\Uri;
 use FireHub\Foundation\Uri\Component\ {
     Path, Query
 };
@@ -25,6 +26,21 @@ use FireHub\Adapter\HTTP\Request\Target\Exception\InvalidTargetException;
  * Contains an absolute URI path and an optional query component.
  *
  * Origin-form is the most common HTTP request-target representation.
+ *
+ * <code>
+ * use FireHub\Adapter\HTTP\Request\Target\Origin;
+ * use FireHub\Foundation\Uri\Component\Path;
+ * use FireHub\Foundation\Uri\Component\Query;
+ *
+ * $target = new Origin(
+ *     new Path('/users'),
+ *     new Query('page=1')
+ * );
+ *
+ * // /users?page=1
+ * echo $target->value();
+ * </code>
+ *
  * @since 1.0.0
  */
 final readonly class Origin implements Target {
@@ -52,7 +68,7 @@ final readonly class Origin implements Target {
         private ?Query $query = null
     ) {
 
-        if (!$path->isAbsolute() && !$path->isEmpty())
+        if (!$path->isAbsolute() && $path->isEmpty())
             throw new InvalidTargetException(
                 'Origin-form request target requires an absolute path.'
             );
@@ -60,7 +76,172 @@ final readonly class Origin implements Target {
     }
 
     /**
+     * ### Creates an origin-form target from a URI
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Request\Target\Origin;
+     * use FireHub\Foundation\Uri;
+     *
+     * $target = Origin::fromUri(
+     *     Uri::parse('/users?page=1')
+     * );
+     *
+     * // /users?page=1
+     * echo $target->value();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Foundation\Uri::scheme() To validate the URI scheme.
+     * @uses \FireHub\Foundation\Uri::authority() To validate the URI authority.
+     * @uses \FireHub\Foundation\Uri::fragment() To validate the URI fragment.
+     * @uses \FireHub\Foundation\Uri::path() To retrieve the URI path.
+     * @uses \FireHub\Foundation\Uri::query() To retrieve the URI query.
+     *
+     * @param \FireHub\Foundation\Uri $uri <p>
+     * URI containing the path and query.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Request\Target\Exception\InvalidTargetException If the URI contains unsupported
+     * components.
+     *
+     * @return self Origin-form request target.
+     */
+    public static function fromUri (Uri $uri):self {
+
+        if (
+            $uri->scheme() !== null
+            || $uri->authority() !== null
+            || $uri->fragment() !== null
+        ) throw new InvalidTargetException(
+            'Origin-form target cannot contain a scheme, authority, or fragment.'
+        );
+
+        return new self(
+            $uri->path(),
+            $uri->query()
+        );
+
+    }
+
+    /**
+     * ### Parses an origin-form request target
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Request\Target\Origin;
+     *
+     * $target = Origin::parse('/users?page=1');
+     *
+     * // /users?page=1
+     * echo $target->value();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Request\Target\Origin::fromUri() To create the target from the URI.
+     * @uses \FireHub\Foundation\Uri::parse() To parse the URI.
+     *
+     * @param string $target <p>
+     * Serialized origin-form request target.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Request\Target\Exception\InvalidTargetException If the URI contains unsupported
+     * components.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidUriException If the URI is invalid.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidSchemeException If scheme has invalid pattern.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidPortException If port is not between 0 and 65535.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidPathException If path has invalid pattern.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidQueryException If query has invalid pattern.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidFragmentException If fragment has invalid pattern.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Parsed origin-form target.
+     */
+    public static function parse (string $target):self {
+
+        return self::fromUri(
+            Uri::parse($target)
+        );
+
+    }
+
+    /**
+     * ### Returns a target with a different query
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Request\Target\Origin;
+     * use FireHub\Foundation\Uri\Component\Query;
+     *
+     * $target = Origin::parse('/users?page=1');
+     *
+     * $updated = $target->withQuery(
+     *     new Query('page=2')
+     * );
+     *
+     * // /users?page=2
+     * echo $updated->value();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Foundation\Uri\Component\Query<string> $query <p>
+     * New URI query.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Request\Target\Exception\InvalidTargetException If the path is not absolute.
+     *
+     * @return self New origin-form target.
+     */
+    public function withQuery (Query $query):self {
+
+        return new self(
+            $this->path,
+            $query
+        );
+
+    }
+
+    /**
+     * ### Returns a target without a query
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Request\Target\Origin;
+     *
+     * $target = Origin::parse('/users?page=1');
+     *
+     * $updated = $target->withoutQuery();
+     *
+     * // /users
+     * echo $updated->value();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @throws \FireHub\Adapter\HTTP\Request\Target\Exception\InvalidTargetException If the path is not absolute.
+     *
+     * @return self New origin-form target.
+     */
+    public function withoutQuery ():self {
+
+        return new self(
+            $this->path
+        );
+
+    }
+
+    /**
      * ### Gets the URI path
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Request\Target\Origin;
+     *
+     * $target = Origin::parse('/users?page=1');
+     *
+     * // /users
+     * echo $target->path()->value();
+     * </code>
+     *
      * @since 1.0.0
      *
      * @return \FireHub\Foundation\Uri\Component\Path<string> URI path.
@@ -73,6 +254,16 @@ final readonly class Origin implements Target {
 
     /**
      * ### Gets the URI query
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Request\Target\Origin;
+     *
+     * $target = Origin::parse('/users?page=1');
+     *
+     * // page=1
+     * echo $target->query()?->value();
+     * </code>
+     *
      * @since 1.0.0
      *
      * @return null|\FireHub\Foundation\Uri\Component\Query<string> URI query.
@@ -84,18 +275,56 @@ final readonly class Origin implements Target {
     }
 
     /**
-     * @inheritDoc
+     * ### Converts the target into a URI
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Request\Target\Origin;
+     *
+     * $target = Origin::parse('/users?page=1');
+     *
+     * $uri = $target->uri();
+     *
+     * // /users?page=1
+     * echo $uri->value();
+     * </code>
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Foundation\Uri\Component\Path::isEmpty() To check if the path is empty.
+     * @throws \FireHub\Foundation\Uri\Exception\InvalidUriException If the URI component combination is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return \FireHub\Foundation\Uri URI reference.
+     */
+    public function uri ():Uri {
+
+        return new Uri(
+            path: $this->path,
+            query: $this->query
+        );
+
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Request\Target\Origin;
+     *
+     * $target = Origin::parse('/users?page=1');
+     *
+     * // /users?page=1
+     * echo $target->value();
+     * </code>
+     *
+     * @since 1.0.0
+     *
      * @uses \FireHub\Foundation\Uri\Component\Path::value() To get the path value.
      * @uses \FireHub\Foundation\Uri\Component\Query::value() To get the query value.
      */
     public function value ():string {
 
-        $target = $this->path->isEmpty()
-            ? '/' : $this->path->value();
+        $target = $this->path->value();
 
         if ($this->query !== null)
             $target .= '?'.$this->query->value();

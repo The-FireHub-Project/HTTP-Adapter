@@ -21,6 +21,21 @@ use FireHub\Adapter\HTTP\Request\Method;
  * Provides the standardized HTTP request methods used to identify the intended action performed on a target resource.
  *
  * Implements the Method contract to allow standard and custom HTTP methods to be handled through a common interface.
+ *
+ * <code>
+ * use FireHub\Adapter\HTTP\Request\Method\Standard;
+ *
+ * $method = Standard::GET;
+ *
+ * // GET
+ * echo $method->value();
+ *
+ * $method = Standard::POST;
+ *
+ * // POST
+ * echo $method->value();
+ * </code>
+ *
  * @since 1.0.0
  */
 enum Standard:string implements Method {
