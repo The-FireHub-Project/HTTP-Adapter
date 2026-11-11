@@ -14,7 +14,6 @@
 namespace FireHub\Adapter\HTTP\Header\CacheControl;
 
 use FireHub\Core\Type\ValueObject;
-
 use FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException;
 
 /**
@@ -59,11 +58,11 @@ final readonly class ResponseDirective extends ValueObject implements Directive 
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
-
+     *
      * @param int<0, max> $seconds <p>
      * Delta-seconds value.
      * </p>
-
+     *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
      * @return self New response cache directive.
@@ -83,11 +82,11 @@ final readonly class ResponseDirective extends ValueObject implements Directive 
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::fields() To serialize field names when present.
-
+     *
      * @param non-empty-string ...$fields <p>
      * Optional response header field names.
      * </p>
-
+     *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If a field name is invalid.
      *
      * @return self New response cache directive.
@@ -204,11 +203,11 @@ final readonly class ResponseDirective extends ValueObject implements Directive 
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::fields() To serialize field names when present.
-
+     *
      * @param non-empty-string ...$fields <p>
      * Optional response header field names.
      * </p>
-
+     *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If a field name is invalid.
      *
      * @return self New response cache directive.
@@ -240,11 +239,11 @@ final readonly class ResponseDirective extends ValueObject implements Directive 
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
-
+     *
      * @param int<0, max> $seconds <p>
      * Delta-seconds value.
      * </p>
-
+     *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
      * @return self New response cache directive.
@@ -281,11 +280,11 @@ final readonly class ResponseDirective extends ValueObject implements Directive 
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
-
+     *
      * @param int<0, max> $seconds <p>
      * Delta-seconds value.
      * </p>
-
+     *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
      * @return self New response cache directive.
@@ -305,11 +304,11 @@ final readonly class ResponseDirective extends ValueObject implements Directive 
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
-
+     *
      * @param int<0, max> $seconds <p>
      * Delta-seconds value.
      * </p>
-
+     *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
      * @return self New response cache directive.
