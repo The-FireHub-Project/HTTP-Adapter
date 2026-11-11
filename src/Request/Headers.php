@@ -2047,6 +2047,52 @@ final readonly class Headers {
     }
 
     /**
+     * ### Gets the Cookie request header
+     *
+     * Parses all Cookie header fields and returns their cookies as a structured collection.
+     *
+     * Preserves cookie order and duplicate cookie names.
+     *
+     * Returns an empty cookie collection when the header is absent.
+     *
+     * <code>
+     * $headers = Headers::empty()->cookie(
+     *     new RequestCookie('session', 'abc123'),
+     *     new RequestCookie('theme', 'dark')
+     * );
+     *
+     * $cookies = $headers->getCookie();
+     *
+     * $cookies->has('session'); // true
+     * $cookies->get('session'); // List of matching cookies
+     * $cookies->cookies();      // All request cookies
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Request\Headers::get() To retrieve Cookie header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Cookie\Request::parse() To parse Cookie header values.
+     *
+     * @return \FireHub\Adapter\HTTP\Header\Cookie\Request Parsed request cookies.
+     */
+    public function getCookie ():Cookie {
+
+        $cookies = [];
+
+        foreach ($this->get(new Name('Cookie')) as $value) {
+
+            $parsed = Cookie::parse($value->value());
+
+            foreach ($parsed->cookies() as $cookie)
+                $cookies[] = $cookie;
+
+        }
+
+        return new Cookie(...$cookies);
+
+    }
+
+    /**
      * ### Replaces an HTTP request header
      *
      * Replaces all existing occurrences of the specified HTTP header with a new value. If the header does not exist,
