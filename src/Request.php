@@ -13,7 +13,9 @@
 
 namespace FireHub\Adapter\HTTP;
 
-use FireHub\Adapter\HTTP\Request\Method;
+use FireHub\Adapter\HTTP\Request\ {
+    Method, Target
+};
 
 /**
  * ### Represents an HTTP request
@@ -32,11 +34,15 @@ final readonly class Request {
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
      * HTTP request method.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Request\Target $target <p>
+     * HTTP request target.
+     * </p>
      *
      * @return void
      */
     public function __construct (
-        private Method $method
+        private Method $method,
+        private Target $target
     ) {}
 
     /**
@@ -48,6 +54,18 @@ final readonly class Request {
     public function method ():Method {
 
         return $this->method;
+
+    }
+
+    /**
+     * ### Gets the HTTP request target
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Request\Target HTTP request target.
+     */
+    public function target ():Target {
+
+        return $this->target;
 
     }
 
