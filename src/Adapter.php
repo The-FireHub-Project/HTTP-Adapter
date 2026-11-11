@@ -439,12 +439,14 @@ final readonly class Adapter {
      * The adapter lifecycle dependency is released after execution completes, including when an exception is thrown.
      * @since 1.0.0
      *
+     * @template TReturn
+     *
      * @uses \FireHub\Kernel\Lifecycle\Engine::dependencyBoundary() To acquire the adapter lifecycle dependency.
      * @uses \FireHub\Kernel\Lifecycle\Dependency\Boundary::acquire() To acquire the lifecycle dependency.
      * @uses \FireHub\Kernel\Lifecycle\Dependency\Lease::release() To release the adapter lifecycle dependency.
      * @uses \FireHub\Application\Application::execute() To execute the operation within an application scope.
      *
-     * @param Closure(\FireHub\Application\ExecutionContext):mixed $callback <p>
+     * @param Closure(\FireHub\Application\ExecutionContext):TReturn $callback <p>
      * Operation to execute.
      * </p>
      *
@@ -452,7 +454,7 @@ final readonly class Adapter {
      * @throws \FireHub\Adapter\HTTP\Exception\InvalidHttpAdapterStateException If the adapter is not available.
      * @throws \FireHub\Application\Exception\InvalidApplicationStateException If the application is not initialized.
      *
-     * @return mixed Operation result.
+     * @return TReturn Operation result.
      */
     private function execute (Closure $callback):mixed {
 
