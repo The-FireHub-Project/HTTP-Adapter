@@ -70,7 +70,7 @@ final readonly class Custom extends ValueObject implements Method {
         $this->guard(
             fn() => Standard::tryFrom($method) === null,
             fn() => new InvalidMethodNameException(
-                'Standard HTTP methods must use the Standard enumeration.'
+                'Standard HTTP methods cannot be used as custom methods.'
             )
         );
 
