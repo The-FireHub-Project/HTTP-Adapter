@@ -13,6 +13,8 @@
 
 namespace FireHub\Adapter\HTTP;
 
+use FireHub\Adapter\HTTP\Message\Version;
+
 /**
  * ### Represents an immutable HTTP response
  *
@@ -24,5 +26,31 @@ namespace FireHub\Adapter\HTTP;
  * @since 1.0.0
  */
 final readonly class Response {
+
+    /**
+     * ### Constructor
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Message\Version $version <p>
+     * HTTP protocol version.
+     * </p>
+     *
+     * @return void
+     */
+    public function __construct (
+        private Version $version
+    ) {}
+
+    /**
+     * ### Gets the HTTP protocol version
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Message\Version HTTP protocol version.
+     */
+    public function version ():Version {
+
+        return $this->version;
+
+    }
 
 }

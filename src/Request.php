@@ -13,6 +13,7 @@
 
 namespace FireHub\Adapter\HTTP;
 
+use FireHub\Adapter\HTTP\Message\Version;
 use FireHub\Adapter\HTTP\Request\ {
     Method, Target
 };
@@ -31,6 +32,9 @@ final readonly class Request {
      * ### Constructor
      * @since 1.0.0
      *
+     * @param \FireHub\Adapter\HTTP\Message\Version $version <p>
+     * HTTP request version.
+     * </p>
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
      * HTTP request method.
      * </p>
@@ -41,9 +45,22 @@ final readonly class Request {
      * @return void
      */
     public function __construct (
+        private Version $version,
         private Method $method,
         private Target $target
     ) {}
+
+    /**
+     * ### Gets the HTTP request version
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Message\Version HTTP request version.
+     */
+    public function version ():Version {
+
+        return $this->version;
+
+    }
 
     /**
      * ### Gets the HTTP request method
