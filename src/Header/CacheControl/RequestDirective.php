@@ -14,7 +14,6 @@
 namespace FireHub\Adapter\HTTP\Header\CacheControl;
 
 use FireHub\Core\Type\ValueObject;
-
 use FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException;
 
 /**
@@ -55,11 +54,11 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
-
+     *
      * @param int<0, max> $seconds <p>
      * Delta-seconds value.
      * </p>
-
+     *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
      * @return self New request cache directive.
@@ -80,11 +79,11 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      *
      * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize a specified maximum staleness.
      * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize an unspecified maximum staleness.
-
+     *
      * @param null|int<0, max> $seconds <p>
      * Optional maximum staleness in seconds.
      * </p>
-
+     *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
      * @return self New request cache directive.
@@ -106,11 +105,11 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize delta-seconds.
-
+     *
      * @param int<0, max> $seconds <p>
      * Delta-seconds value.
      * </p>
-
+     *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If delta-seconds is negative.
      *
      * @return self New request cache directive.
