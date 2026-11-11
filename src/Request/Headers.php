@@ -17,7 +17,7 @@ namespace FireHub\Adapter\HTTP\Request;
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
     Authorization\Credentials, Authorization\Parser as AuthorizationParser,
-    CacheControl\Custom, CacheControl\RequestDirective,
+    CacheControl\Custom, CacheControl\RequestDirective, CacheControl\RequestParser as CacheControlParser,
     Connection\Type as ConnectionType, Connection\Custom as ConnectionCustom, Connection\Parser as ConnectionParser,
     Content\Length,
     Cookie\Request as Cookie,
@@ -424,7 +424,7 @@ final readonly class Headers {
      *     new Custom('my-extension', 'enabled')
      * );
      *
-     * // Cache-Control: no-cache, no-store, max-age=3600
+     * // CCache-Control: no-cache, no-store, max-age=3600, my-extension=enabled
      * </code>
      *
      * @since 1.0.0
@@ -1991,6 +1991,58 @@ final readonly class Headers {
             );
 
         return $authority;
+
+    }
+
+    /**
+     * ### Gets the Cache-Control request header
+     *
+     * Parses all Cache-Control request header fields into strongly typed request cache directives.
+     *
+     * Multiple Cache-Control header fields are processed in their original order, and comma-separated directives are
+     * parsed individually.
+     *
+     * Returns an empty list if the Cache-Control header is absent.
+     *
+     * <code>
+     * $headers = Headers::empty()->cacheControl(
+     *     RequestDirective::noCache(),
+     *     RequestDirective::maxAge(3600)
+     * );
+     *
+     * $directives = $headers->getCacheControl();
+     *
+     * // [
+     * //     RequestDirective::noCache(),
+     * //     RequestDirective::maxAge(3600)
+     * // ]
+     *
+     * Headers::empty()->getCacheControl();
+     *
+     * // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Cache-Control header values.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\RequestParser::parse() To parse request cache directives.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If a cache directive is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterValueException If the directive list is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If a validation condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If a validation exception is not a FireHubException.
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\CacheControl\RequestDirective|\FireHub\Adapter\HTTP\Header\CacheControl\Custom> Parsed request cache directives.
+     */
+    public function getCacheControl ():array {
+
+        $directives = [];
+
+        foreach ($this->headers->get(new Name('Cache-Control')) as $value)
+            foreach (CacheControlParser::parse($value->value()) as $directive)
+                $directives[] = $directive;
+
+        return $directives;
 
     }
 

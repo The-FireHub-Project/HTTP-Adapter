@@ -14,11 +14,13 @@
 namespace FireHub\Adapter\HTTP\Header\CacheControl;
 
 use FireHub\Core\Type\ValueObject;
+use FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException;
 
 /**
- * ### Represents an HTTP request cache directive
+ * ### Represents an HTTP request Cache-Control directive
  *
- * Encapsulates a validated Cache-Control request directive.
+ * Stores the directive type and its optional delta-seconds parameter without retaining a serialized HTTP
+ * representation.
  * @since 1.0.0
  *
  * @extends \FireHub\Core\Type\ValueObject<non-empty-string>
@@ -29,60 +31,64 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      * ### Constructor
      * @since 1.0.0
      *
-     * @param non-empty-string $serialized <p>
-     * Serialized directive.
+     * @param \FireHub\Adapter\HTTP\Header\CacheControl\Request $type <p>
+     * Request directive type.
+     * </p>
+     * @param null|non-negative-int $seconds <p>
+     * Optional delta-seconds parameter.
      * </p>
      *
      * @return void
      */
     private function __construct (
-        private string $serialized
+        private Request $type,
+        private ?int $seconds = null
     ) {}
 
     /**
      * ### Creates a maximum-age directive
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize the maximum age.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\RequestDirective::value() To get the directive value.
      *
-     * @param positive-int $seconds <p>
-     * Maximum age in seconds.
+     * @param int $seconds <p>
+     * Maximum acceptable response age in seconds.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the seconds are negative.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If seconds are negative.
      *
-     * @return self Updated request directive.
+     * @return self New request directive.
      */
     public static function maxAge (int $seconds):self {
 
-        return new self(
-            Serializer::seconds(Request::MAX_AGE->value, $seconds)
-        );
+        self::validateSeconds($seconds);
+
+        return new self(Request::MAX_AGE, $seconds);
 
     }
 
     /**
      * ### Creates a maximum-stale directive
+     *
+     * An omitted delta-seconds parameter allows stale responses without specifying a maximum staleness limit.
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::flag() To serialize the maximum stale directive.
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize the maximum stale directive.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\RequestDirective::value() To get the directive value.
      *
-     * @param null|positive-int $seconds <p>
-     * Maximum stale age in seconds.
+     * @param null|int $seconds <p>
+     * Optional maximum staleness in seconds.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the seconds are negative.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If seconds are negative.
      *
-     * @return self Updated request directive.
+     * @return self New request directive.
      */
     public static function maxStale (?int $seconds = null):self {
 
-        return new self(
-            $seconds === null
-                ? Serializer::flag(Request::MAX_STALE->value)
-                : Serializer::seconds(Request::MAX_STALE->value, $seconds)
-        );
+        if ($seconds !== null)
+            self::validateSeconds($seconds);
+
+        return new self(Request::MAX_STALE, $seconds);
 
     }
 
@@ -90,21 +96,21 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      * ### Creates a minimum-fresh directive
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\Serializer::seconds() To serialize the minimum fresh age.
+     * @uses \FireHub\Adapter\HTTP\Header\CacheControl\RequestDirective::value() To get the directive value.
      *
-     * @param positive-int $seconds <p>
-     * Minimum fresh age in seconds.
+     * @param int $seconds <p>
+     * Minimum remaining freshness in seconds.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the seconds are negative.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If seconds are negative.
      *
-     * @return self Updated request directive.
+     * @return self New request directive.
      */
     public static function minFresh (int $seconds):self {
 
-        return new self(
-            Serializer::seconds(Request::MIN_FRESH->value, $seconds)
-        );
+        self::validateSeconds($seconds);
+
+        return new self(Request::MIN_FRESH, $seconds);
 
     }
 
@@ -112,11 +118,11 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      * ### Creates a no-cache directive
      * @since 1.0.0
      *
-     * @return self Updated request directive.
+     * @return self New request directive.
      */
     public static function noCache ():self {
 
-        return new self(Request::NO_CACHE->value);
+        return new self(Request::NO_CACHE);
 
     }
 
@@ -124,11 +130,11 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      * ### Creates a no-store directive
      * @since 1.0.0
      *
-     * @return self Updated request directive.
+     * @return self New request directive.
      */
     public static function noStore ():self {
 
-        return new self(Request::NO_STORE->value);
+        return new self(Request::NO_STORE);
 
     }
 
@@ -136,11 +142,11 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      * ### Creates a no-transform directive
      * @since 1.0.0
      *
-     * @return self Updated request directive.
+     * @return self New request directive.
      */
     public static function noTransform ():self {
 
-        return new self(Request::NO_TRANSFORM->value);
+        return new self(Request::NO_TRANSFORM);
 
     }
 
@@ -148,11 +154,37 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      * ### Creates an only-if-cached directive
      * @since 1.0.0
      *
-     * @return self Updated request directive.
+     * @return self New request directive.
      */
     public static function onlyIfCached ():self {
 
-        return new self(Request::ONLY_IF_CACHED->value);
+        return new self(Request::ONLY_IF_CACHED);
+
+    }
+
+    /**
+     * ### Gets the request directive type
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Header\CacheControl\Request Request directive type.
+     */
+    public function type ():Request {
+
+        return $this->type;
+
+    }
+
+    /**
+     * ### Gets the directive delta-seconds parameter
+     *
+     * Returns null when the directive has no delta-seconds parameter.
+     * @since 1.0.0
+     *
+     * @return null|non-negative-int Delta-seconds value or null.
+     */
+    public function seconds ():?int {
+
+        return $this->seconds;
 
     }
 
@@ -163,7 +195,32 @@ final readonly class RequestDirective extends ValueObject implements Directive {
      */
     public function value ():string {
 
-        return $this->serialized;
+        return $this->seconds === null
+            ? $this->type->value
+            : $this->type->value.'='.$this->seconds;
+
+    }
+
+    /**
+     * ### Validates a delta-seconds parameter
+     * @since 1.0.0
+     *
+     * @param int $seconds <p>
+     * Delta-seconds value.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If seconds are negative.
+     *
+     * @return void
+     *
+     * @phpstan-assert non-negative-int $seconds
+     */
+    private static function validateSeconds (int $seconds):void {
+
+        if ($seconds < 0)
+            throw new InvalidCacheDirectiveException(
+                'Cache-Control seconds must not be negative.'
+            );
 
     }
 

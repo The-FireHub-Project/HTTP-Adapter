@@ -13,7 +13,7 @@
 
 namespace FireHub\Adapter\HTTP\Header\CacheControl;
 
-use FireHub\Adapter\HTTP\Header\Name;
+use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException;
 use FireHub\Runtime;
 
@@ -23,23 +23,15 @@ use FireHub\Runtime;
  * Supports extension cache directives that are not defined by the standard request and response directive enums.
  * @since 1.0.0
  *
- * @extends \FireHub\Adapter\HTTP\Header\Name<non-empty-string>
+ * @extends \FireHub\Core\Type\ValueObject<non-empty-string>
  */
-final readonly class Custom extends Name implements Directive {
-
-    /**
-     * ### Serialized directive
-     * @since 1.0.0
-     */
-    private string $serialized;
+final readonly class Custom extends ValueObject  implements Directive {
 
     /**
      * ### Constructor
      * @since 1.0.0
      *
-     * @uses \FireHub\Core\Type\Identifier::guard() To enforce the invariant that an identifier name cannot be empty.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the custom directive name.
-     * @uses \FireHub\Runtime\Str\SB\Escape::addCSlashes() To escape the directive value.
      * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the directive name to lowercase.
      *
      * @param non-empty-string $name <p>
@@ -49,11 +41,8 @@ final readonly class Custom extends Name implements Directive {
      * Optional directive value.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the directive value is invalid or
-     * the name is reserved for standard directives.
-     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
-     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidCacheDirectiveException If the name is invalid or the
+     * value is invalid.
      *
      * @return void
      */
@@ -62,53 +51,57 @@ final readonly class Custom extends Name implements Directive {
         private ?string $value = null
     ) {
 
-        parent::__construct($name);
-
-        $this->guard(
-            fn() => Request::tryFrom(
-                    Runtime\Str\SB\Casing::toLower($name)
-                ) === null && Response::tryFrom(
-                    Runtime\Str\SB\Casing::toLower($name)
-                ) === null,
-            fn() => new InvalidCacheDirectiveException(
-                "Cache-Control directive '$name' is reserved for standard directives."
-            )
+        if (!Runtime\Str\SB\Regex::match(
+            '/\A[!#$%&\'*+.^_`|~0-9A-Za-z-]+\z/',
+            $name
+        )) throw new InvalidCacheDirectiveException(
+            'Invalid Cache-Control directive name.'
         );
 
-        if ($value !== null) {
+        $normalized = Runtime\Str\SB\Casing::toLower($name);
 
-            $this->guard(
-                fn() => Runtime\Str\SB\Regex::match(
-                    '/\A[\x20-\x7E]*\z/',
-                    $value
-                ),
-                fn() => new InvalidCacheDirectiveException(
-                    'Invalid Cache-Control directive value.'
-                )
-            );
+        if (
+            Request::tryFrom($normalized) !== null
+            || Response::tryFrom($normalized) !== null
+        ) throw new InvalidCacheDirectiveException(
+            "Cache-Control directive '$name' is reserved for standard directives."
+        );
 
-        }
+        if (
+            $value !== null
+            && !Runtime\Str\SB\Regex::match(
+                '/\A[\x20-\x7E]*\z/',
+                $value
+            )
+        ) throw new InvalidCacheDirectiveException(
+            'Invalid Cache-Control directive value.'
+        );
 
-        if ($value === null) {
+    }
 
-            $this->serialized = $name;
+    /**
+     * ### Gets the custom directive name
+     * @since 1.0.0
+     *
+     * @return non-empty-string Custom directive name.
+     */
+    public function name ():string {
 
-        } else if (Runtime\Str\SB\Regex::match(
-            '/\A[!#$%&\'*+.^_`|~0-9A-Za-z-]+\z/',
-            $value
-        )) {
+        return $this->name;
 
-            $this->serialized = "$name=$value";
+    }
 
-        } else {
+    /**
+     * ### Gets the optional directive parameter
+     *
+     * Returns null when the directive has no parameter.
+     * @since 1.0.0
+     *
+     * @return null|string Directive parameter or null.
+     */
+    public function parameter ():?string {
 
-            $this->serialized = $name.'="'.
-                Runtime\Str\SB\Escape::addCSlashes(
-                    $value,
-                    "\\\""
-                ).'"';
-
-        }
+        return $this->value;
 
     }
 
@@ -116,10 +109,24 @@ final readonly class Custom extends Name implements Directive {
      * @inheritDoc
      *
      * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To determine whether the parameter is an HTTP token.
+     * @uses \FireHub\Runtime\Str\SB\Escape::addCSlashes() To escape a quoted parameter.
      */
     public function value ():string {
 
-        return $this->serialized;
+        if ($this->value === null) return $this->name;
+
+        if (Runtime\Str\SB\Regex::match(
+            '/\A[!#$%&\'*+.^_`|~0-9A-Za-z-]+\z/',
+            $this->value
+        )) return $this->name.'='.$this->value;
+
+        return $this->name.'="'.
+            Runtime\Str\SB\Escape::addCSlashes(
+                $this->value,
+                "\\\""
+            ).'"';
 
     }
 
@@ -128,8 +135,8 @@ final readonly class Custom extends Name implements Directive {
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Runtime\Data::serialize() To serialize the directive name and value.
-     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the directive name to lowercase.
+     * @uses \FireHub\Runtime\Data::serialize() To serialize the comparison components.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize the directive name.
      */
     protected function comparisonValue ():string {
 
