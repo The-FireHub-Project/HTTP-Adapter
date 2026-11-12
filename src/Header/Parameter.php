@@ -132,9 +132,9 @@ final readonly class Parameter extends ValueObject {
         $name = Runtime\Str\SB\Access::part($value, 0, $separator);
         $content = Runtime\Str\SB\Access::part($value, $separator + 1);
 
-        if ($name === '' || $content === '')
+        if ($content === '')
             throw new InvalidParameterException(
-                'An HTTP parameter must contain a name and value.'
+                'An HTTP parameter value cannot be empty unless quoted.'
             );
 
         return new self(
