@@ -13,7 +13,9 @@
 
 namespace FireHub\Adapter\HTTP;
 
-use FireHub\Adapter\HTTP\Response\Status;
+use FireHub\Adapter\HTTP\Response\ {
+    Headers, Status
+};
 
 /**
  * ### Represents an immutable HTTP response
@@ -30,8 +32,16 @@ use FireHub\Adapter\HTTP\Response\Status;
 final readonly class Response {
 
     /**
+     * ### Response headers
+     * @since 1.0.0
+     */
+    private Headers $headers;
+
+    /**
      * ### Constructor
      * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::empty() To create an empty HTTP response headers collection.
      *
      * @param \FireHub\Adapter\HTTP\Response\Status $status <p>
      * HTTP response status.
@@ -39,13 +49,21 @@ final readonly class Response {
      * @param null|\FireHub\Adapter\HTTP\Body $body [optional] <p>
      * HTTP response body.
      * </p>
+     * @param null|\FireHub\Adapter\HTTP\Response\Headers $headers [optional] <p>
+     * HTTP response headers.
+     * </p>
      *
      * @return void
      */
     public function __construct (
         private Status $status,
-        private ?Body $body = null
-    ) {}
+        private ?Body $body = null,
+        ?Headers $headers = null
+    ) {
+
+        $this->headers = $headers ?? Headers::empty();
+
+    }
 
     /**
      * ### Gets the HTTP response status
@@ -68,6 +86,18 @@ final readonly class Response {
     public function body ():?Body {
 
         return $this->body;
+
+    }
+
+    /**
+     * ### Gets the HTTP response headers
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Response\Headers HTTP response headers.
+     */
+    public function headers ():Headers {
+
+        return $this->headers;
 
     }
 

@@ -15,7 +15,7 @@ namespace FireHub\Adapter\HTTP;
 
 use FireHub\Adapter\HTTP\Message\Version;
 use FireHub\Adapter\HTTP\Request\ {
-    Method, Target
+    Headers, Method, Target
 };
 
 /**
@@ -29,8 +29,16 @@ use FireHub\Adapter\HTTP\Request\ {
 final readonly class Request {
 
     /**
+     * ### Request headers
+     * @since 1.0.0
+     */
+    private Headers $headers;
+
+    /**
      * ### Constructor
      * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Request\Headers::empty() To create an empty HTTP request headers collection.
      *
      * @param \FireHub\Adapter\HTTP\Message\Version $version <p>
      * HTTP request version.
@@ -44,6 +52,9 @@ final readonly class Request {
      * @param null|\FireHub\Adapter\HTTP\Body $body [optional] <p>
      * HTTP request body.
      * </p>
+     * @param null|\FireHub\Adapter\HTTP\Request\Headers $headers [optional] <p>
+     * HTTP request headers.
+     * </p>
      *
      * @return void
      */
@@ -51,8 +62,13 @@ final readonly class Request {
         private Version $version,
         private Method $method,
         private Target $target,
-        private ?Body $body = null
-    ) {}
+        private ?Body $body = null,
+        ?Headers $headers = null
+    ) {
+
+        $this->headers = $headers ?? Headers::empty();
+
+    }
 
     /**
      * ### Gets the HTTP request version
@@ -99,6 +115,18 @@ final readonly class Request {
     public function body ():?Body {
 
         return $this->body;
+
+    }
+
+    /**
+     * ### Gets the HTTP request headers
+     * @since 1.0.0
+     *
+     * @return \FireHub\Adapter\HTTP\Request\Headers HTTP request headers.
+     */
+    public function headers ():Headers {
+
+        return $this->headers;
 
     }
 
