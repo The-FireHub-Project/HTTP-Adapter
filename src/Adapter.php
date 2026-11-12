@@ -434,6 +434,9 @@ final readonly class Adapter {
      * @throws \FireHub\Application\Exception\InvalidApplicationStateException If the application is not initialized.
      *
      * @return \FireHub\Adapter\HTTP\Response HTTP response.
+     *
+     * @internal This method is intended for internal use by the HTTP adapter and its integrations. It is not part of
+     * the public API and may change without notice.
      */
     public function handle (Request $request, Closure $handler):Response {
 

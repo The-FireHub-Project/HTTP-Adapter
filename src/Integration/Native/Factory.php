@@ -34,7 +34,9 @@ use FireHub\Foundation\IO\Stream\Input;
 use FireHub\Adapter\HTTP\Exception\ {
     InvalidServerEnvironmentException, InvalidServerProtocolException
 };
+use FireHub\Adapter\HTTP\Integration\Native\Exception\InvalidExchangeStateException;
 use FireHub\Runtime;
+use Throwable;
 
 /**
  * ### Creates HTTP requests from the native PHP environment
@@ -96,8 +98,6 @@ final readonly class Factory {
      *
      * @uses \FireHub\Runtime\Http\Request::headers() To get the native PHP HTTP request headers.
      *
-     * @throws \FireHub\Adapter\HTTP\Body\Exception\InvalidStreamBodyException If the stream is invalid.
-     *
      * @return self HTTP request.
      */
     public static function fromGlobals ():self {
@@ -108,8 +108,7 @@ final readonly class Factory {
         /** @var array<non-empty-string, mixed> $_SERVER */
         return new self(
             $_SERVER,
-            $headers,
-            new Stream(new Input)
+            $headers
         );
 
     }
@@ -176,6 +175,61 @@ final readonly class Factory {
             $this->body,
             $headers
     );
+
+    }
+
+    /**
+     * ### Creates a native HTTP exchange
+     *
+     * Opens the native PHP input stream and creates an HTTP request backed by that stream.
+     *
+     * The returned exchange owns the input stream and is responsible for closing it.
+     *
+     * If request creation fails, the input stream is closed before the exception is propagated.
+     *
+     * This method requires a factory without an explicitly supplied body.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::create() To create the HTTP request.
+     * @uses \FireHub\Foundation\IO\Stream\Input::close() To close the input stream.
+     *
+     * @throws \FireHub\Adapter\HTTP\Integration\Native\Exception\InvalidExchangeStateException If a request body was
+     * already supplied.
+     * @throws \FireHub\Adapter\HTTP\Body\Exception\InvalidStreamBodyException If the stream is invalid.
+     * @throws \FireHub\Foundation\IO\Stream\Exception\StreamException If the input stream cannot be opened.
+     * @throws Throwable If the request creation fails.
+     *
+     * @return \FireHub\Adapter\HTTP\Integration\Native\Exchange Native HTTP exchange.
+     */
+    public function createExchange ():Exchange {
+
+        if ($this->body !== null)
+            throw new InvalidExchangeStateException(
+                'Cannot create a native HTTP exchange when a request body is already provided.'
+            );
+
+        $input = new Input;
+
+        try {
+
+            $factory = new self(
+                $this->server,
+                $this->headers,
+                new Stream($input)
+            );
+
+            return new Exchange(
+                $factory->create(),
+                $input
+            );
+
+        } catch (Throwable $exception) {
+
+            $input->close();
+
+            throw $exception;
+
+        }
 
     }
 
