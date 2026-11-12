@@ -479,7 +479,7 @@ final readonly class Adapter {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Adapter::execute() To execute the handler and emitter within the application scope.
-     * @uses \FireHub\Adapter\HTTP\Integration\Native\Emitter::emit() To emit the response.
+     * @uses \FireHub\Adapter\HTTP\Emitter::emit() To emit the response.
      *
      * @param \FireHub\Adapter\HTTP\Request $request <p>
      * HTTP request to process.

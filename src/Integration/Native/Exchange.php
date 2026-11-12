@@ -16,8 +16,8 @@ namespace FireHub\Adapter\HTTP\Integration\Native;
 use FireHub\Adapter\HTTP\ {
     Adapter, Request
 };
-use FireHub\Adapter\HTTP\Integration\Native\Emitter;
 use FireHub\Foundation\IO\Stream\Input;
+use FireHub\Adapter\HTTP\Integration\Native\Exception\InvalidExchangeStateException;
 use Closure;
 
 /**
@@ -108,6 +108,7 @@ final readonly class Exchange {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Adapter::serve() To execute the HTTP request and emit its response.
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Exchange::isClosed() To check whether the exchange is closed.
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Exchange::close() To release the native input stream.
      *
      * @param \FireHub\Adapter\HTTP\Adapter $adapter <p>
@@ -124,10 +125,16 @@ final readonly class Exchange {
      * @throws \FireHub\Adapter\HTTP\Exception\InvalidHttpAdapterStateException If the adapter is not available.
      * @throws \FireHub\Application\Exception\InvalidApplicationStateException If the application is not initialized.
      * @throws \FireHub\Foundation\IO\Stream\Exception\StreamException If removing the filter fails.
+     * @throws \FireHub\Adapter\HTTP\Integration\Native\Exception\InvalidExchangeStateException If the exchange is closed.
      *
      * @return void
      */
     public function serve (Adapter $adapter, Closure $handler, Emitter $emitter):void {
+
+        if ($this->isClosed())
+            throw new InvalidExchangeStateException(
+                'Cannot serve a closed HTTP exchange.'
+            );
 
         try {
 
