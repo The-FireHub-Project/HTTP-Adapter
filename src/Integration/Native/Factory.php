@@ -62,11 +62,15 @@ final readonly class Factory {
      * @param array<non-empty-string, mixed> $server <p>
      * Native PHP server variables.
      * </p>
+     * @param array<non-empty-string, string> $headers <p>
+     * Native HTTP request headers.
+     * </p>
      *
      * @return void
      */
     public function __construct (
-        private array $server
+        private array $server,
+        private array $headers
     ) {}
 
     /**
@@ -82,12 +86,14 @@ final readonly class Factory {
      *
      * @since 1.0.0
      *
+     * @uses \FireHub\Runtime\Http\Request::headers() To get the native PHP HTTP request headers.
+     *
      * @return self HTTP request.
      */
     public static function fromGlobals ():self {
 
         /** @var array<non-empty-string, mixed> $_SERVER */
-        return new self($_SERVER);
+        return new self($_SERVER,  Runtime\Http\Request::headers());
 
     }
 
@@ -116,7 +122,6 @@ final readonly class Factory {
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::target() To resolve the HTTP request target.
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::headers() To resolve HTTP request headers.
      * @uses \FireHub\Adapter\HTTP\Request\Target\Validator::http11() To validate the HTTP/1.1 request target.
-     * @uses \FireHub\Runtime\Http\Request::headers() To get the native PHP HTTP request headers.
      *
      * @throws \FireHub\Adapter\HTTP\Request\Target\Exception\InvalidTargetCombinationException If the combination is
      * invalid.
@@ -141,10 +146,7 @@ final readonly class Factory {
         $version = $this->version();
         $method = $this->method();
         $target = $this->target($method);
-
-        /** @var array<non-empty-string, string> $headers */
-        $headers = Runtime\Http\Request::headers();
-        $headers = $this->headers($headers);
+        $headers = $this->headers($this->headers);
 
         if ($version === Version::HTTP_1_1)
             Validator::http11($method, $target);
