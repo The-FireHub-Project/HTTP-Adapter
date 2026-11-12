@@ -13,7 +13,10 @@
 
 namespace FireHub\Adapter\HTTP\Integration\Native;
 
-use FireHub\Adapter\HTTP\Response;
+use FireHub\Adapter\HTTP\ {
+    Request, Response
+};
+use FireHub\Adapter\HTTP\Response\Policy;
 use FireHub\Adapter\HTTP\Body\ {
     Materializable, Readable
 };
@@ -45,6 +48,9 @@ final readonly class Emitter {
      * ### Constructor
      * @since 1.0.0
      *
+     * @param \FireHub\Adapter\HTTP\Request $request <p>
+     * HTTP request to emit.
+     * </p>
      * @param \FireHub\Adapter\HTTP\Response $response <p>
      * HTTP response to emit.
      * </p>
@@ -52,6 +58,7 @@ final readonly class Emitter {
      * @return void
      */
     public function __construct (
+        private Request $request,
         private Response $response
     ) {}
 
@@ -77,6 +84,7 @@ final readonly class Emitter {
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Emitter::emitBody() To emit the HTTP response body.
      * @uses \FireHub\Runtime\Http\Response::headersSent() To check if headers have already been sent.
      * @uses \FireHub\Runtime\Http\Response::statusCode() To set the HTTP status code.
+     * @uses \FireHub\Adapter\HTTP\Response\Policy::allowsBody() To check if response content is permitted.
      *
      * @throws \FireHub\Adapter\HTTP\Exception\ResponseEmissionException If HTTP headers have already been sento rthe
      * body cannot be emitted.
@@ -94,7 +102,8 @@ final readonly class Emitter {
             $this->response->status()->code()
         );
 
-        $this->emitBody();
+        if (Policy::allowsBody($this->request, $this->response))
+            $this->emitBody();
 
     }
 

@@ -450,7 +450,7 @@ final readonly class Adapter {
      *     fn(ExecutionContext $context):Response => new Response(
      *         Standard::OK
      *     ),
-     *     fn(Response $response):void => (new Emitter($response))->emit()
+     *     fn(Request $request, Response $response):void => (new Emitter($request, $response))->emit()
      * );
      * </code>
      *
@@ -462,7 +462,7 @@ final readonly class Adapter {
      * HTTP request handler.
      * </p>
      *
-     * @param Closure(\FireHub\Adapter\HTTP\Response):void $emitter <p>
+     * @param Closure(\FireHub\Adapter\HTTP\Request, \FireHub\Adapter\HTTP\Response):void $emitter <p>
      * HTTP response emitter.
      * </p>
      *
@@ -481,7 +481,7 @@ final readonly class Adapter {
                     new ExecutionContext($request, $context)
                 );
 
-                $emitter($response);
+                $emitter($request, $response);
 
             }
         );
