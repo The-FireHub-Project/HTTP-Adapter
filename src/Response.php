@@ -34,11 +34,15 @@ final readonly class Response {
      * @param \FireHub\Adapter\HTTP\Response\Status $status <p>
      * HTTP response status.
      * </p>
+     * @param null|\FireHub\Adapter\HTTP\Body $body [optional] <p>
+     * HTTP response body.
+     * </p>
      *
      * @return void
      */
     public function __construct (
-        private Status $status
+        private Status $status,
+        private ?Body $body = null
     ) {}
 
     /**
@@ -50,6 +54,18 @@ final readonly class Response {
     public function status ():Status {
 
         return $this->status;
+
+    }
+
+    /**
+     * ### Gets the HTTP response body
+     * @since 1.0.0
+     *
+     * @return null|\FireHub\Adapter\HTTP\Body HTTP response body.
+     */
+    public function body ():?Body {
+
+        return $this->body;
 
     }
 

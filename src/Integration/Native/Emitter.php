@@ -14,6 +14,9 @@
 namespace FireHub\Adapter\HTTP\Integration\Native;
 
 use FireHub\Adapter\HTTP\Response;
+use FireHub\Adapter\HTTP\Body\ {
+    Materializable, Readable
+};
 use FireHub\Adapter\HTTP\Exception\ResponseEmissionException;
 use FireHub\Runtime;
 
@@ -64,17 +67,19 @@ final readonly class Emitter {
      *     Standard::CREATED
      * );
      *
-     * (new Emitter($response))->emit();
+     * new Emitter($response)->emit();
      *
      * // HTTP response status: 201 Created
      * </code>
      *
      * @since 1.0.0
      *
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Emitter::emitBody() To emit the HTTP response body.
      * @uses \FireHub\Runtime\Http\Response::headersSent() To check if headers have already been sent.
      * @uses \FireHub\Runtime\Http\Response::statusCode() To set the HTTP status code.
      *
-     * @throws \FireHub\Adapter\HTTP\Exception\ResponseEmissionException If HTTP headers have already been sent.
+     * @throws \FireHub\Adapter\HTTP\Exception\ResponseEmissionException If HTTP headers have already been sento rthe
+     * body cannot be emitted.
      *
      * @return void
      */
@@ -87,6 +92,62 @@ final readonly class Emitter {
 
         Runtime\Http\Response::statusCode(
             $this->response->status()->code()
+        );
+
+        $this->emitBody();
+
+    }
+
+    /**
+     * ### Emits the HTTP response body
+     *
+     * Sends materialized content directly or reads streaming content sequentially until the end of the body.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Response::body() To retrieve the HTTP response body.
+     * @uses \FireHub\Adapter\HTTP\Body\Materializable::contents() To emit materialized content.
+     * @uses \FireHub\Adapter\HTTP\Body\Readable::read() To emit streaming content.
+     * @uses \FireHub\Adapter\HTTP\Body\Readable::eof() To check for the end of the streaming content.
+     *
+     * @throws \FireHub\Adapter\HTTP\Exception\ResponseEmissionException If the body cannot be emitted.
+     *
+     * @return void
+     */
+    private function emitBody ():void {
+
+        $body = $this->response->body();
+
+        if ($body === null) return;
+
+        if ($body instanceof Materializable) {
+
+            echo $body->contents();
+
+            return;
+
+        }
+
+        if ($body instanceof Readable) {
+
+            while (!$body->eof()) {
+
+                $chunk = $body->read(8192);
+
+                if ($chunk === '')
+                    throw new ResponseEmissionException(
+                        'Cannot emit HTTP response body: no data was returned before EOF.'
+                    );
+
+                echo $chunk;
+
+            }
+
+            return;
+
+        }
+
+        throw new ResponseEmissionException(
+            'Cannot emit HTTP response body: unsupported body implementation.'
         );
 
     }

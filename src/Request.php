@@ -41,13 +41,17 @@ final readonly class Request {
      * @param \FireHub\Adapter\HTTP\Request\Target $target <p>
      * HTTP request target.
      * </p>
+     * @param null|\FireHub\Adapter\HTTP\Body $body [optional] <p>
+     * HTTP request body.
+     * </p>
      *
      * @return void
      */
     public function __construct (
         private Version $version,
         private Method $method,
-        private Target $target
+        private Target $target,
+        private ?Body $body = null
     ) {}
 
     /**
@@ -83,6 +87,18 @@ final readonly class Request {
     public function target ():Target {
 
         return $this->target;
+
+    }
+
+    /**
+     * ### Gets the HTTP request body
+     * @since 1.0.0
+     *
+     * @return null|\FireHub\Adapter\HTTP\Body HTTP request body.
+     */
+    public function body ():?Body {
+
+        return $this->body;
 
     }
 

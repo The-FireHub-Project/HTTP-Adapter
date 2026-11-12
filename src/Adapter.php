@@ -402,7 +402,6 @@ final readonly class Adapter {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Adapter::execute() To execute the handler within the application scope.
-     * @uses \FireHub\Adapter\HTTP\ExecutionContext::__construct() To create the HTTP execution context.
      *
      * @param \FireHub\Adapter\HTTP\Request $request <p>
      * HTTP request to process.
@@ -423,6 +422,68 @@ final readonly class Adapter {
             fn(ApplicationContext $context):Response => $handler(
                 new ExecutionContext($request, $context)
             )
+        );
+
+    }
+
+    /**
+     * ### Serves an HTTP request
+     *
+     * Processes an HTTP request and emits its response within the same application execution scope.
+     *
+     * The request handler creates the HTTP response, while the emitter delivers the response through the selected
+     * HTTP integration.
+     *
+     * Both operations execute before the application execution scope is closed, allowing streamed responses to
+     * access scoped dependencies throughout emission.
+     *
+     * The HTTP adapter does not depend on a specific response emitter.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\ExecutionContext;
+     * use FireHub\Adapter\HTTP\Integration\Native\Emitter;
+     * use FireHub\Adapter\HTTP\Response;
+     * use FireHub\Adapter\HTTP\Response\Status\Standard;
+     *
+     * $adapter->serve(
+     *     $request,
+     *     fn(ExecutionContext $context):Response => new Response(
+     *         Standard::OK
+     *     ),
+     *     fn(Response $response):void => (new Emitter($response))->emit()
+     * );
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Adapter::execute() To execute the handler and emitter within the application scope.
+     *
+     * @param Closure(\FireHub\Adapter\HTTP\ExecutionContext):\FireHub\Adapter\HTTP\Response $handler <p>
+     * HTTP request handler.
+     * </p>
+     *
+     * @param Closure(\FireHub\Adapter\HTTP\Response):void $emitter <p>
+     * HTTP response emitter.
+     * </p>
+     *
+     * @throws \FireHub\Kernel\Lifecycle\Exception\InvalidLifecycleStateException If the adapter is not initialized.
+     * @throws \FireHub\Adapter\HTTP\Exception\InvalidHttpAdapterStateException If the adapter is not available.
+     * @throws \FireHub\Application\Exception\InvalidApplicationStateException If the application is not initialized.
+     *
+     * @return void
+     */
+    public function serve (Request $request, Closure $handler, Closure $emitter):void {
+
+        $this->execute(
+            function (ApplicationContext $context) use ($request, $handler, $emitter):void {
+
+                $response = $handler(
+                    new ExecutionContext($request, $context)
+                );
+
+                $emitter($response);
+
+            }
         );
 
     }
