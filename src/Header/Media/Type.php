@@ -54,7 +54,7 @@ final readonly class Type extends ValueObject {
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the media type syntax.
      *
      * @param non-empty-string $media <p>
-     * Custom HTTP media type.
+     * MIME media type.
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If the media type is invalid.
@@ -74,6 +74,43 @@ final readonly class Type extends ValueObject {
             ),
             fn() => new InvalidMediaTypeException
         );
+
+    }
+
+    /**
+     * ### Creates a known media type
+     *
+     * Creates a primary MIME media type from a predefined, standardized media type category.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Header\Media\ {
+     *     Type, KnownType
+     * };
+     *
+     * $type = Type::known(KnownType::APPLICATION);
+     *
+     * $type->value(); // application
+     *
+     * $type = Type::known(KnownType::TEXT);
+     *
+     * $type->value(); // text
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Media\KnownType $type <p>
+     * Predefined primary MIME media type.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If the media type is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Primary media type value object.
+     */
+    public static function known (KnownType $type):self {
+
+        return new self($type->value);
 
     }
 

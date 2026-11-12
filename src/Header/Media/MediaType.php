@@ -88,7 +88,7 @@ final readonly class MediaType extends ValueObject {
      * @since 1.0.0
      *
      * @uses \FireHub\Runtime\Str\SB\Delimiter::explode() To split the media type into type and subtype.
-     * @uses \FireHub\Core\Arr\Inspection::count() To validate the number of parts.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To validate the number of parts.
      *
      * @param non-empty-string $value <p>
      * Serialized MIME media type.
@@ -112,6 +112,45 @@ final readonly class MediaType extends ValueObject {
             new Type($parts[0]),
             new Subtype($parts[1])
         );
+
+    }
+
+    /**
+     * ### Creates a known media type
+     *
+     * Creates a media type from a predefined MIME media type.
+     *
+     * The known media type is converted into its corresponding primary type and subtype components.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Header\Media\ {
+     *     MediaType, KnownMediaType
+     * };
+     *
+     * $media = MediaType::known(KnownMediaType::APPLICATION_JSON);
+     *
+     * $media->type()->value();    // application
+     * $media->subtype()->value(); // json
+     * $media->value();            // application/json
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses self::parse() To convert the known media type into structured components.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Media\KnownMediaType $media_type <p>
+     * Predefined MIME media type.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If the media type or subtype is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If an invalid guard exception is returned.
+     *
+     * @return self Media type value object.
+     */
+    public static function known (KnownMediaType $media_type):self {
+
+        return self::parse($media_type->value);
 
     }
 
