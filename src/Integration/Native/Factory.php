@@ -163,7 +163,6 @@ final readonly class Factory {
         $version = $this->version();
         $method = $this->method();
         $target = $this->target($method);
-        $headers = $this->headers($this->headers);
 
         if ($version === Version::HTTP_1_1)
             Validator::http11($method, $target);
@@ -173,7 +172,7 @@ final readonly class Factory {
             $method,
             $target,
             $this->body,
-            $headers
+            $this->headers()
     );
 
     }
@@ -332,10 +331,6 @@ final readonly class Factory {
      * @uses \FireHub\Adapter\HTTP\Request\Headers::add() To add an HTTP header.
      * @uses \FireHub\Runtime\Str\SB\Compare::lexical() To ignore empty Content-Type values.
      *
-     * @param array<non-empty-string, string> $values <p>
-     * HTTP header values.
-     * </p>
-     *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header value is invalid.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
@@ -343,11 +338,11 @@ final readonly class Factory {
      *
      * @return \FireHub\Adapter\HTTP\Request\Headers HTTP headers.
      */
-    private function headers (array $values):Headers {
+    private function headers ():Headers {
 
         $headers = Headers::empty();
 
-        foreach ($values as $name => $value) {
+        foreach ($this->headers as $name => $value) {
 
             if (
                 $value === ''
