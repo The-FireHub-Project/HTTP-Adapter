@@ -49,7 +49,7 @@ use FireHub\Runtime;
  *     new Str('Hello FireHub!')
  * );
  *
- * new Emitter($request, $response)->emit();
+ * new Emitter()->emit($request, $response);
  *
  * // HTTP response status: 200 OK
  * // HTTP response body: Hello FireHub!
@@ -58,24 +58,6 @@ use FireHub\Runtime;
  * @since 1.0.0
  */
 final readonly class Emitter implements HttpEmitter{
-
-    /**
-     * ### Constructor
-     * @since 1.0.0
-     *
-     * @param \FireHub\Adapter\HTTP\Request $request <p>
-     * HTTP request associated with the response.
-     * </p>
-     * @param \FireHub\Adapter\HTTP\Response $response <p>
-     * HTTP response to emit.
-     * </p>
-     *
-     * @return void
-     */
-    public function __construct (
-        private Request $request,
-        private Response $response
-    ) {}
 
     /**
      * {@inheritDoc}
@@ -89,7 +71,7 @@ final readonly class Emitter implements HttpEmitter{
      *     Standard::CREATED
      * );
      *
-     * new Emitter($response)->emit();
+     * new Emitter()->emit($request, $response);
      *
      * // HTTP response status: 201 Created
      * </code>
@@ -101,10 +83,17 @@ final readonly class Emitter implements HttpEmitter{
      * @uses \FireHub\Runtime\Http\Response::statusCode() To set the HTTP status code.
      * @uses \FireHub\Adapter\HTTP\Response\Policy::allowsBody() To check if response content is permitted.
      *
+     * @param \FireHub\Adapter\HTTP\Request $request <p>
+     * HTTP request associated with the response.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Response $response <p>
+     * HTTP response to emit.
+     * </p>
+     *
      * @throws \FireHub\Adapter\HTTP\Exception\ResponseEmissionException If HTTP headers have already been sento rthe
      * body cannot be emitted.
      */
-    public function emit ():void {
+    public function emit (Request $request, Response $response):void {
 
         if (Runtime\Http\Response::headersSent($file, $line))
             throw new ResponseEmissionException(
@@ -112,11 +101,11 @@ final readonly class Emitter implements HttpEmitter{
             );
 
         Runtime\Http\Response::statusCode(
-            $this->response->status()->code()
+            $response->status()->code()
         );
 
-        if (Policy::allowsBody($this->request, $this->response))
-            $this->emitBody();
+        if (Policy::allowsBody($request, $response))
+            $this->emitBody($response);
 
     }
 
@@ -131,13 +120,17 @@ final readonly class Emitter implements HttpEmitter{
      * @uses \FireHub\Adapter\HTTP\Body\Readable::read() To emit streaming content.
      * @uses \FireHub\Adapter\HTTP\Body\Readable::eof() To check for the end of the streaming content.
      *
+     * @param \FireHub\Adapter\HTTP\Response $response <p>
+     * HTTP response containing the body to emit.
+     * </p>
+     *
      * @throws \FireHub\Adapter\HTTP\Exception\ResponseEmissionException If the body cannot be emitted.
      *
      * @return void
      */
-    private function emitBody ():void {
+    private function emitBody (Response $response):void {
 
-        $body = $this->response->body();
+        $body = $response->body();
 
         if ($body === null) return;
 

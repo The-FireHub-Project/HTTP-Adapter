@@ -399,6 +399,25 @@ final readonly class Adapter {
      *
      * The application manages the dependency injection scope lifecycle, while the HTTP adapter ensures that execution
      * is permitted only while the adapter is initialized.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\ExecutionContext;
+     * use FireHub\Adapter\HTTP\Response;
+     * use FireHub\Adapter\HTTP\Response\Status\Standard;
+     * use FireHub\Adapter\HTTP\Body\Str;
+     *
+     * $response = $adapter->handle(
+     *     $request,
+     *     fn(ExecutionContext $context):Response => new Response(
+     *         Standard::OK,
+     *         new Str('Hello FireHub!')
+     *     )
+     * );
+     *
+     * // $response instanceof Response
+     * // true
+     * </code>
+     *
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Adapter::execute() To execute the handler within the application scope.
@@ -450,19 +469,22 @@ final readonly class Adapter {
      *     fn(ExecutionContext $context):Response => new Response(
      *         Standard::OK
      *     ),
-     *     fn(Request $request, Response $response):void => (new Emitter($request, $response))->emit()
+     *     new Emitter
      * );
      * </code>
      *
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Adapter::execute() To execute the handler and emitter within the application scope.
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Emitter::emit() To emit the response.
      *
+     * @param \FireHub\Adapter\HTTP\Request $request <p>
+     * HTTP request to process.
+     * </p>
      * @param Closure(\FireHub\Adapter\HTTP\ExecutionContext):\FireHub\Adapter\HTTP\Response $handler <p>
      * HTTP request handler.
      * </p>
-     *
-     * @param Closure(\FireHub\Adapter\HTTP\Request, \FireHub\Adapter\HTTP\Response):void $emitter <p>
+     * @param \FireHub\Adapter\HTTP\Integration\Native\Emitter $emitter <p>
      * HTTP response emitter.
      * </p>
      *
@@ -472,7 +494,7 @@ final readonly class Adapter {
      *
      * @return void
      */
-    public function serve (Request $request, Closure $handler, Closure $emitter):void {
+    public function serve (Request $request, Closure $handler, Emitter $emitter):void {
 
         $this->execute(
             function (ApplicationContext $context) use ($request, $handler, $emitter):void {
@@ -481,7 +503,7 @@ final readonly class Adapter {
                     new ExecutionContext($request, $context)
                 );
 
-                $emitter($request, $response);
+                $emitter->emit($request, $response);
 
             }
         );
