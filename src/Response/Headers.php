@@ -24,34 +24,6 @@ use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
  * Every modification produces a new response header collection.
  * @since 1.0.0
  */
-final readonly class Headers {
-
-    /**
-     * ### Constructor
-     * @since 1.0.0
-     *
-     * @param \FireHub\Adapter\HTTP\Message\Headers $headers <p>
-     * Underlying HTTP message headers.
-     * </p>
-     *
-     * @return void
-     */
-    private function __construct (
-        private MessageHeaders $headers
-    ) {}
-
-    /**
-     * ### Creates an empty response header collection
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Adapter\HTTP\Message\Headers::empty() To create an empty HTTP message header collection.
-     *
-     * @return self Empty response header collection.
-     */
-    public static function empty ():self {
-
-        return new self(MessageHeaders::empty());
-
-    }
+final readonly class Headers extends MessageHeaders {
 
 }

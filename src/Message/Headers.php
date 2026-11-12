@@ -26,7 +26,7 @@ use FireHub\Runtime;
  * Every modification produces a new collection instance.
  * @since 1.0.0
  */
-final readonly class Headers {
+readonly class Headers {
 
     /**
      * ### Constructor
@@ -41,7 +41,7 @@ final readonly class Headers {
      *
      * @return void
      */
-    private function __construct (
+    final private function __construct (
         private array $headers = []
     ) {}
 
@@ -49,11 +49,11 @@ final readonly class Headers {
      * ### Creates an empty header collection
      * @since 1.0.0
      *
-     * @return self Empty header collection.
+     * @return static Empty header collection.
      */
-    public static function empty ():self {
+    final public static function empty ():static {
 
-        return new self;
+        return new static;
 
     }
 
@@ -83,9 +83,9 @@ final readonly class Headers {
      * Header value.
      * </p>
      *
-     * @return self Updated header collection.
+     * @return static Updated header collection.
      */
-    public function add (Name $name, Value $value):self {
+    final public function add (Name $name, Value $value):static {
 
         $headers = $this->headers;
 
@@ -94,7 +94,7 @@ final readonly class Headers {
             'value' => $value
         ];
 
-        return new self($headers);
+        return new static($headers);
 
     }
 
@@ -143,9 +143,9 @@ final readonly class Headers {
      * Additional header values.
      * </p>
      *
-     * @return self Updated header collection.
+     * @return static Updated header collection.
      */
-    public function with (Name $name, Value $value, Value ...$additional):self {
+    final public function with (Name $name, Value $value, Value ...$additional):static {
 
         $replacements = [$value, ...$additional];
         $headers = []; $inserted = false;
@@ -180,7 +180,7 @@ final readonly class Headers {
                     'value' => $replacement
                 ];
 
-        return new self($headers);
+        return new static($headers);
 
     }
 
@@ -211,16 +211,16 @@ final readonly class Headers {
      * Header name.
      * </p>
      *
-     * @return self Updated header collection.
+     * @return static Updated header collection.
      */
-    public function without (Name $name):self {
+    final public function without (Name $name):static {
 
         $headers = [];
         foreach ($this->headers as $header)
             if (!$this->sameName($header['name'], $name))
                 $headers[] = $header;
 
-        return new self($headers);
+        return new static($headers);
 
     }
 
@@ -248,7 +248,7 @@ final readonly class Headers {
      *
      * @return bool True if at least one occurrence exists.
      */
-    public function has (Name $name):bool {
+    final public function has (Name $name):bool {
 
         foreach ($this->headers as $header)
             if ($this->sameName($header['name'], $name))
@@ -291,7 +291,7 @@ final readonly class Headers {
      *
      * @return list<\FireHub\Adapter\HTTP\Header\Value<string>> Matching header values.
      */
-    public function get (Name $name):array {
+    final public function get (Name $name):array {
 
         $values = [];
         foreach ($this->headers as $header)
@@ -330,7 +330,7 @@ final readonly class Headers {
      *     value: \FireHub\Adapter\HTTP\Header\Value<string>
      * }> Header fields.
      */
-    public function all ():array {
+    final public function all ():array {
 
         return $this->headers;
 
