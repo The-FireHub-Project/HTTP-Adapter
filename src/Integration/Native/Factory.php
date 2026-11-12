@@ -13,7 +13,9 @@
 
 namespace FireHub\Adapter\HTTP\Integration\Native;
 
-use FireHub\Adapter\HTTP\Request;
+use FireHub\Adapter\HTTP\ {
+    Body, Request
+};
 use FireHub\Adapter\HTTP\Message\Version;
 use FireHub\Adapter\HTTP\Request\ {
     Headers, Method, Target
@@ -24,9 +26,11 @@ use FireHub\Adapter\HTTP\Request\Method\ {
 use FireHub\Adapter\HTTP\Request\Target\ {
     Asterisk, Authority, Absolute, Origin, Validator
 };
+use FireHub\Adapter\HTTP\Body\Stream;
 use FireHub\Adapter\HTTP\Header\ {
     Name, Value
 };
+use FireHub\Foundation\IO\Stream\Input;
 use FireHub\Adapter\HTTP\Exception\ {
     InvalidServerEnvironmentException, InvalidServerProtocolException
 };
@@ -65,12 +69,16 @@ final readonly class Factory {
      * @param array<non-empty-string, string> $headers <p>
      * Native HTTP request headers.
      * </p>
+     * @param null|\FireHub\Adapter\HTTP\Body $body [optional] <p>
+     * HTTP request body.
+     * </p>
      *
      * @return void
      */
     public function __construct (
         private array $server,
-        private array $headers
+        private array $headers,
+        private ?Body $body = null
     ) {}
 
     /**
@@ -88,12 +96,21 @@ final readonly class Factory {
      *
      * @uses \FireHub\Runtime\Http\Request::headers() To get the native PHP HTTP request headers.
      *
+     * @throws \FireHub\Adapter\HTTP\Body\Exception\InvalidStreamBodyException If the stream is invalid.
+     *
      * @return self HTTP request.
      */
     public static function fromGlobals ():self {
 
+        /** @var array<non-empty-string, string> $headers */
+        $headers = Runtime\Http\Request::headers();
+
         /** @var array<non-empty-string, mixed> $_SERVER */
-        return new self($_SERVER,  Runtime\Http\Request::headers());
+        return new self(
+            $_SERVER,
+            $headers,
+            new Stream(new Input)
+        );
 
     }
 
@@ -120,6 +137,7 @@ final readonly class Factory {
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::version() To resolve the HTTP protocol version.
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::method() To resolve the HTTP request method.
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::target() To resolve the HTTP request target.
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::body() To create the HTTP request body.
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::headers() To resolve HTTP request headers.
      * @uses \FireHub\Adapter\HTTP\Request\Target\Validator::http11() To validate the HTTP/1.1 request target.
      *
@@ -155,7 +173,7 @@ final readonly class Factory {
             $version,
             $method,
             $target,
-            null,
+            $this->body,
             $headers
     );
 
