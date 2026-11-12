@@ -38,7 +38,7 @@ interface Body {
      * Calling this method must not consume body content or modify the underlying stream position.
      * @since 1.0.0
      *
-     * @return null|non-negative-int Total body size in bytes.
+     * @return null|non-negative-int Available body size in bytes, or null if unknown.
      */
     public function size ():?int;
 

@@ -14,7 +14,7 @@
 namespace FireHub\Adapter\HTTP\Integration\Native;
 
 use FireHub\Adapter\HTTP\ {
-    Request, Response
+    Emitter as HttpEmitter, Request, Response
 };
 use FireHub\Adapter\HTTP\Response\Policy;
 use FireHub\Adapter\HTTP\Body\ {
@@ -26,30 +26,45 @@ use FireHub\Runtime;
 /**
  * ### Emits HTTP responses using native PHP functions
  *
- * Sends HTTP response metadata through the native PHP SAPI.
+ * Transmits HTTP responses through the native PHP Server API (SAPI).
+ *
+ * The emitter sends the response status and body using the native PHP execution environment.
+ *
+ * HTTP protocol rules determine whether response content may be transmitted.
+ *
+ * Materializable bodies are emitted directly, while readable bodies are transmitted sequentially in chunks.
  *
  * <code>
- * use FireHub\Adapter\HTTP\Integration\Native\Emitter;
+ * use FireHub\Adapter\HTTP\Integration\Native\ {
+ *     Factory, Emitter
+ * };
  * use FireHub\Adapter\HTTP\Response;
  * use FireHub\Adapter\HTTP\Response\Status\Standard;
+ * use FireHub\Adapter\HTTP\Body\Str;
+ *
+ * $request = Factory::fromGlobals()->create();
  *
  * $response = new Response(
- *     Standard::OK
+ *     Standard::OK,
+ *     new Str('Hello FireHub!')
  * );
  *
- * $emitter = new Emitter($response);
+ * new Emitter($request, $response)->emit();
+ *
+ * // HTTP response status: 200 OK
+ * // HTTP response body: Hello FireHub!
  * </code>
  *
  * @since 1.0.0
  */
-final readonly class Emitter {
+final readonly class Emitter implements HttpEmitter{
 
     /**
      * ### Constructor
      * @since 1.0.0
      *
      * @param \FireHub\Adapter\HTTP\Request $request <p>
-     * HTTP request to emit.
+     * HTTP request associated with the response.
      * </p>
      * @param \FireHub\Adapter\HTTP\Response $response <p>
      * HTTP response to emit.
@@ -63,7 +78,7 @@ final readonly class Emitter {
     ) {}
 
     /**
-     * ### Emits the HTTP response
+     * {@inheritDoc}
      *
      * <code>
      * use FireHub\Adapter\HTTP\Integration\Native\Emitter;
@@ -88,8 +103,6 @@ final readonly class Emitter {
      *
      * @throws \FireHub\Adapter\HTTP\Exception\ResponseEmissionException If HTTP headers have already been sento rthe
      * body cannot be emitted.
-     *
-     * @return void
      */
     public function emit ():void {
 

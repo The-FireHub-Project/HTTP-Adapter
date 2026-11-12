@@ -18,11 +18,13 @@ use FireHub\Adapter\HTTP\Response\Status;
 /**
  * ### Represents an immutable HTTP response
  *
- * Encapsulates the HTTP response status, protocol version, headers, and response content.
+ * Encapsulates the HTTP response status and optional message body.
  *
- * Response instances are immutable and independent of the underlying HTTP server implementation.
+ * Response instances are immutable and independent of the underlying HTTP server or transport implementation.
  *
- * Every modification produces a new response instance.
+ * The response body may contain materialized content or provide sequential access to streaming content.
+ *
+ * The response object is immutable, but reading a stream-backed body may advance the underlying stream position.
  * @since 1.0.0
  */
 final readonly class Response {
