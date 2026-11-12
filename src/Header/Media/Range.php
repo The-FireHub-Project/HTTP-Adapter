@@ -126,8 +126,7 @@ final readonly class Range extends ValueObject {
      */
     public static function parse (string $value):self {
 
-        if ($value === '*/*')
-            return new self;
+        if ($value === '*/*') return new self;
 
         /** @var array{0: non-empty-string, 1: non-empty-string} $parts */
         $parts = Runtime\Str\SB\Delimiter::explode($value, '/', 2);
