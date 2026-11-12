@@ -78,6 +78,7 @@ final readonly class Emitter implements HttpEmitter{
      *
      * @since 1.0.0
      *
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Emitter::emitHeaders() To emit the HTTP response headers.
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Emitter::emitBody() To emit the HTTP response body.
      * @uses \FireHub\Runtime\Http\Response::headersSent() To check if headers have already been sent.
      * @uses \FireHub\Runtime\Http\Response::statusCode() To set the HTTP status code.
@@ -104,8 +105,40 @@ final readonly class Emitter implements HttpEmitter{
             $response->status()->code()
         );
 
+        $this->emitHeaders($response);
+
         if (Policy::allowsBody($request, $response))
             $this->emitBody($response);
+
+    }
+
+    /**
+     * ### Emits HTTP response headers
+     *
+     * Sends all response header fields in their original order.
+     *
+     * Existing header fields with the same name are preserved, including multiple Set-Cookie fields.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Response::headers() Gets response headers.
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::all() Gets all header fields.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::value() Gets the header name.
+     * @uses \FireHub\Adapter\HTTP\Header\Value::value() Gets the header value.
+     * @uses \FireHub\Runtime\Http\Response::sendHeader() Sends an HTTP header.
+     *
+     * @param \FireHub\Adapter\HTTP\Response $response <p>
+     * HTTP response containing the headers to emit.
+     * </p>
+     *
+     * @return void
+     */
+    private function emitHeaders (Response $response):void {
+
+        foreach ($response->headers()->all() as $header)
+            Runtime\Http\Response::sendHeader(
+                $header['name']->value() . ': ' . $header['value']->value(),
+                false
+            );
 
     }
 

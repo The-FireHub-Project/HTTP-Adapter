@@ -16,13 +16,16 @@ namespace FireHub\Adapter\HTTP\Integration\Native;
 use FireHub\Adapter\HTTP\Request;
 use FireHub\Adapter\HTTP\Message\Version;
 use FireHub\Adapter\HTTP\Request\ {
-    Method, Target
+    Headers, Method, Target
 };
 use FireHub\Adapter\HTTP\Request\Method\ {
     Custom, Standard
 };
 use FireHub\Adapter\HTTP\Request\Target\ {
     Asterisk, Authority, Absolute, Origin, Validator
+};
+use FireHub\Adapter\HTTP\Header\ {
+    Name, Value
 };
 use FireHub\Adapter\HTTP\Exception\ {
     InvalidServerEnvironmentException, InvalidServerProtocolException
@@ -111,7 +114,9 @@ final readonly class Factory {
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::version() To resolve the HTTP protocol version.
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::method() To resolve the HTTP request method.
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::target() To resolve the HTTP request target.
+     * @uses \FireHub\Adapter\HTTP\Integration\Native\Factory::headers() To resolve HTTP request headers.
      * @uses \FireHub\Adapter\HTTP\Request\Target\Validator::http11() To validate the HTTP/1.1 request target.
+     * @uses \FireHub\Runtime\Http\Request::headers() To get the native PHP HTTP request headers.
      *
      * @throws \FireHub\Adapter\HTTP\Request\Target\Exception\InvalidTargetCombinationException If the combination is
      * invalid.
@@ -124,6 +129,8 @@ final readonly class Factory {
      * @throws \FireHub\Foundation\Uri\Exception\InvalidPathException If path has invalid pattern.
      * @throws \FireHub\Foundation\Uri\Exception\InvalidQueryException If query has invalid pattern.
      * @throws \FireHub\Foundation\Uri\Exception\InvalidFragmentException If fragment has invalid pattern.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header value is invalid.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
@@ -135,14 +142,20 @@ final readonly class Factory {
         $method = $this->method();
         $target = $this->target($method);
 
+        /** @var array<non-empty-string, string> $headers */
+        $headers = Runtime\Http\Request::headers();
+        $headers = $this->headers($headers);
+
         if ($version === Version::HTTP_1_1)
             Validator::http11($method, $target);
 
         return new Request(
-            version: $version,
-            method: $method,
-            target: $target
-        );
+            $version,
+            $method,
+            $target,
+            null,
+            $headers
+    );
 
     }
 
@@ -229,6 +242,52 @@ final readonly class Factory {
                 => Absolute::parse($target),
             default => Origin::parse($target)
         };
+
+    }
+
+    /**
+     * ### Resolves HTTP request headers
+     *
+     * Converts PHP-provided HTTP header names and values into a FireHub HTTP headers collection.
+     *
+     * Empty Content-Type values are ignored because some PHP server environments expose them even when no
+     * Content-Type header was provided by the client.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Request\Headers::empty() To create an empty headers collection.
+     * @uses \FireHub\Adapter\HTTP\Request\Headers::add() To add an HTTP header.
+     * @uses \FireHub\Runtime\Str\SB\Compare::lexical() To ignore empty Content-Type values.
+     *
+     * @param array<non-empty-string, string> $values <p>
+     * HTTP header values.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return \FireHub\Adapter\HTTP\Request\Headers HTTP headers.
+     */
+    private function headers (array $values):Headers {
+
+        $headers = Headers::empty();
+
+        foreach ($values as $name => $value) {
+
+            if (
+                $value === ''
+                && Runtime\Str\SB\Compare::lexical($name, 'Content-Type') === 0
+            ) continue;
+
+            $headers = $headers->add(
+                new Name($name),
+                new Value($value)
+            );
+
+        }
+
+        return $headers;
 
     }
 
