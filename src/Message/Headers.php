@@ -173,15 +173,12 @@ final readonly class Headers {
 
         }
 
-        if (!$inserted) {
-
+        if (!$inserted)
             foreach ($replacements as $replacement)
                 $headers[] = [
                     'name' => $name,
                     'value' => $replacement
                 ];
-
-        }
 
         return new self($headers);
 
