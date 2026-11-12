@@ -24,13 +24,18 @@ namespace FireHub\Adapter\HTTP;
 interface Body {
 
     /**
-     * ### Gets the complete body size
+     * ### Gets the HTTP body size
      *
-     * Returns the total number of bytes in the body.
+     * Returns the number of bytes currently available for transmission.
      *
-     * The result must not depend on the current reading position.
+     * For materialized bodies, the size represents the complete content and remains constant.
      *
-     * A null value indicates that the complete size is unknown.
+     * For stream-backed bodies, the size represents the remaining readable bytes from the current stream position
+     * and may decrease as the stream is consumed.
+     *
+     * Returns null when the available size cannot be determined.
+     *
+     * Calling this method must not consume body content or modify the underlying stream position.
      * @since 1.0.0
      *
      * @return null|non-negative-int Total body size in bytes.
