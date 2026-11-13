@@ -55,10 +55,6 @@ final readonly class Quality extends Parameter {
      * $quality = Quality::of('0.8');
      *
      * $quality->value(); // q=0.8
-     *
-     * $quality = Quality::of();
-     *
-     * $quality->value(); // q=1
      * </code>
      *
      * @since 1.0.0
@@ -75,7 +71,7 @@ final readonly class Quality extends Parameter {
      *
      * @return self New HTTP quality parameter.
      */
-    public static function of (string $value = '1'):self {
+    public static function of (string $value):self {
 
         if (!Runtime\Str\SB\Regex::match(
             '/\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/',
