@@ -104,6 +104,62 @@ final readonly class Parameters extends ValueObject {
     }
 
     /**
+     * ### Parses HTTP Parameters
+     *
+     * Parses a semicolon-separated collection of HTTP parameters.
+     *
+     * Semicolons inside quoted strings are preserved. Each parameter is parsed using Parameter::parse().
+     *
+     * <code>
+     * $parameters = Parameters::parse(
+     *     'charset=utf-8; profile="example;version=2"'
+     * );
+     *
+     * $parameters->count(); // 2
+     * $parameters->get(new Name('profile'))?->content()->value();
+     * // example;version=2
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses self::split() To split the parameter collection.
+     * @uses \FireHub\Adapter\HTTP\Header\Parameter::parse() To parse individual parameters.
+     * @uses \FireHub\Runtime\Str\SB\Transform::trim() To remove leading and trailing whitespace.
+     *
+     * @param string $value <p>
+     * Serialized HTTP parameters.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Parsed parameter collection.
+     */
+    public static function parse (string $value):self {
+
+        if ($value === '') return new self();
+
+        $parameters = [];
+
+        foreach (self::split($value) as $part) {
+
+            $part = Runtime\Str\SB\Transform::trim($part, characters: " \t");
+
+            if ($part === '')
+                throw new InvalidParameterException(
+                    'Empty HTTP parameter.'
+                );
+
+            $parameters[] = Parameter::parse($part);
+
+        }
+
+        return new self(...$parameters);
+
+    }
+
+    /**
      * ### Checks whether a parameter exists
      *
      * Determines whether the collection contains a parameter with the specified name.
@@ -410,6 +466,85 @@ final readonly class Parameters extends ValueObject {
         Runtime\Arr\Ordering::sortByKeys($parameters, type: SortType::STRING);
 
         return $parameters;
+
+    }
+
+    /**
+     * ### Splits HTTP Parameters
+     *
+     * Splits a semicolon-separated parameter string while preserving semicolons inside quoted strings.
+     *
+     * Escaped quotation marks do not terminate quoted strings.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Inspection::length() To determine the string length.
+     *
+     * @param string $value <p>
+     * Serialized HTTP parameters.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If a quoted string is unterminated.
+     *
+     * @return list<string> Individual serialized parameters.
+     */
+    private static function split (string $value):array {
+
+        $parts = []; $buffer = ''; $quoted = false; $escaped = false;
+
+        $length = Runtime\Str\SB\Inspection::length($value);
+
+        for ($index = 0; $index < $length; $index++) {
+
+            $character = $value[$index];
+
+            if ($escaped) {
+
+                $buffer .= $character;
+                $escaped = false;
+
+                continue;
+
+            }
+
+            if ($quoted && $character === '\\') {
+
+                $buffer .= $character;
+                $escaped = true;
+
+                continue;
+
+            }
+
+            if ($character === '"') {
+
+                $quoted = !$quoted;
+                $buffer .= $character;
+
+                continue;
+
+            }
+
+            if ($character === ';' && !$quoted) {
+
+                $parts[] = $buffer;
+                $buffer = '';
+
+                continue;
+
+            }
+
+            $buffer .= $character;
+
+        }
+
+        if ($quoted || $escaped)
+            throw new InvalidParameterException(
+                'Unterminated quoted string in HTTP parameters.'
+            );
+
+        $parts[] = $buffer;
+
+        return $parts;
 
     }
 
