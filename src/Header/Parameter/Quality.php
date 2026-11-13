@@ -131,4 +131,45 @@ final readonly class Quality extends Parameter {
 
     }
 
+    /**
+     * ### Gets the Quality Weight
+     *
+     * Returns the normalized quality value as an integer between 0 and 1000.
+     *
+     * <code>
+     * $preference = Preference::parse('text/html');
+     * $preference->weight(); // 1000
+     *
+     * $preference = Preference::parse('application/json;q=0.8');
+     * $preference->weight(); // 800
+     *
+     * $preference = Preference::parse('image/png;q=0');
+     * $preference->weight(); // 0
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Parameter::content() To get the quality value.
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::explode() To split the quality value into integer and fractional parts.
+     * @uses \FireHub\Runtime\Str\SB\Transform::pad() To pad the fractional part with zeros.
+     *
+     * @return int<0, 1000> Normalized quality weight.
+     */
+    public function weight ():int {
+
+        $value = $this->content()->value();
+
+        /** @var array{numeric-string, numeric-string} $parts */
+        $parts = Runtime\Str\SB\Delimiter::explode($value, '.', 2);
+
+        $integer = (int)$parts[0];
+
+        $fraction = $parts[1] ?? '';
+
+        /** @var int<0, 1000> */
+        return $integer * 1000
+            + (int)Runtime\Str\SB\Transform::pad($fraction, 3, '0');
+
+    }
+
 }

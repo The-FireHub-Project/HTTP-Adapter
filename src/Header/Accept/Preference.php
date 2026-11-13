@@ -135,6 +135,7 @@ final readonly class Preference extends ValueObject {
      * @uses \FireHub\Adapter\HTTP\Header\Parameter\Quality::of() To parse the quality parameter.
      * @uses \FireHub\Runtime\Str\SB\Search::firstPosition() To find the separator between the media range and parameters.
      * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the media range and parameters from the string.
+     * @uses \FireHub\Runtime\Str\SB\Transform::trim() To remove leading and trailing whitespace.
      *
      * @param non-empty-string $value <p>
      * Serialized HTTP Accept preference.
@@ -160,9 +161,14 @@ final readonly class Preference extends ValueObject {
 
         $range = Range::parse($media_type);
 
-        $parsed = Parameters::parse(
-            Runtime\Str\SB\Access::part($value, $separator + 1)
-        );
+        $raw_parameters = Runtime\Str\SB\Access::part($value, $separator + 1);
+
+        if (Runtime\Str\SB\Transform::trim($raw_parameters, characters: " \t") === '')
+            throw new InvalidParameterException(
+                'An HTTP Accept preference cannot contain an empty parameter.'
+            );
+
+        $parsed = Parameters::parse($raw_parameters);
 
         $parameters = []; $quality = null;
         foreach ($parsed->all() as $parameter) {
@@ -302,6 +308,8 @@ final readonly class Preference extends ValueObject {
      *
      * @since 1.0.0
      *
+     * @uses \FireHub\Adapter\HTTP\Header\Parameter\Quality::weight() To get the quality weight.
+     *
      * @return array{
      *     \FireHub\Adapter\HTTP\Header\Media\Range,
      *     \FireHub\Adapter\HTTP\Header\Parameters,
@@ -313,9 +321,7 @@ final readonly class Preference extends ValueObject {
         return [
             $this->range,
             $this->parameters,
-            $this->quality !== null
-                ? (int) ((float) $this->quality->content()->value() * 1000)
-                : 1000
+            $this->quality?->weight() ?? 1000
         ];
 
     }
