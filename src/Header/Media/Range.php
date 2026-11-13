@@ -67,6 +67,8 @@ final readonly class Range extends ValueObject {
      * ### Constructor
      * @since 1.0.0
      *
+     * @uses \FireHub\Core\Type\ValueObject::guard() To validate the media range.
+     *
      * @param null|\FireHub\Adapter\HTTP\Header\Media\Type $type <p>
      * Primary MIME media type, or null to match all types.
      * </p>
@@ -74,7 +76,10 @@ final readonly class Range extends ValueObject {
      * MIME media subtype, or null to match all subtypes.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If a subtype is provided without a primary type.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If a subtype is provided without a
+     * primary type.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
      * @return void
      */
@@ -83,10 +88,12 @@ final readonly class Range extends ValueObject {
         private ?Subtype $subtype = null
     ) {
 
-        if ($this->type === null && $this->subtype !== null)
-            throw new InvalidMediaTypeException(
+        $this->guard(
+            fn() => $this->type !== null || $this->subtype === null,
+            fn() => new InvalidMediaTypeException(
                 'A media range cannot specify a subtype without a primary type.'
-            );
+            )
+        );
 
     }
 
