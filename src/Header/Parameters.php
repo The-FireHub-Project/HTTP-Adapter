@@ -14,6 +14,7 @@
 namespace FireHub\Adapter\HTTP\Header;
 
 use FireHub\Core\Type\ValueObject;
+use FireHub\Adapter\HTTP\Header\Parsing\Splitter;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException;
 use FireHub\Runtime\Type\Arr\SortType;
 use FireHub\Runtime;
@@ -122,7 +123,7 @@ final readonly class Parameters extends ValueObject {
      *
      * @since 1.0.0
      *
-     * @uses self::split() To split the parameter collection.
+     * @uses \FireHub\Adapter\HTTP\Header\Parsing\Splitter::split() To split the parameter string.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::parse() To parse individual parameters.
      * @uses \FireHub\Runtime\Str\SB\Transform::trim() To remove leading and trailing whitespace.
      *
@@ -131,6 +132,7 @@ final readonly class Parameters extends ValueObject {
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a quoted string is unterminated.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
@@ -142,7 +144,7 @@ final readonly class Parameters extends ValueObject {
 
         $parameters = [];
 
-        foreach (self::split($value) as $part) {
+        foreach (Splitter::split($value, ';') as $part) {
 
             $part = Runtime\Str\SB\Transform::trim($part, characters: " \t");
 
@@ -466,85 +468,6 @@ final readonly class Parameters extends ValueObject {
         Runtime\Arr\Ordering::sortByKeys($parameters, type: SortType::STRING);
 
         return $parameters;
-
-    }
-
-    /**
-     * ### Splits HTTP Parameters
-     *
-     * Splits a semicolon-separated parameter string while preserving semicolons inside quoted strings.
-     *
-     * Escaped quotation marks do not terminate quoted strings.
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Runtime\Str\SB\Inspection::length() To determine the string length.
-     *
-     * @param string $value <p>
-     * Serialized HTTP parameters.
-     * </p>
-     *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If a quoted string is unterminated.
-     *
-     * @return list<string> Individual serialized parameters.
-     */
-    private static function split (string $value):array {
-
-        $parts = []; $buffer = ''; $quoted = false; $escaped = false;
-
-        $length = Runtime\Str\SB\Inspection::length($value);
-
-        for ($index = 0; $index < $length; $index++) {
-
-            $character = $value[$index];
-
-            if ($escaped) {
-
-                $buffer .= $character;
-                $escaped = false;
-
-                continue;
-
-            }
-
-            if ($quoted && $character === '\\') {
-
-                $buffer .= $character;
-                $escaped = true;
-
-                continue;
-
-            }
-
-            if ($character === '"') {
-
-                $quoted = !$quoted;
-                $buffer .= $character;
-
-                continue;
-
-            }
-
-            if ($character === ';' && !$quoted) {
-
-                $parts[] = $buffer;
-                $buffer = '';
-
-                continue;
-
-            }
-
-            $buffer .= $character;
-
-        }
-
-        if ($quoted || $escaped)
-            throw new InvalidParameterException(
-                'Unterminated quoted string in HTTP parameters.'
-            );
-
-        $parts[] = $buffer;
-
-        return $parts;
 
     }
 

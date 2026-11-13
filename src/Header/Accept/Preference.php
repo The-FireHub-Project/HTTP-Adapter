@@ -18,9 +18,7 @@ use FireHub\Adapter\HTTP\Header\ {
     Media\Range, Parameter\Quality,
     Name, Parameter, Parameters
 };
-use FireHub\Adapter\HTTP\Header\Exception\ {
-    InvalidMediaTypeException, InvalidParameterException
-};
+use FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException;
 use FireHub\Runtime;
 
 /**
@@ -142,7 +140,7 @@ final readonly class Preference extends ValueObject {
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If the media range is invalid.
-     * @@throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the media parameters contain a
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the media parameters contain a
      * quality parameter or duplicate parameter names.s
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
