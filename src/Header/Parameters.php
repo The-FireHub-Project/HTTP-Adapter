@@ -36,7 +36,7 @@ use FireHub\Runtime;
  *     Name, Value, Parameter, Parameters
  * };
  *
- * $parameters = new Parameters(f
+ * $parameters = Parameter::create(
  *     new Parameter(new Name('charset'), new Value('utf-8')),
  *     new Parameter(new Name('boundary'), new Value('abc123'))
  * );
@@ -111,7 +111,7 @@ final readonly class Parameters extends ValueObject {
      * Parameter names are compared case-insensitive.
      *
      * <code>
-     * $parameters = new Parameters(
+     * $parameters = Parameter::create(
      *     new Parameter(new Name('charset'), new Value('utf-8'))
      * );
      *
@@ -146,7 +146,7 @@ final readonly class Parameters extends ValueObject {
      * Returns null when no matching parameter exists.
      *
      * <code>
-     * $parameters = new Parameters(
+     * $parameters = Parameter::create(
      *     new Parameter(new Name('charset'), new Value('utf-8'))
      * );
      *
@@ -181,7 +181,7 @@ final readonly class Parameters extends ValueObject {
      * ### Adds a parameter to the collection
      *
      * <code>
-     * $parameters = new Parameters();
+     * $parameters = Parameter::create();
      *
      * $parameters = $parameters->add(
      *     new Parameter(
@@ -217,7 +217,7 @@ final readonly class Parameters extends ValueObject {
      * ### Adds or replaces a parameter in the collection
      *
      * <code>
-     * $parameters = new Parameters(
+     * $parameters = Parameter::create(
      *     new Parameter(
      *         new Name('charset'),
      *         new Value('utf-8')
@@ -269,7 +269,7 @@ final readonly class Parameters extends ValueObject {
      * ### Removes a parameter from the collection
      *
      * <code>
-     * $parameters = new Parameters(
+     * $parameters = Parameter::create(
      *     new Parameter(
      *         new Name('charset'),
      *         new Value('utf-8')
@@ -317,7 +317,7 @@ final readonly class Parameters extends ValueObject {
      * Returns the total number of parameters in the collection.
      *
      * <code>
-     * $parameters = new Parameters(
+     * $parameters = Parameter::create(
      *     new Parameter(new Name('charset'), new Value('utf-8')),
      *     new Parameter(new Name('boundary'), new Value('abc123'))
      * );
@@ -363,14 +363,14 @@ final readonly class Parameters extends ValueObject {
      * {@inheritDoc}
      *
      * <code>
-     * $parameters = new Parameters(
+     * $parameters = Parameter::create(
      *     new Parameter(new Name('charset'), new Value('utf-8')),
      *     new Parameter(new Name('boundary'), new Value('abc123'))
      * );
      *
      * $parameters->value(); // charset=utf-8; boundary=abc123
      *
-     * new Parameters()->value(); // ''
+     * Parameter::create()->value(); // ''
      * </code>
      *
      * @since 1.0.0

@@ -35,7 +35,7 @@ use FireHub\Runtime;
  *     Name, Value, Parameter
  * };
  *
- * $parameter = new Parameter(
+ * $parameter = Parameter::create(
  *     new Name('charset'),
  *     new Value('utf-8')
  * );
@@ -53,7 +53,7 @@ use FireHub\Runtime;
  *
  * @extends \FireHub\Core\Type\ValueObject<non-empty-string>
  */
-final readonly class Parameter extends ValueObject {
+readonly class Parameter extends ValueObject {
 
     /**
      * ### Constructor
@@ -75,7 +75,7 @@ final readonly class Parameter extends ValueObject {
      *
      * @return void
      */
-    public function __construct (
+    final protected function __construct (
         private Name $name,
         private Value $content
     ) {
@@ -89,6 +89,39 @@ final readonly class Parameter extends ValueObject {
                 'Invalid HTTP parameter content.'
             )
         );
+
+    }
+
+    /**
+     * ### Creates an HTTP header parameter
+     *
+     * <code>
+     * $parameter = Parameter::create(
+     *     new Name('charset'),
+     *     new Value('utf-8')
+     * );
+     *
+     * $parameter->value(); // charset=utf-8
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * HTTP parameter name.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Value<string> $content <p>
+     * Decoded HTTP parameter content.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self New HTTP parameter.
+     */
+    public static function create (Name $name, Value $content):self {
+
+        return new self($name, $content);
 
     }
 
@@ -151,7 +184,7 @@ final readonly class Parameter extends ValueObject {
      * Returns the parameter name as an immutable HTTP name value object.
      *
      * <code>
-     * $parameter = new Parameter(
+     * $parameter = Parameter::create(
      *     new Name('charset'),
      *     new Value('utf-8')
      * );
@@ -194,7 +227,7 @@ final readonly class Parameter extends ValueObject {
      * {@inheritDoc}
      *
      * <code>
-     * $parameter = new Parameter(
+     * $parameter = Parameter::create(
      *     new Name('filename'),
      *     new Value('Annual Report.pdf')
      * );
