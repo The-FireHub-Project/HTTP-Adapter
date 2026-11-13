@@ -395,22 +395,21 @@ final readonly class Parameters extends ValueObject {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To normalize parameter names.
-     * @uses \FireHub\Adapter\HTTP\Header\Parameter::content() To get parameter content.
      * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize parameter names.
      * @uses \FireHub\Runtime\Arr\Ordering::sortByKeys() To sort parameters by name.
      *
-     * @return array<string, string> Normalized parameter values.
+     * @return array<string, \FireHub\Adapter\HTTP\Header\Parameter> Normalized parameter collection.
      */
     protected function comparisonValue ():array {
 
-        $values = [];
+        $parameters = [];
 
         foreach ($this->parameters as $parameter)
-            $values[Runtime\Str\SB\Casing::toLower($parameter->name()->value())] = $parameter->content()->value();
+            $parameters[Runtime\Str\SB\Casing::toLower($parameter->name()->value())] = $parameter;
 
-        Runtime\Arr\Ordering::sortByKeys($values, type: SortType::STRING);
+        Runtime\Arr\Ordering::sortByKeys($parameters, type: SortType::STRING);
 
-        return $values;
+        return $parameters;
 
     }
 
