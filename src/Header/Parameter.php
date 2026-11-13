@@ -129,6 +129,7 @@ final readonly class Parameter extends ValueObject {
                 'An HTTP parameter must contain an equals sign.'
             );
 
+        /** @var non-empty-string $name */
         $name = Runtime\Str\SB\Access::part($value, 0, $separator);
         $content = Runtime\Str\SB\Access::part($value, $separator + 1);
 
