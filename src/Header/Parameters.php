@@ -75,7 +75,8 @@ final readonly class Parameters extends ValueObject {
      * HTTP header parameters.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If duplicate parameter names are provided.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If duplicate parameter names are
+     * provided.
      *
      * @return void
      */
@@ -173,6 +174,140 @@ final readonly class Parameters extends ValueObject {
                 return $parameter;
 
         return null;
+
+    }
+
+    /**
+     * ### Adds a parameter to the collection
+     *
+     * <code>
+     * $parameters = new Parameters();
+     *
+     * $parameters = $parameters->add(
+     *     new Parameter(
+     *         new Name('charset'),
+     *         new Value('utf-8')
+     *     )
+     * );
+     *
+     * $parameters->value(); // charset=utf-8
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Parameter $parameter <p>
+     * Parameter to add.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If duplicate parameter names are
+     * provided.
+     *
+     * @return self New collection containing the parameter.
+     */
+    public function add (Parameter $parameter):self {
+
+        return new self(
+            $parameter,
+            ...$this->parameters,
+        );
+
+    }
+
+    /**
+     * ### Adds or replaces a parameter in the collection
+     *
+     * <code>
+     * $parameters = new Parameters(
+     *     new Parameter(
+     *         new Name('charset'),
+     *         new Value('utf-8')
+     *     )
+     * );
+     *
+     * $parameters = $parameters->set(
+     *     new Parameter(
+     *         new Name('charset'),
+     *         new Value('iso-8859-1')
+     *     )
+     * );
+     *
+     * $parameters->value(); // charset=iso-8859-1
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses self::has() To check for existing parameters.
+     * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To compare parameter names.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare parameter names.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Parameter $parameter <p>
+     * Parameter to set.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If duplicate parameter names are
+     * provided.
+     *
+     * @return self Updated parameter collection.
+     */
+    public function set (Parameter $parameter):self {
+
+        $parameters = [];
+
+        foreach ($this->parameters as $existing)
+            $parameters[] = $existing->name()->equals($parameter->name())
+                ? $parameter
+                : $existing;
+
+        if (!$this->has($parameter->name()))
+            $parameters[] = $parameter;
+
+        return new self(...$parameters);
+
+    }
+
+    /**
+     * ### Removes a parameter from the collection
+     *
+     * <code>
+     * $parameters = new Parameters(
+     *     new Parameter(
+     *         new Name('charset'),
+     *         new Value('utf-8')
+     *     ),
+     *     new Parameter(
+     *         new Name('boundary'),
+     *         new Value('abc123')
+     *     )
+     * );
+     *
+     * $parameters = $parameters->remove(new Name('charset'));
+     *
+     * $parameters->value(); // boundary=abc123
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To compare parameter names.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare parameter names.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * Parameter name to remove.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If duplicate parameter names are
+     * provided.
+     *
+     * @return self New collection without the parameter.
+     */
+    public function remove (Name $name):self {
+
+        $parameters = [];
+
+        foreach ($this->parameters as $parameter)
+            if (!$parameter->name()->equals($name))
+                $parameters[] = $parameter;
+
+        return new self(...$parameters);
 
     }
 
