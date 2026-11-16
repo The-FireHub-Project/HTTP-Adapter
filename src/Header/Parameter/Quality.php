@@ -107,6 +107,7 @@ final readonly class Quality extends Parameter {
      *
      * @uses self::of() To validate and create the quality parameter.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::parse() To parse the generic HTTP parameter.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize the parameter name.
      *
      * @param non-empty-string $value <p>
      * Serialized HTTP quality parameter.
@@ -122,7 +123,7 @@ final readonly class Quality extends Parameter {
 
         $parameter = parent::parse($value);
 
-        if ($parameter->name()->comparisonValue() !== 'q')
+        if (Runtime\Str\SB\Casing::toLower($parameter->name()->value()) !== 'q')
             throw new InvalidParameterException(
                 'Expected an HTTP quality parameter named "q".'
             );

@@ -74,10 +74,10 @@ final readonly class Preference extends ValueObject {
      * @param \FireHub\Adapter\HTTP\Header\Media\Range $range <p>
      * Media range accepted by the client.
      * </p>
-     * @param null|\FireHub\Adapter\HTTP\Header\Parameter\Quality $quality <p>
+     * @param null|\FireHub\Adapter\HTTP\Header\Parameter\Quality $quality [optional] <p>
      * Optional quality parameter, or null when omitted.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Header\Parameter ...$parameters <p>
+     * @param \FireHub\Adapter\HTTP\Header\Parameter ...$parameters [optional] <p>
      * Media parameters associated with the range.
      * </p>
      *
