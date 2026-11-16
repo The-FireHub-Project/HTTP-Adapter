@@ -377,4 +377,60 @@ final readonly class Headers extends MessageHeaders {
 
     }
 
+    /**
+     * ### Gets the HTTP Content-Encoding Header
+     *
+     * Retrieves and parses all Content-Encoding header fields into a single ordered collection of content codings.
+     *
+     * Multiple Content-Encoding fields are combined while preserving their original order.
+     *
+     * Returns null when the header is absent.
+     *
+     * <code>
+     * $headers = Headers::empty()->withContentEncoding(
+     *     Encoding::of(
+     *         Content::GZIP,
+     *         Content::BR
+     *     )
+     * );
+     *
+     * $encoding = $headers->getContentEncoding();
+     *
+     * $encoding?->count(); // 2
+     * $encoding?->value(); // gzip, br
+     *
+     * Headers::empty()->getContentEncoding(); // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Content-Encoding header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Encoding::parse() To parse each header field.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Encoding::all() To retrieve parsed codings.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a content coding is unsupported.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Content\Encoding Parsed Content-Encoding header, or null if absent.
+     */
+    public function getContentEncoding ():?ContentEncoding {
+
+        $values = $this->get(new Name('Content-Encoding'));
+
+        if ($values === []) return null;
+
+        $codings = [];
+
+        foreach ($values as $value) {
+
+            $encoding = ContentEncoding::parse($value->value());
+
+            foreach ($encoding->all() as $coding)
+                $codings[] = $coding;
+
+        }
+
+        return new ContentEncoding(...$codings);
+
+    }
+
 }
