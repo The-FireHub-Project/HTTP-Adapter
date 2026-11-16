@@ -17,6 +17,7 @@ use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Header\Accept\Language\ {
     Preference, Range
 };
+use FireHub\Adapter\HTTP\Header\Language\Tag;
 use FireHub\Runtime;
 
 /**
@@ -71,33 +72,44 @@ final readonly class Language extends ValueObject {
     /**
      * ### Creates an HTTP Accept-Language Header
      *
-     * Creates an Accept-Language header from language preferences or ranges.
+     * Creates an immutable collection of language preferences from language tags, basic language ranges, or explicit
+     * preferences.
      *
-     * Language ranges are automatically converted into preferences with the default quality of 1.
+     * Language tags and ranges are automatically converted into preferences with an implicit quality of 1.
      *
      * <code>
      * $language = Language::of(
-     *     Range::of('hr-HR'),
+     *     Tag::of('hr-HR'),
      *     Preference::of(
-     *         Range::of('en-US'),
+     *         Tag::of('en-US'),
      *         Quality::of('0.8')
+     *     ),
+     *     Preference::any(
+     *         Quality::of('0.1')
      *     )
      * );
      *
-     * $language->value(); // hr-HR, en-US; q=0.8
+     * $language->count(); // 3
+     *
+     * $language->value();
+     * // hr-HR, en-US; q=0.8, *; q=0.1
      * </code>
      *
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Header\Accept\Language\Preference::of() To create language preferences.
      *
-     * @param \FireHub\Adapter\HTTP\Header\Accept\Language\Preference|\FireHub\Adapter\HTTP\Header\Accept\Language\Range ...$preferences <p>
-     * Language preferences or ranges.
+     * @param \FireHub\Adapter\HTTP\Header\Accept\Language\Preference|\FireHub\Adapter\HTTP\Header\Accept\Language\Range|\FireHub\Adapter\HTTP\Header\Language\Tag ...$preferences <p>
+     * Language preferences, ranges, or tags.
      * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the language range is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
      * @return self New HTTP Accept-Language header.
      */
-    public static function of (Preference|Range ...$preferences):self {
+    public static function of (Preference|Range|Tag ...$preferences):self {
 
         $items = [];
 

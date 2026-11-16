@@ -15,6 +15,7 @@ namespace FireHub\Adapter\HTTP\Header\Accept\Language;
 
 use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Header\Parameter\Quality;
+use FireHub\Adapter\HTTP\Header\Language\Tag;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
 use FireHub\Runtime;
 
@@ -35,6 +36,13 @@ use FireHub\Runtime;
  *
  * $preference->value();  // en-US; q=0.8
  * $preference->weight(); // 800
+ *
+ * $preference = new Preference(
+ *     Tag::of('hr-HR'),
+ *     Quality::of('0.9')
+ * );
+ *
+ * $preference->value(); // hr-HR; q=0.9
  * </code>
  *
  * @since 1.0.0
@@ -47,44 +55,63 @@ final readonly class Preference extends ValueObject {
      * ### Constructor
      * @since 1.0.0
      *
-     * @param \FireHub\Adapter\HTTP\Header\Accept\Language\Range $range <p>
-     * Preferred language range.
+     * @uses \FireHub\Adapter\HTTP\Header\Accept\Language\Range::parse() To validate the language range.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Language\Tag|\FireHub\Adapter\HTTP\Header\Accept\Language\Range $range <p>
+     * Preferred language tag or basic language range.
      * </p>
      * @param null|\FireHub\Adapter\HTTP\Header\Parameter\Quality $quality [optional] <p>
      * Explicit quality parameter.
      * </p>
      *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the language range is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
      * @return void
      */
     public function __construct (
-        private Range $range,
+        private Range|Tag $range,
         private ?Quality $quality = null
-    ) {}
+    ) {
+
+        if ($range instanceof Tag)
+            Range::parse($range->value());
+
+    }
 
     /**
      * ### Creates a Language Preference
      *
      * <code>
      * $preference = Preference::of(
-     *     Range::of('hr-HR'),
-     *     Quality::of('0.9')
+     *     Tag::of('en-US'),
+     *     Quality::of('0.8')
      * );
      *
-     * $preference->value(); // hr-HR; q=0.9
+     * $preference->value(); // en-US; q=0.8
+     *
+     * Preference::of(
+     *     Range::of('en')
+     * )->value(); // en
      * </code>
      *
      * @since 1.0.0
      *
-     * @param \FireHub\Adapter\HTTP\Header\Accept\Language\Range $range <p>
-     * Preferred language range.
+     * @param \FireHub\Adapter\HTTP\Header\Language\Tag|\FireHub\Adapter\HTTP\Header\Accept\Language\Range $range <p>
+     * Preferred language tag or basic language range.
      * </p>
      * @param null|\FireHub\Adapter\HTTP\Header\Parameter\Quality $quality [optional] <p>
      * Explicit quality parameter.
      * </p>
      *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the language range is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
      * @return self New language preference.
      */
-    public static function of (Range $range, ?Quality $quality = null):self {
+    public static function of (Range|Tag $range, ?Quality $quality = null):self {
 
         return new self($range, $quality);
 
@@ -108,6 +135,10 @@ final readonly class Preference extends ValueObject {
      * @param null|\FireHub\Adapter\HTTP\Header\Parameter\Quality $quality [optional] <p>
      * Explicit quality parameter.
      * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the language range is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
      * @return self Wildcard language preference.
      */
@@ -177,19 +208,25 @@ final readonly class Preference extends ValueObject {
     }
 
     /**
-     * ### Gets the Language Range
+     * ### Gets the Language Tag or Range
+     *
+     * Returns the preferred language tag or basic language range.
      *
      * <code>
-     * Preference::of(
-     *     Range::of('hr-HR')
-     * )->range()->value(); // hr-HR
+     * $preference = Preference::of(
+     *     Tag::of('hr-HR')
+     * );
+     *
+     * $preference->range()->value(); // hr-HR
+     *
+     * Preference::any()->range()->value(); // *
      * </code>
      *
      * @since 1.0.0
      *
-     * @return \FireHub\Adapter\HTTP\Header\Accept\Language\Range Language range.
+     * @return \FireHub\Adapter\HTTP\Header\Language\Tag|\FireHub\Adapter\HTTP\Header\Accept\Language\Range Language tag or range.
      */
-    public function range ():Range {
+    public function range ():Tag|Range {
 
         return $this->range;
 
@@ -275,7 +312,10 @@ final readonly class Preference extends ValueObject {
      *
      * @since 1.0.0
      *
-     * @return array{\FireHub\Adapter\HTTP\Header\Accept\Language\Range, int<0, 1000>} Language range and effective weight.
+     * @uses \FireHub\Adapter\HTTP\Header\Parameter\Quality::weight() To get the effective weight.
+     *
+     * @return array{\FireHub\Adapter\HTTP\Header\Accept\Language\Range|\FireHub\Adapter\HTTP\Header\Language\Tag,int<0, 1000>}
+     * Language range and effective weight.
      */
     protected function comparisonValue ():array {
 
