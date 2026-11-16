@@ -15,9 +15,9 @@ namespace FireHub\Adapter\HTTP\Header\Content;
 
 use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Header\ {
-    Disposition\KnownType, Disposition\Type,
+    Disposition\Parameter\Filename, Disposition\Parameter\FilenameExtended, Disposition\KnownType, Disposition\Type,
     Parsing\Splitter,
-    Parameter, Parameters
+    Name, Parameter, Parameters
 };
 use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
 use FireHub\Runtime;
@@ -212,6 +212,83 @@ final readonly class Disposition extends ValueObject {
     public function type ():Type {
 
         return $this->type;
+
+    }
+
+    /**
+     * ### Gets the Content-Disposition Filename
+     *
+     * Returns the regular filename parameter associated with the Content-Disposition header.
+     *
+     * Returns null when the filename parameter is not present.
+     *
+     * <code>
+     * $disposition = Disposition::parse(
+     *     'attachment; filename="report.pdf"'
+     * );
+     *
+     * $disposition->filename()?->filename();
+     * // report.pdf
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Parameters::get() To retrieve the filename parameter.
+     * @uses \FireHub\Adapter\HTTP\Header\Disposition\Parameter\Filename::parse() To validate and parse the filename.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Disposition\Parameter\Filename Filename parameter or null if absent.
+     */
+    public function filename ():?Filename {
+
+        $parameter = $this->parameters->get(new Name('filename'));
+
+        return $parameter !== null
+            ? Filename::parse($parameter->value())
+            : null;
+
+    }
+
+    /**
+     * ### Gets the Extended Content-Disposition Filename
+     *
+     * Returns the extended filename* parameter associated with the Content-Disposition header.
+     *
+     * Extended filenames use RFC 8187 encoding and support UTF-8 characters.
+     *
+     * Returns null when the filename* parameter is not present.
+     *
+     * <code>
+     * $disposition = Disposition::parse(
+     *     "attachment; filename*=UTF-8''izvje%C5%A1taj.pdf"
+     * );
+     *
+     * $disposition->filenameExtended()?->filename();
+     * // izvještaj.pdf
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Parameters::get() To retrieve the extended filename parameter.
+     * @uses \FireHub\Adapter\HTTP\Header\Disposition\Parameter\FilenameExtended::parse() To validate and decode the extended filename.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Disposition\Parameter\FilenameExtended Extended filename parameter or
+     * null if absent.
+     */
+    public function filenameExtended ():?FilenameExtended {
+
+        $parameter = $this->parameters->get(new Name('filename*'));
+
+        return $parameter !== null
+            ? FilenameExtended::parse($parameter->value())
+            : null;
 
     }
 

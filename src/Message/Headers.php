@@ -14,7 +14,8 @@
 namespace FireHub\Adapter\HTTP\Message;
 
 use FireHub\Adapter\HTTP\Header\ {
-    Content\Encoding as ContentEncoding, Content\Language as ContentLanguage, Content\Type as ContentType,
+    Content\Disposition as ContentDisposition, Content\Encoding as ContentEncoding,
+    Content\Language as ContentLanguage, Content\Type as ContentType,
     Name, Value
 };
 use FireHub\Runtime;
@@ -417,6 +418,52 @@ readonly class Headers {
     }
 
     /**
+     * ### Sets the HTTP Content-Disposition Header
+     *
+     * Replaces all existing Content-Disposition header fields with the provided content disposition.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Header\Content\Disposition;
+     * use FireHub\Adapter\HTTP\Header\Disposition\KnownType;
+     * use FireHub\Adapter\HTTP\Header\Disposition\Parameter\Filename;
+     *
+     * $headers = Headers::empty()->withContentDisposition(
+     *     Disposition::known(
+     *         KnownType::ATTACHMENT,
+     *         Filename::of('report.pdf')
+     *     )
+     * );
+     *
+     * $headers->getContentDisposition()?->value();
+     * // attachment; filename=report.pdf
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::with() To replace the header field.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Disposition::value() To serialize the disposition.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Content\Disposition $disposition <p>
+     * Content-Disposition header value.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return static Updated headers collection.
+     */
+    public function withContentDisposition (ContentDisposition $disposition):static {
+
+        return $this->with(
+            new Name('Content-Disposition'),
+            new Value($disposition->value())
+        );
+
+    }
+
+    /**
      * ### Sets the HTTP Content-Type Header
      *
      * Replaces all existing Content-Type header fields with the provided media type and its parameters.
@@ -602,7 +649,61 @@ readonly class Headers {
 
         if ($values === []) return null;
 
-        return ContentType::parse($values[0]->value());
+        /** @var non-empty-string $value */
+        $value = $values[0]->value();
+
+        return ContentType::parse($value);
+
+    }
+
+    /**
+     * ### Gets the HTTP Content-Disposition Header
+     *
+     * Returns the parsed Content-Disposition header field value.
+     *
+     * Returns null when the header is absent.
+     *
+     * Multiple Content-Disposition header fields are rejected because Content-Disposition does not define a
+     * comma-separated list of values.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Header\Content\Disposition;
+     * use FireHub\Adapter\HTTP\Header\Disposition\KnownType;
+     *
+     * $headers = Headers::empty()->withContentDisposition(
+     *     Disposition::known(KnownType::ATTACHMENT)
+     * );
+     *
+     * $headers->getContentDisposition()?->type()->value();
+     * // attachment
+     *
+     * $headers = Headers::empty();
+     *
+     * $headers->getContentDisposition();
+     * // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve the header field values.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Disposition::parse() To parse the header value.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the disposition type is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Content\Disposition Parsed disposition or null if absent.
+     */
+    public function getContentDisposition ():?ContentDisposition {
+
+        $values = $this->get(new Name('Content-Disposition'));
+
+        if ($values === []) return null;
+
+        /** @var non-empty-string $value */
+        $value = $values[0]->value();
+
+        return ContentDisposition::parse($value);
 
     }
 
