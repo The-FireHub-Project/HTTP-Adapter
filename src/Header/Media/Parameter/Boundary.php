@@ -11,7 +11,7 @@
  * @package Adapter\HTTP
  */
 
-namespace FireHub\Adapter\HTTP\Header\Content\Type;
+namespace FireHub\Adapter\HTTP\Header\Media\Parameter;
 
 use FireHub\Adapter\HTTP\Header\ {
     Name, Value, Parameter
@@ -30,7 +30,7 @@ use FireHub\Runtime;
  * implementation.
  *
  * <code>
- * use FireHub\Adapter\HTTP\Header\Content\Type\Boundary;
+ * use FireHub\Adapter\HTTP\Header\Media\Parameter\Boundary;
  *
  * $boundary = Boundary::of('----FireHubBoundary123');
  *
