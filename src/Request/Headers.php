@@ -15,7 +15,8 @@ namespace FireHub\Adapter\HTTP\Request;
 
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
-    Accept\Encoding, Accept\Language,
+    Accept\Encoding as AcceptEncoding, Accept\Language,
+    Content\Encoding as ContentEncoding,
     Accept, Name, Value
 };
 
@@ -105,7 +106,7 @@ final readonly class Headers extends MessageHeaders {
      *
      * @return static Updated headers collection.
      */
-    public function withAcceptEncoding (Encoding $encoding):self {
+    public function withAcceptEncoding (AcceptEncoding $encoding):self {
 
         return $this->with(
             new Name('Accept-Encoding'),
@@ -159,6 +160,44 @@ final readonly class Headers extends MessageHeaders {
         return $this->with(
             new Name('Accept-Language'),
             new Value($language->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the HTTP Content-Encoding Header
+     *
+     * Replaces the Content-Encoding header with the provided content codings.
+     *
+     * <code>
+     * $headers = Headers::empty()->withContentEncoding(
+     *     Encoding::of(Content::GZIP)
+     * );
+     *
+     * $headers->getContentEncoding()?->value(); // gzip
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Encoding::value() To serialize the content codings.
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::with() To replace the Content-Encoding header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Content\Encoding $encoding <p>
+     * Content codings applied to the representation.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return static New headers instance with the updated Content-Encoding header.
+     */
+    public function withContentEncoding (ContentEncoding $encoding):self {
+
+        return $this->with(
+            new Name('Content-Encoding'),
+            new Value($encoding->value())
         );
 
     }
@@ -251,7 +290,7 @@ final readonly class Headers extends MessageHeaders {
      *
      * @return null|\FireHub\Adapter\HTTP\Header\Accept\Encoding Parsed Accept-Encoding header, or null if absent.
      */
-    public function getAcceptEncoding ():?Encoding {
+    public function getAcceptEncoding ():?AcceptEncoding {
 
         $values = $this->get(new Name('Accept-Encoding'));
 
@@ -261,14 +300,14 @@ final readonly class Headers extends MessageHeaders {
 
         foreach ($values as $value) {
 
-            $encoding = Encoding::parse($value->value());
+            $encoding = AcceptEncoding::parse($value->value());
 
             foreach ($encoding->all() as $preference)
                 $preferences[] = $preference;
 
         }
 
-        return new Encoding(...$preferences);
+        return new AcceptEncoding(...$preferences);
 
     }
 
