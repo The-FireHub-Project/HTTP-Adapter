@@ -14,7 +14,7 @@
 namespace FireHub\Adapter\HTTP\Message;
 
 use FireHub\Adapter\HTTP\Header\ {
-    Content\Encoding as ContentEncoding, Content\Language as ContentLanguage,
+    Content\Encoding as ContentEncoding, Content\Language as ContentLanguage, Content\Type as ContentType,
     Name, Value
 };
 use FireHub\Runtime;
@@ -366,7 +366,7 @@ readonly class Headers {
      *
      * @return static New headers instance with the updated Content-Encoding header.
      */
-    public function withContentEncoding (ContentEncoding $encoding):self {
+    public function withContentEncoding (ContentEncoding $encoding):static {
 
         return $this->with(
             new Name('Content-Encoding'),
@@ -407,11 +407,47 @@ readonly class Headers {
      *
      * @return static Updated headers collection.
      */
-    public function withContentLanguage (ContentLanguage $language):self {
+    public function withContentLanguage (ContentLanguage $language):static {
 
         return $this->with(
             new Name('Content-Language'),
             new Value($language->value())
+        );
+
+    }
+
+    /**
+     * ### Sets the HTTP Content-Type Header
+     *
+     * Replaces all existing Content-Type header fields with the provided media type and its parameters.
+     *
+     * <code>
+     * $headers = Headers::empty()->withContentType(
+     *     ContentType::known(KnownMediaType::APPLICATION_JSON)
+     * );
+     *
+     * $headers->getContentType()?->value();
+     * // application/json
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Content\Type $type <p>
+     * Content type and its parameters.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return static Updated headers collection.
+     */
+    public function withContentType (ContentType $type):static {
+
+        return $this->with(
+            new Name('Content-Type'),
+            new Value($type->value())
         );
 
     }
@@ -528,6 +564,45 @@ readonly class Headers {
         }
 
         return new ContentLanguage(...$tags);
+
+    }
+
+    /**
+     * ### Gets the HTTP Content-Type Header
+     *
+     * Returns the parsed Content-Type header or null when absent.
+     *
+     * <code>
+     * $headers = Headers::empty()->withContentType(
+     *     ContentType::known(KnownMediaType::TEXT_HTML)
+     * );
+     *
+     * $headers->getContentType()?->mediaType()->value();
+     * // text/html
+     *
+     * $headers = Headers::empty();
+     *
+     * $headers->getContentType(); // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Content-Type header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Type::parse() To parse the header value.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Content\Type Parsed content type.
+     */
+    public function getContentType ():?ContentType {
+
+        $values = $this->get(new Name('Content-Type'));
+
+        if ($values === []) return null;
+
+        return ContentType::parse($values[0]->value());
 
     }
 

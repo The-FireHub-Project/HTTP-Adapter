@@ -109,7 +109,7 @@ final readonly class Boundary extends Parameter {
      *
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::parse() To parse the parameter.
      * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare the parameter name.
-     * @uses \FireHub\Adapter\HTTP\Header\Content\Type\Boundary::of() To create the boundary parameter.
+     * @uses \FireHub\Adapter\HTTP\Header\Media\Parameter\Boundary::of() To create the boundary parameter.
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
