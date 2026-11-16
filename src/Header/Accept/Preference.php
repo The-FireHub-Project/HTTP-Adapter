@@ -15,7 +15,7 @@ namespace FireHub\Adapter\HTTP\Header\Accept;
 
 use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Header\ {
-    Media\Range, Parameter\Quality,
+    Media\KnownMediaType, Media\Range, Parameter\Quality,
     Name, Parameter, Parameters
 };
 use FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException;
@@ -101,6 +101,66 @@ final readonly class Preference extends ValueObject {
             fn() => new InvalidParameterException(
                 'The quality parameter must be provided separately.'
             )
+        );
+
+    }
+
+    /**
+     * ### Creates an HTTP Accept Preference
+     *
+     * Creates a media preference from a media range or a predefined MIME media type, with optional quality and media
+     * parameters.
+     *
+     * Known media types are automatically converted into exact media ranges.
+     *
+     * <code>
+     * $preference = Preference::of(
+     *     KnownMediaType::APPLICATION_JSON
+     * );
+     *
+     * $preference->value(); // application/json
+     *
+     * $preference = Preference::of(
+     *     KnownMediaType::TEXT_HTML,
+     *     Quality::of('0.8')
+     * );
+     *
+     * $preference->value(); // text/html; q=0.8
+     *
+     * $preference = Preference::of(
+     *     Range::type(KnownType::APPLICATION)
+     * );
+     *
+     * $preference->value(); // application/*
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Media\Range::known() To convert a known media type.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Media\Range|\FireHub\Adapter\HTTP\Header\Media\KnownMediaType $media <p>
+     * Media range or predefined MIME media type.
+     * </p>
+     * @param null|\FireHub\Adapter\HTTP\Header\Parameter\Quality $quality <p>
+     * Optional quality parameter.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Parameter ...$parameters <p>
+     * Additional media parameters.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameters are invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If the media type is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self New HTTP Accept preference.
+     */
+    public static function of (Range|KnownMediaType $media, ?Quality $quality = null, Parameter ...$parameters):self {
+
+        return new self(
+            $media instanceof KnownMediaType ? Range::known($media) : $media,
+            $quality,
+            ...$parameters
         );
 
     }

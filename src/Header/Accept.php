@@ -15,8 +15,10 @@ namespace FireHub\Adapter\HTTP\Header;
 
 use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Header\Accept\Preference;
+use FireHub\Adapter\HTTP\Header\Media\ {
+    Range, KnownMediaType
+};
 use FireHub\Adapter\HTTP\Header\Parsing\Splitter;
-use FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException;
 use FireHub\Runtime;
 
 /**
@@ -66,6 +68,63 @@ final readonly class Accept extends ValueObject {
     public function __construct (Preference ...$preferences) {
 
         $this->preferences = Runtime\Arr\Access::values($preferences);
+
+    }
+
+    /**
+     * ### Creates an HTTP Accept Header
+     *
+     * Creates an Accept header from media preferences, media ranges, or predefined MIME media types.
+     *
+     * Media ranges and known media types are automatically converted into Accept preferences with the default
+     * quality of 1.
+     *
+     * Preferences preserve their original order.
+     *
+     * <code>
+     * $accept = Accept::of(
+     *     KnownMediaType::TEXT_HTML,
+     *     KnownMediaType::APPLICATION_JSON
+     * );
+     *
+     * $accept->value(); // text/html, application/json
+     *
+     * $accept = Accept::of(
+     *     Range::type(KnownType::APPLICATION),
+     *     Preference::of(
+     *         KnownMediaType::APPLICATION_JSON,
+     *         Quality::of('0.9')
+     *     )
+     * );
+     *
+     * $accept->value();
+     * // application/*, application/json; q=0.9
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Accept\Preference::of() To create media preferences.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Accept\Preference|\FireHub\Adapter\HTTP\Header\Media\Range|\FireHub\Adapter\HTTP\Header\Media\KnownMediaType ...$preferences <p>
+     * Media preferences, ranges, or predefined MIME media types.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If a media type is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self New HTTP Accept header.
+     */
+    public static function of (Preference|Range|KnownMediaType ...$preferences):self {
+
+        $items = [];
+
+        foreach ($preferences as $preference)
+            $items[] = $preference instanceof Preference
+                ? $preference
+                : Preference::of($preference);
+
+        return new self(...$items);
 
     }
 

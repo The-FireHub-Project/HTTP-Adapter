@@ -98,6 +98,94 @@ final readonly class Range extends ValueObject {
     }
 
     /**
+     * ### Creates a Wildcard Media Range
+     *
+     * Creates a media range matching any primary media type and any subtype.
+     *
+     * <code>
+     * $range = Range::any();
+     *
+     * $range->value(); // * / * (without spaces)
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @return self Wildcard media range.
+     */
+    public static function any ():self {
+
+        return new self;
+
+    }
+
+    /**
+     * ### Creates a Range from a Known Media Type
+     *
+     * Creates an exact media range from a predefined MIME media type.
+     *
+     * <code>
+     * $range = Range::known(KnownMediaType::APPLICATION_JSON);
+     *
+     * $range->value(); // application/json
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses self::parse() To parse the known media type.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Media\KnownMediaType $media_type <p>
+     * Predefined MIME media type.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If the media type is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Exact media range.
+     */
+    public static function known (KnownMediaType $media_type):self {
+
+        return self::parse($media_type->value);
+
+    }
+
+    /**
+     * ### Creates a Range for a Primary Media Type
+     *
+     * Creates a wildcard media range matching all subtypes of the specified primary media type.
+     *
+     * <code>
+     * $range = Range::type(KnownType::APPLICATION);
+     *
+     * $range->value(); // application/*
+     *
+     * $range = Range::type(KnownType::IMAGE);
+     *
+     * $range->value(); // image/*
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Media\Type::known() To create the primary media type.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Media\KnownType $type <p>
+     * Predefined primary media type.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidMediaTypeException If a subtype is provided without a
+     * primary type.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Media range matching all subtypes.
+     */
+    public static function ofType (KnownType $type):self {
+
+        return new self(Type::known($type));
+
+    }
+
+    /**
      * ### Parses a serialized media range
      *
      * Converts a media range string into structured primary type and subtype components.
