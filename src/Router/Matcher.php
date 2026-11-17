@@ -95,7 +95,7 @@ final readonly class Matcher {
      * @uses \FireHub\Adapter\HTTP\Router\MatchResult\Matched::parameters() To get the extracted parameters.
      * @uses \FireHub\Adapter\HTTP\Router\MatchResult\MethodNotAllowed::methods() To get the allowed HTTP methods.
      * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchPath() To match the path against a route pattern.
-     * @uses \FireHub\Adapter\HTTP\Router\Matcher::score() To calculate route specificity.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::compare() To compare route path specificity.
      * @uses \FireHub\Runtime\Arr\Access::values() To reindex the allowed methods list.
      *
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
@@ -139,7 +139,7 @@ final readonly class Matcher {
 
         }
 
-        if ($matches === []) return new NotFound();
+        if ($matches === []) return new NotFound;
 
         /** @var array<string, Method> $allowed */
         $allowed = [];
@@ -163,7 +163,10 @@ final readonly class Matcher {
      * ### Matches a request path against a route pattern
      * @since 1.0.0
      *
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::normalizeSegment() To normalize URI path segments.
      * @uses \FireHub\Adapter\HTTP\Router\Path\Pattern::value() To get route path value.
+     * @uses \FireHub\Adapter\HTTP\Router\Path\Pattern::segments() To get route path segments.
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To check if the path matches the pattern.
      * @uses \FireHub\Runtime\Str\SB\Search::endsWith() To check if the path ends with a slash.
      * @uses \FireHub\Runtime\Str\SB\Delimiter::explode() To split the path into segments.
      * @uses \FireHub\Runtime\Str\SB\Access::part() To get the path segment.
@@ -185,6 +188,11 @@ final readonly class Matcher {
 
         if ($path === '' || $path[0] !== '/' || Runtime\Str\SB\Search::endsWith('/', $path))
             return null;
+
+        if (!Runtime\Str\SB\Regex::match(
+            '/\A(?:\/|[A-Za-z0-9._~!$&\'()*+,;=:@-]|%[A-Fa-f0-9]{2})+\z/',
+            $path
+        )) return null;
 
         $segments = Runtime\Str\SB\Delimiter::explode(Runtime\Str\SB\Access::part($path, 1), '/');
         $pattern_segments = $pattern->segments();
@@ -208,7 +216,10 @@ final readonly class Matcher {
 
                 $parameters[$name] = $value;
 
-            } else if ($segment !== $value) return null;
+            } else if (
+                self::normalizeSegment($segment)
+                !== self::normalizeSegment($value)
+            ) return null;
 
         }
 
@@ -263,6 +274,53 @@ final readonly class Matcher {
             return -1;
 
         return 0;
+
+    }
+
+    /**
+     * ### Normalizes a URI path segment
+     *
+     * Decodes percent-encoded unreserved characters and converts remaining percent-encoded hexadecimal digits to
+     * uppercase.
+     *
+     * Reserved characters remain percent-encoded.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Regex::replaceUsing() To replace percent-encoded characters.
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To check if the character is a valid unreserved character.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toUpper() To convert hexadecimal digits to uppercase.
+     * @uses \FireHub\Runtime\Char\SB::chr() To convert hexadecimal digit to character.
+     * @uses \FireHub\Runtime\Number::baseConverter() To convert hexadecimal digit to decimal.
+     *
+     * @param string $segment <p>
+     * URI path segment.
+     * </p>
+     *
+     * @return string Normalized URI path segment.
+     */
+    private static function normalizeSegment (string $segment):string {
+
+        return Runtime\Str\SB\Regex::replaceUsing(
+            '/%([A-Fa-f0-9]{2})/',
+            static function (array $matches):string {
+
+                /** @var int<0, 255> $codepoint */
+                $codepoint = (int) Runtime\Number::baseConverter(
+                    $matches[1], // @phpstan-ignore offsetAccess.notFound
+                    16,
+                    10
+                );
+
+                $character = Runtime\Char\SB::chr($codepoint);
+
+                if (Runtime\Str\SB\Regex::match('/\A[A-Za-z0-9._~-]\z/', $character))
+                    return $character;
+
+                return '%' . Runtime\Str\SB\Casing::toUpper($matches[1]); // @phpstan-ignore offsetAccess.notFound
+
+            },
+            $segment
+        );
 
     }
 

@@ -363,6 +363,14 @@ final readonly class Pattern {
             ) throw new InvalidRoutePatternException(
                 "Invalid route parameter segment '$segment'."
                 );
+            else if (
+                !Runtime\Str\SB\Regex::match(
+                    '/\A(?:[A-Za-z0-9._~!$&\'()*+,;=:@-]|%[A-Fa-f0-9]{2})+\z/',
+                    $segment
+                )
+            ) throw new InvalidRoutePatternException(
+                    "Invalid static route segment '$segment'."
+                );
 
             $segments[] = $segment;
 
