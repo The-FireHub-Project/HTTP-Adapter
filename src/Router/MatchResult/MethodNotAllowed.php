@@ -36,7 +36,7 @@ final readonly class MethodNotAllowed implements MatchResult {
      *
      * @var list<\FireHub\Adapter\HTTP\Request\Method>
      */
-    private array $allowedMethods;
+    private array $allowed_methods;
 
     /**
      * ### Constructor
@@ -44,17 +44,17 @@ final readonly class MethodNotAllowed implements MatchResult {
      *
      * @uses \FireHub\Runtime\Arr\Access::values() To reindex the allowed methods list.
      *
-     * @param \FireHub\Adapter\HTTP\Request\Method ...$allowedMethods <p>
+     * @param \FireHub\Adapter\HTTP\Request\Method ...$allowed_methods <p>
      * HTTP methods allowed for the requested path.
      * </p>
      *
      * @return void
      */
     public function __construct (
-        Method ...$allowedMethods
+        Method ...$allowed_methods
     ) {
 
-        $this->allowedMethods = Runtime\Arr\Access::values($allowedMethods);
+        $this->allowed_methods = Runtime\Arr\Access::values($allowed_methods);
 
     }
 
@@ -83,7 +83,7 @@ final readonly class MethodNotAllowed implements MatchResult {
      */
     public function allowedMethods ():array {
 
-        return $this->allowedMethods;
+        return $this->allowed_methods;
 
     }
 
