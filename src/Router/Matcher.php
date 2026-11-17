@@ -15,10 +15,10 @@ namespace FireHub\Adapter\HTTP\Router;
 
 use FireHub\Adapter\HTTP\Request\Method;
 use FireHub\Adapter\HTTP\Router\Matcher\ {
-    Path, RequestPath, Specificity
+    AllowedMethods, Path, RequestPath, Specificity
 };
 use FireHub\Adapter\HTTP\Router\MatchResult\ {
-    Matched, MethodNotAllowed, NotFound
+    Matched, MethodNotAllowed, NotFound, Options
 };
 use FireHub\Adapter\HTTP\Request\Method\Standard;
 use FireHub\Runtime;
@@ -157,70 +157,71 @@ final readonly class Matcher {
     /**
      * ### Resolves the requested HTTP method
      *
-     * Selects an explicitly registered HTTP method when available.
+     * Explicit route methods take precedence over implicit HTTP method handling.
      *
-     * HEAD requests fall back to GET routes only when no explicit HEAD route matches the selected path pattern.
+     * HEAD falls back to GET when no explicit HEAD route matches.
      *
-     * When the requested method is unsupported, it returns the allowed methods, including implicit HEAD support for
-     * GET routes.
+     * OPTIONS are automatically supported for registered route paths.
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Router\Route::method() To retrieve route methods.
-     * @uses \FireHub\Adapter\HTTP\Router\MatchResult\Matched::__construct() To create a successful match.
-     * @uses \FireHub\Adapter\HTTP\Router\MatchResult\MethodNotAllowed::__construct() To create a method mismatch.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher\AllowedMethods::resolve() To resolve allowed HTTP methods.
+     * @uses \FireHub\Adapter\HTTP\Request\Method::value() To retrieve the HTTP method value.
+     * @uses \FireHub\Adapter\HTTP\Router\Route::method() To retrieve the route method.
+     * @uses \FireHub\Runtime\Arr\Mutation::shift() To remove the first element from an array.
      *
-     * @param \FireHub\Adapter\HTTP\Request\Method $method Requested HTTP method.
-     * @param non-empty-list<array{
-     *     \FireHub\Adapter\HTTP\Router\Route,
-     *     array<non-empty-string, string>
-     * }> $candidates Matching route candidates.
+     * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
+     * Requested HTTP method.
+     * </p>
+     * @param non-empty-list<array{\FireHub\Adapter\HTTP\Router\Route, array<non-empty-string, string>}> $candidates <p>
+     * Matching route candidates.
+     * </p>
      *
      * @return \FireHub\Adapter\HTTP\Router\MatchResult Route matching result.
      */
     private static function resolveMethod (Method $method, array $candidates):MatchResult {
 
-        /** @var list<\FireHub\Adapter\HTTP\Request\Method> $allowed */
-        $allowed = [];
+        /** @var list<\FireHub\Adapter\HTTP\Request\Method> $registered */
+        $registered = [];
 
         /** @var null|array{\FireHub\Adapter\HTTP\Router\Route, array<non-empty-string, string>} $get_match */
         $get_match = null;
 
-        $has_get = false; $has_head = false;
+        $requested_method = $method->value();
+
         foreach ($candidates as [$route, $parameters]) {
 
             $route_method = $route->method();
             $route_method_value = $route_method->value();
 
-            $allowed[] = $route_method;
+            $registered[] = $route_method;
 
-            if ($route_method_value === $method->value())
+            if ($route_method_value === $requested_method)
                 return new Matched($route, $parameters);
 
-            if ($route_method_value === Standard::GET->value) {
-
-                $has_get = true;
-
-                if ($method->value() === Standard::HEAD->value)
-                    $get_match = [$route, $parameters];
-
-            }
-
-            if ($route_method_value === Standard::HEAD->value)
-                $has_head = true;
+            if (
+                $requested_method === Standard::HEAD->value
+                && $route_method_value === Standard::GET->value
+            ) $get_match = [$route, $parameters];
 
         }
 
         if ($get_match !== null)
             return new Matched($get_match[0], $get_match[1]);
 
-        if ($has_get && !$has_head)
-            $allowed[] = Standard::HEAD;
+        $first = Runtime\Arr\Mutation::shift($registered);
 
-        $first = Runtime\Arr\Mutation::shift($allowed);
+        if ($first === null) return new NotFound();
 
-        if ($first === null) return new NotFound;
+        $allowed = AllowedMethods::resolve($first, ...$registered);
 
-        return new MethodNotAllowed($first, ...$allowed);
+        if ($requested_method === Standard::OPTIONS->value)
+            return new Options($allowed);
+
+        $first_allowed = Runtime\Arr\Mutation::shift($allowed);
+
+        if ($first_allowed === null) return new NotFound();
+
+        return new MethodNotAllowed($first_allowed, ...$allowed);
 
     }
 
