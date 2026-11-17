@@ -14,12 +14,13 @@
 namespace FireHub\Adapter\HTTP\Router;
 
 use FireHub\Adapter\HTTP\Request\Method;
-use FireHub\Adapter\HTTP\Router\Path\ {
-    Normalizer, Pattern
+use FireHub\Adapter\HTTP\Router\Matcher\ {
+    Path, RequestPath, Specificity
 };
 use FireHub\Adapter\HTTP\Router\MatchResult\ {
     Matched, MethodNotAllowed, NotFound
 };
+use FireHub\Adapter\HTTP\Request\Method\Standard;
 use FireHub\Runtime;
 
 /**
@@ -53,82 +54,89 @@ final readonly class Matcher {
     /**
      * ### Matches an HTTP method and request path
      *
-     * Finds the most specific route path matching the requested path and then checks whether the requested HTTP
-     * method is supported.
-     *
-     * Static segments take precedence over dynamic segments, regardless of registration order.
-     *
-     * If the most specific matching path does not support the requested method, a MethodNotAllowed result is
-     * returned with the methods available for that path pattern.
+     * Prepares the request path at once and selects the most specific registered route supporting the requested HTTP
+     * method.
      *
      * <code>
-     * use FireHub\Adapter\HTTP\Router\Collection;
-     * use FireHub\Adapter\HTTP\Router\Matcher;
-     * use FireHub\Adapter\HTTP\Router\Route;
-     * use FireHub\Adapter\HTTP\Router\Path\Pattern;
-     * use FireHub\Adapter\HTTP\Router\MatchResult\Matched;
-     * use FireHub\Adapter\HTTP\Request\Method\Standard;
-     *
-     * $routes = new Collection();
-     *
-     * $routes->add(
-     *     new Route(Standard::GET, new Pattern('/users/{id}'))
-     * );
-     *
-     * $routes->add(
-     *     new Route(Standard::POST, new Pattern('/users/create'))
-     * );
-     *
      * $matcher = new Matcher($routes);
      *
-     * $result = $matcher->match(Standard::POST, '/users/create');
-     *
-     * // Matched: POST /users/create
-     *
-     * $result = $matcher->match(Standard::GET, '/users/create');
-     *
-     * // MethodNotAllowed: POST
+     * $result = $matcher->match(
+     *     Standard::GET,
+     *     '/users/123'
+     * );
      * </code>
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Router\Collection::all() To get all registered routes.
-     * @uses \FireHub\Adapter\HTTP\Router\MatchResult\Matched::route() To get the matched route.
-     * @uses \FireHub\Adapter\HTTP\Router\MatchResult\Matched::parameters() To get the extracted parameters.
-     * @uses \FireHub\Adapter\HTTP\Router\MatchResult\MethodNotAllowed::methods() To get the allowed HTTP methods.
-     * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchPath() To match the path against a route pattern.
-     * @uses \FireHub\Adapter\HTTP\Router\Matcher::compare() To compare route path specificity.
-     * @uses \FireHub\Runtime\Arr\Access::values() To reindex the allowed methods list.
-     * @uses \FireHub\Runtime\Arr\Mutation::shift() To remove the first element from the list.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher\RequestPath::parse() To parse the request path.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::findCandidates() To find matching routes.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::resolveMethod() To resolve HTTP methods.
      *
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
      * Requested HTTP method.
      * </p>
      * @param string $path <p>
-     * Requested URL path without query string or fragment.
+     * Requested URI path.
      * </p>
      *
      * @return \FireHub\Adapter\HTTP\Router\MatchResult Route matching result.
      */
     public function match (Method $method, string $path):MatchResult {
 
-        /** @var null|Path\Pattern $best_pattern */
+        $request_path = RequestPath::parse($path);
+
+        if ($request_path === null)
+            return new NotFound();
+
+        $candidates = $this->findCandidates($request_path);
+
+        if ($candidates === [])
+            return new NotFound();
+
+        return self::resolveMethod($method, $candidates);
+
+    }
+
+    /**
+     * ### Finds the most specific matching routes
+     *
+     * Finds all registered routes whose path patterns match the requested path and have the highest specificity.
+     *
+     * Routes with lower specificity are excluded regardless of registration order.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Collection::all() To retrieve registered routes.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher\Path::match() To match request paths.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher\Specificity::compare() To compare route specificity.
+     *
+     * @param \FireHub\Adapter\HTTP\Router\Matcher\RequestPath $path <p>
+     * Requested URI path.
+     * </p>
+     *
+     * @return list<array{
+     *     \FireHub\Adapter\HTTP\Router\Route,
+     *     array<non-empty-string, string>
+     * }> Matching routes and their extracted parameters.
+     */
+    private function findCandidates (RequestPath $path):array {
+
+        /** @var null|\FireHub\Adapter\HTTP\Router\Path\Pattern $best_pattern */
         $best_pattern = null;
 
-        /** @var list<array{Route, array<non-empty-string, string>}> $matches */
+        /** @var list<array{\FireHub\Adapter\HTTP\Router\Route, array<non-empty-string, string>}> $matches */
         $matches = [];
 
         foreach ($this->routes->all() as $route) {
 
-            $parameters = self::matchPath($route->path(), $path);
+            $pattern = $route->path();
+
+            $parameters = Path::match($pattern, $path);
 
             if ($parameters === null) continue;
 
-            $pattern = $route->path();
-
             if ($best_pattern !== null) {
 
-                $comparison = self::compare($pattern, $best_pattern);
+                $comparison = Specificity::compare($pattern, $best_pattern);
 
                 if ($comparison < 0) continue;
 
@@ -142,142 +150,77 @@ final readonly class Matcher {
 
         }
 
-        if ($matches === []) return new NotFound;
+        return $matches;
 
-        /** @var list<Method> $allowed */
+    }
+
+    /**
+     * ### Resolves the requested HTTP method
+     *
+     * Selects an explicitly registered HTTP method when available.
+     *
+     * HEAD requests fall back to GET routes only when no explicit HEAD route matches the selected path pattern.
+     *
+     * When the requested method is unsupported, it returns the allowed methods, including implicit HEAD support for
+     * GET routes.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Route::method() To retrieve route methods.
+     * @uses \FireHub\Adapter\HTTP\Router\MatchResult\Matched::__construct() To create a successful match.
+     * @uses \FireHub\Adapter\HTTP\Router\MatchResult\MethodNotAllowed::__construct() To create a method mismatch.
+     *
+     * @param \FireHub\Adapter\HTTP\Request\Method $method Requested HTTP method.
+     * @param non-empty-list<array{
+     *     \FireHub\Adapter\HTTP\Router\Route,
+     *     array<non-empty-string, string>
+     * }> $candidates Matching route candidates.
+     *
+     * @return \FireHub\Adapter\HTTP\Router\MatchResult Route matching result.
+     */
+    private static function resolveMethod (Method $method, array $candidates):MatchResult {
+
+        /** @var list<\FireHub\Adapter\HTTP\Request\Method> $allowed */
         $allowed = [];
 
-        foreach ($matches as [$route, $parameters]) {
+        /** @var null|array{\FireHub\Adapter\HTTP\Router\Route, array<non-empty-string, string>} $get_match */
+        $get_match = null;
+
+        $has_get = false; $has_head = false;
+        foreach ($candidates as [$route, $parameters]) {
 
             $route_method = $route->method();
+            $route_method_value = $route_method->value();
 
             $allowed[] = $route_method;
 
-            if ($route_method->value() === $method->value())
+            if ($route_method_value === $method->value())
                 return new Matched($route, $parameters);
 
+            if ($route_method_value === Standard::GET->value) {
+
+                $has_get = true;
+
+                if ($method->value() === Standard::HEAD->value)
+                    $get_match = [$route, $parameters];
+
+            }
+
+            if ($route_method_value === Standard::HEAD->value)
+                $has_head = true;
+
         }
+
+        if ($get_match !== null)
+            return new Matched($get_match[0], $get_match[1]);
+
+        if ($has_get && !$has_head)
+            $allowed[] = Standard::HEAD;
 
         $first = Runtime\Arr\Mutation::shift($allowed);
 
-        if ($first === null) return new NotFound();
+        if ($first === null) return new NotFound;
 
         return new MethodNotAllowed($first, ...$allowed);
-
-    }
-
-    /**
-     * ### Matches a request path against a route pattern
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Adapter\HTTP\Router\Path\Pattern::value() To get route path value.
-     * @uses \FireHub\Adapter\HTTP\Router\Path\Pattern::canonicalSegments() To get canonical route path segments
-     * @uses \FireHub\Adapter\HTTP\Router\Path\Normalizer::segment() To normalize path segments.
-     * @uses \FireHub\Runtime\Str\SB\Regex::match() To check if the path matches the pattern.
-     * @uses \FireHub\Runtime\Str\SB\Search::endsWith() To check if the path ends with a slash.
-     * @uses \FireHub\Runtime\Str\SB\Delimiter::explode() To split the path into segments.
-     * @uses \FireHub\Runtime\Str\SB\Access::part() To get the path segment.
-     * @uses \FireHub\Runtime\Arr\Inspection::count() To check the segment count.
-     *
-     * @param \FireHub\Adapter\HTTP\Router\Path\Pattern $pattern <p>
-     * Route path pattern.
-     * </p>
-     * @param string $path <p>
-     * Requested path.
-     * </p>
-     *
-     * @return null|array<non-empty-string, string> Extracted parameters, or null if unmatched.
-     */
-    private static function matchPath (Pattern $pattern, string $path):?array {
-
-        if ($path === '/')
-            return $pattern->value() === '/' ? [] : null;
-
-        if ($path === '' || $path[0] !== '/' || Runtime\Str\SB\Search::endsWith('/', $path))
-            return null;
-
-        if (!Runtime\Str\SB\Regex::match(
-            '/\A(?:\/|[A-Za-z0-9._~!$&\'()*+,;=:@-]|%[A-Fa-f0-9]{2})+\z/',
-            $path
-        )) return null;
-
-        $segments = Runtime\Str\SB\Delimiter::explode(Runtime\Str\SB\Access::part($path, 1), '/');
-        $pattern_segments = $pattern->canonicalSegments();
-
-        if (Runtime\Arr\Inspection::count($segments) !== Runtime\Arr\Inspection::count($pattern_segments))
-            return null;
-
-        $parameters = [];
-
-        foreach ($pattern_segments as $index => $segment) {
-
-            $value = $segments[$index] ?? null;
-
-            if ($value === null || $value === '') return null;
-
-            if ($segment[0] === '{') {
-
-                $name = Runtime\Str\SB\Access::part($segment, 1, -1);
-
-                if ($name === '') return null;
-
-                $parameters[$name] = $value;
-
-            } else if ($segment !== Normalizer::segment($value)) return null;
-
-        }
-
-        return $parameters;
-
-    }
-
-    /**
-     * ### Compares route path specificity
-     *
-     * Compares route patterns from left to right.
-     *
-     * Static segments are considered more specific than dynamic parameter segments.
-     *
-     * The first differing segment determines the result.
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Adapter\HTTP\Router\Path\Pattern::segments() To get route path segments.
-     * @uses \FireHub\Runtime\Arr\Inspection::count() To get the segment count.
-     *
-     * @param \FireHub\Adapter\HTTP\Router\Path\Pattern $first <p>
-     * First route path pattern.
-     * </p>
-     * @param \FireHub\Adapter\HTTP\Router\Path\Pattern $second <p>
-     * Second route path pattern.
-     * </p>
-     *
-     * @return int<-1, 1> Positive if the first pattern is more specific, negative if the second is more specific, or
-     * zero if both have equal specificity.
-     */
-    private static function compare (Pattern $first, Pattern $second):int {
-
-        $first_segments = $first->segments();
-        $second_segments = $second->segments();
-
-        foreach ($first_segments as $index => $segment) {
-
-            $other = $second_segments[$index] ?? null;
-
-            if ($other === null) return 1;
-
-            $first_dynamic = $segment[0] === '{';
-            $second_dynamic = $other[0] === '{';
-
-            if ($first_dynamic === $second_dynamic) continue;
-
-            return $first_dynamic ? -1 : 1;
-
-        }
-
-        if (Runtime\Arr\Inspection::count($first_segments) < Runtime\Arr\Inspection::count($second_segments))
-            return -1;
-
-        return 0;
 
     }
 
