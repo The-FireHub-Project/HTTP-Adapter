@@ -53,6 +53,14 @@ final readonly class Pattern {
     private array $segments;
 
     /**
+     * ### Canonical route path segments
+     * @since 1.0.0
+     *
+     * @var list<non-empty-string>
+     */
+    private array $canonical_segments;
+
+    /**
      * ### Named route parameters
      * @since 1.0.0
      *
@@ -84,6 +92,7 @@ final readonly class Pattern {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Router\Path\Pattern::parse() To validate and parse the route path pattern.
+     * @uses \FireHub\Adapter\HTTP\Router\Path\Normalizer::segment() To normalize URI path segments.
      * @uses \FireHub\Runtime\Str\SB\Search::endsWith() To check if the pattern ends with a slash.
      *
      * @param non-empty-string $value <p>
@@ -106,6 +115,7 @@ final readonly class Pattern {
         if ($value === '/') {
 
             $this->segments = [];
+            $this->canonical_segments = [];
             $this->parameters = [];
 
             return;
@@ -118,6 +128,16 @@ final readonly class Pattern {
             );
 
         [$this->segments, $this->parameters] = self::parse($value);
+
+        $canonical = [];
+
+        foreach ($this->segments as $segment)
+            $canonical[] = $segment[0] === '{'
+                ? $segment
+                : Normalizer::segment($segment);
+
+        /** @var list<non-empty-string> $canonical */
+        $this->canonical_segments = $canonical;
 
     }
 
@@ -216,6 +236,35 @@ final readonly class Pattern {
     }
 
     /**
+     * ### Gets the canonical route path segments
+     *
+     * Returns route path segments normalized for HTTP routing.
+     *
+     * Static segments use canonical percent-encoding.
+     *
+     * Dynamic parameter segments retain their original parameter names.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Router\Path\Pattern;
+     *
+     * $pattern = new Pattern('/users/%41/{id}');
+     *
+     * $pattern->canonicalSegments();
+     *
+     * // ['users', 'A', '{id}']
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @return list<non-empty-string> Canonical route path segments.
+     */
+    public function canonicalSegments ():array {
+
+        return $this->canonical_segments;
+
+    }
+
+    /**
      * ### Gets the named route parameters
      *
      * Returns the names of all dynamic route parameters in their declaration order.
@@ -283,17 +332,14 @@ final readonly class Pattern {
      */
     public function signature ():string {
 
-        if ($this->segments === []) return '/';
+        if ($this->canonical_segments === []) return '/';
 
         $segments = [];
 
-        foreach ($this->segments as $segment) {
-
+        foreach ($this->canonical_segments as $segment)
             $segments[] = $segment[0] === '{'
                 ? '{}'
                 : $segment;
-
-        }
 
         return '/' . Runtime\Str\SB\Delimiter::implode($segments, '/');
 
