@@ -99,6 +99,7 @@ final readonly class Matcher {
      * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchPath() To match the path against a route pattern.
      * @uses \FireHub\Adapter\HTTP\Router\Matcher::compare() To compare route path specificity.
      * @uses \FireHub\Runtime\Arr\Access::values() To reindex the allowed methods list.
+     * @uses \FireHub\Runtime\Arr\Mutation::shift() To remove the first element from the list.
      *
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
      * Requested HTTP method.
@@ -143,21 +144,25 @@ final readonly class Matcher {
 
         if ($matches === []) return new NotFound;
 
-        /** @var array<string, Method> $allowed */
+        /** @var list<Method> $allowed */
         $allowed = [];
 
         foreach ($matches as [$route, $parameters]) {
 
             $route_method = $route->method();
 
-            $allowed[$route_method->value()] = $route_method;
+            $allowed[] = $route_method;
 
             if ($route_method->value() === $method->value())
                 return new Matched($route, $parameters);
 
         }
 
-        return new MethodNotAllowed(...Runtime\Arr\Access::values($allowed));
+        $first = Runtime\Arr\Mutation::shift($allowed);
+
+        if ($first === null) return new NotFound();
+
+        return new MethodNotAllowed($first, ...$allowed);
 
     }
 

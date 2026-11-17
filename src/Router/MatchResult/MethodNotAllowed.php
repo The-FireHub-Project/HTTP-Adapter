@@ -18,14 +18,13 @@ use FireHub\Adapter\HTTP\Router\MatchResult;
 use FireHub\Runtime;
 
 /**
- * ### Represents an HTTP method not allowed for a matched path
+ * ### Represents an HTTP method mismatch
  *
- * Indicates that the requested path matches at least one registered route, but none accepts the requested HTTP method.
+ * Indicates that the requested path matches one or more registered routes, but none supports the requested HTTP method.
  *
- * Contains the HTTP methods allowed for the requested path.
+ * Contains a non-empty collection of unique allowed HTTP methods.
  *
- * A dispatcher may translate this result into an HTTP 405 response containing the Allow response header.
- *
+ * The result does not generate HTTP response headers.
  * @since 1.0.0
  */
 final readonly class MethodNotAllowed implements MatchResult {
@@ -34,7 +33,7 @@ final readonly class MethodNotAllowed implements MatchResult {
      * ### Allowed HTTP methods
      * @since 1.0.0
      *
-     * @var list<\FireHub\Adapter\HTTP\Request\Method>
+     * @var non-empty-list<\FireHub\Adapter\HTTP\Request\Method>
      */
     private array $allowed_methods;
 
@@ -42,26 +41,36 @@ final readonly class MethodNotAllowed implements MatchResult {
      * ### Constructor
      * @since 1.0.0
      *
-     * @uses \FireHub\Runtime\Arr\Access::values() To reindex the allowed methods list.
+     * @uses \FireHub\Adapter\HTTP\Request\Method::value() To identify HTTP methods.
+     * @uses \FireHub\Runtime\Arr\Access::values() To reindex allowed methods.
      *
-     * @param \FireHub\Adapter\HTTP\Request\Method ...$allowed_methods <p>
-     * HTTP methods allowed for the requested path.
+     * @param \FireHub\Adapter\HTTP\Request\Method $first <p>
+     * First allowed HTTP method.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Request\Method ...$others <p>
+     * Additional allowed HTTP methods.
      * </p>
      *
      * @return void
      */
-    public function __construct (
-        Method ...$allowed_methods
-    ) {
+    public function __construct (Method $first, Method ...$others) {
 
-        $this->allowed_methods = Runtime\Arr\Access::values($allowed_methods);
+        $methods = [];
+
+        foreach ([$first, ...$others] as $method)
+            $methods[$method->value()] = $method;
+
+        /** @var non-empty-list<\FireHub\Adapter\HTTP\Request\Method> $methods */
+        $methods = Runtime\Arr\Access::values($methods);
+
+        $this->allowed_methods = $methods;
 
     }
 
     /**
      * ### Gets the allowed HTTP methods
      *
-     * Returns the HTTP methods supported by routes matching the requested path.
+     * Returns a non-empty list of unique HTTP methods supported by the matching route path.
      *
      * <code>
      * use FireHub\Adapter\HTTP\Router\MatchResult\MethodNotAllowed;
@@ -79,7 +88,7 @@ final readonly class MethodNotAllowed implements MatchResult {
      *
      * @since 1.0.0
      *
-     * @return list<\FireHub\Adapter\HTTP\Request\Method> Allowed HTTP methods.
+     * @return non-empty-list<\FireHub\Adapter\HTTP\Request\Method> Allowed HTTP methods.
      */
     public function allowedMethods ():array {
 
