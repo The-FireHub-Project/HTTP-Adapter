@@ -13,6 +13,7 @@
 
 namespace FireHub\Adapter\HTTP\Router\Path;
 
+use FireHub\Foundation\Uri\Encoding\Percent;
 use FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException;
 use FireHub\Runtime;
 
@@ -92,7 +93,7 @@ final readonly class Pattern {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Router\Path\Pattern::parse() To validate and parse the route path pattern.
-     * @uses \FireHub\Adapter\HTTP\Router\Path\Normalizer::segment() To normalize URI path segments.
+     * @uses \FireHub\Foundation\Uri\Encoding\Percent::normalize() To normalize percent-encoded characters.
      * @uses \FireHub\Runtime\Str\SB\Search::endsWith() To check if the pattern ends with a slash.
      *
      * @param non-empty-string $value <p>
@@ -134,7 +135,7 @@ final readonly class Pattern {
         foreach ($this->segments as $segment)
             $canonical[] = $segment[0] === '{'
                 ? $segment
-                : Normalizer::segment($segment);
+                : Percent::normalize($segment);
 
         /** @var list<non-empty-string> $canonical */
         $this->canonical_segments = $canonical;

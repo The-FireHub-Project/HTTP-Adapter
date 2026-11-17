@@ -21,6 +21,7 @@ use FireHub\Adapter\HTTP\Router\MatchResult\ {
     Matched, MethodNotAllowed, NotFound, Options
 };
 use FireHub\Adapter\HTTP\Request\Method\Standard;
+use FireHub\Foundation\Uri\Component\Path as UriPath;
 use FireHub\Runtime;
 
 /**
@@ -58,12 +59,18 @@ final readonly class Matcher {
      * method.
      *
      * <code>
+     * use FireHub\Adapter\HTTP\Request\Method\Standard;
+     * use FireHub\Adapter\HTTP\Router\Matcher;
+     * use FireHub\Foundation\Uri\Component\Path;
+     *
      * $matcher = new Matcher($routes);
      *
      * $result = $matcher->match(
      *     Standard::GET,
-     *     '/users/123'
+     *     new Path('/users/123')
      * );
+     *
+     * // Returns Matched, MethodNotAllowed, Options, or NotFound.
      * </code>
      *
      * @since 1.0.0
@@ -75,13 +82,13 @@ final readonly class Matcher {
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
      * Requested HTTP method.
      * </p>
-     * @param string $path <p>
+     * @param \FireHub\Foundation\Uri\Component\Path<string> $path <p>
      * Requested URI path.
      * </p>
      *
      * @return \FireHub\Adapter\HTTP\Router\MatchResult Route matching result.
      */
-    public function match (Method $method, string $path):MatchResult {
+    public function match (Method $method, UriPath $path):MatchResult {
 
         $request_path = RequestPath::parse($path);
 

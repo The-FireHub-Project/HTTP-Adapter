@@ -13,7 +13,8 @@
 
 namespace FireHub\Adapter\HTTP\Router\Matcher;
 
-use FireHub\Adapter\HTTP\Router\Path\Normalizer;
+use FireHub\Foundation\Uri\Component\Path;
+use FireHub\Foundation\Uri\Encoding\Percent;
 use FireHub\Runtime;
 
 /**
@@ -67,56 +68,63 @@ final readonly class RequestPath {
     }
 
     /**
-     * ### Parses an incoming request path
+     * ### Prepares an incoming URI path for route matching
      *
-     * Validates the URI path and prepares its segments for route matching.
+     * Splits a validated URI path into raw and canonical segments.
      *
-     * Returns null when the path is invalid or unsupported by the router.
+     * Returns null when the path structure is unsupported by the router.
+     *
+     * Raw segments preserve percent-encoded values for parameter extraction.
      *
      * <code>
+     * use FireHub\Foundation\Uri\Component\Path;
      * use FireHub\Adapter\HTTP\Router\Matcher\RequestPath;
      *
-     * $path = RequestPath::parse('/users/123');
+     * $path = RequestPath::parse(
+     *     new Path('/users/%41lice')
+     * );
      *
      * $path?->segments();
-     * // ['users', '123']
+     * // ['users', '%41lice']
      *
-     * RequestPath::parse('/users/');
+     * $path?->canonicalSegments();
+     * // ['users', 'Alice']
+     *
+     * RequestPath::parse(new Path('/users/'));
      * // null
      * </code>
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Router\Path\Normalizer::segment() To normalize URI segments.
-     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the path format.
-     * @uses \FireHub\Runtime\Str\SB\Search::endsWith() To check if the path ends with a slash.
+     * @uses \FireHub\Foundation\Uri\Component\Path::isRoot() To check whether the path represents the root.
+     * @uses \FireHub\Foundation\Uri\Component\Path::isAbsolute() To check whether the path is absolute.
+     * @uses \FireHub\Foundation\Uri\Component\Path::value() To retrieve the original URI path.
+     * @uses \FireHub\Foundation\Uri\Encoding\Percent::normalize() To normalize individual URI segments.
+     * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the path segment after the first slash.
      * @uses \FireHub\Runtime\Str\SB\Delimiter::explode() To split the path into segments.
-     * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the path from the URI.
+     * @uses \FireHub\Runtime\Str\SB\Search::endsWith() To check if the path ends with a slash.
      *
-     * @param string $path <p>
+     * @param \FireHub\Foundation\Uri\Component\Path<string> $path <p>
      * Incoming URI path.
      * </p>
      *
-     * @return null|self Prepared path, or null if invalid.
+     * @return null|self Prepared request path, or null if unsupported.
      */
-    public static function parse (string $path):?self {
+    public static function parse (Path $path):?self {
 
-        if ($path === '/')
+        if ($path->isRoot())
             return new self([], []);
 
-        if (
-            $path === ''
-            || $path[0] !== '/'
-            || Runtime\Str\SB\Search::endsWith('/', $path)
-        ) return null;
+        if (!$path->isAbsolute() || $path->isEmpty())
+            return null;
 
-        if (!Runtime\Str\SB\Regex::match(
-            '/\A(?:\/|[A-Za-z0-9._~!$&\'()*+,;=:@-]|%[A-Fa-f0-9]{2})+\z/',
-            $path
-        )) return null;
+        $value = $path->value();
+
+        if (Runtime\Str\SB\Search::endsWith('/', $value))
+            return null;
 
         $segments = Runtime\Str\SB\Delimiter::explode(
-            Runtime\Str\SB\Access::part($path, 1),
+            Runtime\Str\SB\Access::part($value, 1),
             '/'
         );
 
@@ -127,7 +135,7 @@ final readonly class RequestPath {
 
             if ($segment === '') return null;
 
-            $canonical_segments[] = Normalizer::segment($segment);
+            $canonical_segments[] = Percent::normalize($segment);
 
         }
 
