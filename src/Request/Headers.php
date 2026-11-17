@@ -16,6 +16,7 @@ namespace FireHub\Adapter\HTTP\Request;
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
     Accept\Encoding as AcceptEncoding, Accept\Language as AcceptLanguage,
+    Cookie\Request as RequestCookies,
     Accept, Name, Value
 };
 
@@ -159,6 +160,54 @@ final readonly class Headers extends MessageHeaders {
         return $this->with(
             new Name('Accept-Language'),
             new Value($language->value())
+        );
+
+    }
+
+    /**
+     * ### Sets Request Cookies
+     *
+     * Returns a new headers collection with the Cookie header replaced by the serialized request cookie collection.
+     *
+     * All cookie pairs are serialized into a single Cookie header field, preserving their original order and
+     * duplicate names.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Header\Cookie;
+     * use FireHub\Adapter\HTTP\Header\Cookie\Request as RequestCookies;
+     *
+     * $cookies = new RequestCookies(
+     *     Cookie::parse('session=abc123'),
+     *     Cookie::parse('theme=dark')
+     * );
+     *
+     * $headers = $headers->withCookie($cookies);
+     *
+     * $headers->getCookie()->value();
+     * // session=abc123; theme=dark
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::with() To replace the Cookie header.
+     * @uses \FireHub\Adapter\HTTP\Header\Cookie\Request::value() To serialize the cookie collection.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Cookie\Request $cookies <p>
+     * Request cookie collection.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the serialized Cookie header
+     * field value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If a value-object validation condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If a validation exception is not a FireHubException.
+     *
+     * @return static New headers collection with updated cookies.
+     */
+    public function withCookie (RequestCookies $cookies):self {
+
+        return $this->with(
+            new Name('Cookie'),
+            new Value($cookies->value())
         );
 
     }
@@ -335,6 +384,56 @@ final readonly class Headers extends MessageHeaders {
         }
 
         return new AcceptLanguage(...$preferences);
+
+    }
+
+    /**
+     * ### Gets Request Cookies
+     *
+     * Retrieves and parses all Cookie header fields into a single immutable collection of HTTP request cookies.
+     *
+     * Cookie pairs are preserved in their original order, including cookies with duplicate names.
+     *
+     * If no Cookie header fields exist, an empty collection is returned.
+     *
+     * <code>
+     * $cookies = $headers->getCookie();
+     *
+     * $cookies->get(
+     *     new \FireHub\Adapter\HTTP\Header\Cookie\Name('session')
+     * )?->content()->value();
+     * // abc123
+     *
+     * foreach ($cookies->cookies() as $cookie)
+     *     echo $cookie->value();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Cookie\Request::parse() To parse each Cookie header field.
+     * @uses \FireHub\Adapter\HTTP\Header\Cookie\Request::cookies() To retrieve the parsed cookie pairs.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a Cookie header contains
+     * malformed cookie pairs.
+     * @throws \FireHub\Core\Exception\FireHubException If a cookie validation condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If a validation exception is not a FireHubException.
+     *
+     * @return \FireHub\Adapter\HTTP\Header\Cookie\Request Collection of request cookies.
+     */
+    public function getCookie ():RequestCookies {
+
+        $cookies = [];
+
+        foreach ($this->get(new Name('Cookie')) as $value) {
+
+            $parsed = RequestCookies::parse($value->value());
+
+            foreach ($parsed->cookies() as $cookie)
+                $cookies[] = $cookie;
+
+        }
+
+        return new RequestCookies(...$cookies);
 
     }
 
