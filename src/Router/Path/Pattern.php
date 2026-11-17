@@ -251,6 +251,55 @@ final readonly class Pattern {
     }
 
     /**
+     * ### Gets the structural route path signature
+     *
+     * Returns a normalized representation of the route pattern in which named parameters are replaced with anonymous
+     * parameter placeholders.
+     *
+     * Parameter names do not affect the structural signature.
+     *
+     * <code>
+     * use FireHub\Adapter\HTTP\Router\Path\Pattern;
+     *
+     * $first = new Pattern('/users/{id}');
+     * $second = new Pattern('/users/{name}');
+     * $static = new Pattern('/users/create');
+     *
+     * $first->signature();
+     * // '/users/{}'
+     *
+     * $second->signature();
+     * // '/users/{}'
+     *
+     * $static->signature();
+     * // '/users/create'
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To join the segments with slashes.
+     *
+     * @return non-empty-string Structural route path signature.
+     */
+    public function signature ():string {
+
+        if ($this->segments === []) return '/';
+
+        $segments = [];
+
+        foreach ($this->segments as $segment) {
+
+            $segments[] = $segment[0] === '{'
+                ? '{}'
+                : $segment;
+
+        }
+
+        return '/' . Runtime\Str\SB\Delimiter::implode($segments, '/');
+
+    }
+
+    /**
      * ### Parses and validates route path segments
      * @since 1.0.0
      *

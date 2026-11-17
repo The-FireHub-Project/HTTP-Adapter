@@ -24,4 +24,13 @@ use FireHub\Core\Exception\Domain\ValidationException;
  * parameter names, trailing slashes, query strings, and fragments.
  * @since 1.0.0
  */
-final class InvalidRoutePatternException extends ValidationException {}
+final class InvalidRoutePatternException extends ValidationException {
+
+    /**
+     * @inheritDoc
+     *
+     * @since 1.0.0
+     */
+    protected const string DEFAULT_MESSAGE = 'Invalid HTTP route path pattern.';
+
+}
