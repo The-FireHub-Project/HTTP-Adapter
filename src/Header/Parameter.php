@@ -62,10 +62,10 @@ readonly class Parameter extends ValueObject {
      * @uses \FireHub\Core\Type\ValueObject::guard() To validate parameter content.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate HTTP quoted-string characters.
      *
-     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * HTTP parameter name.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Header\Value<string> $content <p>
+     * @param \FireHub\Adapter\HTTP\Header\Value $content <p>
      * Decoded HTTP parameter content.
      * </p>
      *
@@ -161,7 +161,7 @@ readonly class Parameter extends ValueObject {
      *
      * @since 1.0.0
      *
-     * @return \FireHub\Adapter\HTTP\Header\Name<non-empty-string> HTTP parameter name.
+     * @return \FireHub\Adapter\HTTP\Header\Name HTTP parameter name.
      */
     final public function name ():Name {
 
@@ -182,7 +182,7 @@ readonly class Parameter extends ValueObject {
      *
      * @since 1.0.0
      *
-     * @return \FireHub\Adapter\HTTP\Header\Value<string> HTTP parameter content.
+     * @return \FireHub\Adapter\HTTP\Header\Value HTTP parameter content.
      */
     final public function content ():Value {
 
@@ -231,8 +231,8 @@ readonly class Parameter extends ValueObject {
      *
      * @since 1.0.0
      *
-     * @return array{\FireHub\Adapter\HTTP\Header\Name<non-empty-string>, \FireHub\Adapter\HTTP\Header\Value<string>}
-     * Normalized parameter components.
+     * @return array{\FireHub\Adapter\HTTP\Header\Name, \FireHub\Adapter\HTTP\Header\Value} Normalized parameter
+     * components.
      */
     final protected function comparisonValue ():array {
 

@@ -25,9 +25,7 @@ use FireHub\Runtime;
  * HTTP header names are case-insensitive. The original casing is preserved for serialization and presentation.
  * @since 1.0.0
  *
- * @template TValue of non-empty-string
- *
- * @extends \FireHub\Core\Type\ValueObject<TValue>
+ * @extends \FireHub\Core\Type\ValueObject<non-empty-string>
  */
 readonly class Name extends ValueObject {
 
@@ -66,7 +64,6 @@ readonly class Name extends ValueObject {
      */
     public function value ():string {
 
-        /** @var TValue */
         return $this->name;
 
     }

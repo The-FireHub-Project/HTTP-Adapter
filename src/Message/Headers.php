@@ -32,8 +32,8 @@ readonly class Headers {
      * @since 1.0.0
      *
      * @param list<array{
-     *     name: \FireHub\Adapter\HTTP\Header\Name<non-empty-string>,
-     *     value: \FireHub\Adapter\HTTP\Header\Value<string>
+     *     name: \FireHub\Adapter\HTTP\Header\Name,
+     *     value: \FireHub\Adapter\HTTP\Header\Value
      * }> $headers <p>
      * Internal header storage.
      * </p>
@@ -74,7 +74,7 @@ readonly class Headers {
      *
      * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
      *
-     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * Header name.
      * </p>
      *
@@ -117,11 +117,11 @@ readonly class Headers {
      *
      * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
      *
-     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * Header name.
      * </p>
      *
-     * @return list<\FireHub\Adapter\HTTP\Header\Value<string>> Matching header values.
+     * @return list<\FireHub\Adapter\HTTP\Header\Value> Matching header values.
      */
     final public function get (Name $name):array {
 
@@ -153,10 +153,10 @@ readonly class Headers {
      *
      * @since 1.0.0
      *
-     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * HTTP header name.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Header\Value<string> $value <p>
+     * @param \FireHub\Adapter\HTTP\Header\Value $value <p>
      * Header value.
      * </p>
      *
@@ -210,13 +210,13 @@ readonly class Headers {
      *
      * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
      *
-     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * HTTP header name.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Header\Value<string> $value <p>
+     * @param \FireHub\Adapter\HTTP\Header\Value $value <p>
      * Header value.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Header\Value<string> ...$additional <p>
+     * @param \FireHub\Adapter\HTTP\Header\Value ...$additional <p>
      * Additional header values.
      * </p>
      *
@@ -284,7 +284,7 @@ readonly class Headers {
      *
      * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
      *
-     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * Header name.
      * </p>
      *
@@ -325,8 +325,8 @@ readonly class Headers {
      * @since 1.0.0
      *
      * @return list<array{
-     *     name: \FireHub\Adapter\HTTP\Header\Name<non-empty-string>,
-     *     value: \FireHub\Adapter\HTTP\Header\Value<string>
+     *     name: \FireHub\Adapter\HTTP\Header\Name,
+     *     value: \FireHub\Adapter\HTTP\Header\Value
      * }> Header fields.
      */
     final public function all ():array {

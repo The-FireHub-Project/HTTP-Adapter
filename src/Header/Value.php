@@ -23,9 +23,7 @@ use FireHub\Runtime;
  * Immutable value object containing a validated HTTP header value.
  * @since 1.0.0
  *
- * @template TValue of string
- *
- * @extends \FireHub\Core\Type\ValueObject<TValue>
+ * @extends \FireHub\Core\Type\ValueObject<string>
  */
 readonly class Value extends ValueObject {
 
@@ -36,7 +34,7 @@ readonly class Value extends ValueObject {
      * @uses \FireHub\Core\Type\Identifier::guard() To enforce the invariant that an identifier value cannot be empty.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the HTTP header field value.
      *
-     * @param TValue $value <p>
+     * @param string $value <p>
      * HTTP header field value.
      * </p>
      *
