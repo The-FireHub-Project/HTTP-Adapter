@@ -52,7 +52,7 @@ final readonly class Quality extends Parameter {
      *
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the HTTP quality value.
      *
-     * @param numeric-string $quality <p>
+     * @param string $quality <p>
      * HTTP quality value between 0 and 1.
      * </p>
      *
@@ -75,6 +75,50 @@ final readonly class Quality extends Parameter {
             new Name('q'),
             new Value($quality)
         );
+
+    }
+
+    /**
+     * ### Parses an HTTP quality parameter
+     *
+     * Parses a serialized HTTP quality parameter and validates its parameter name and quality value.
+     *
+     * <code>
+     * $quality = Quality::parse('q=0.8');
+     *
+     * $quality->content()->value(); // 0.8
+     * $quality->value();            // q=0.8
+     *
+     * $quality = Quality::parse('q=0.500');
+     *
+     * $quality->value(); // q=0.500
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses self::of() To validate and create the quality parameter.
+     * @uses \FireHub\Adapter\HTTP\Header\Parameter::parse() To parse the generic HTTP parameter.
+     *
+     * @param non-empty-string $value <p>
+     * Serialized HTTP quality parameter.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Parsed HTTP quality parameter.
+     */
+    public static function parse (string $value):self {
+
+        $parameter = parent::parse($value);
+
+        if ($parameter->name()->value() !== 'q')
+            throw new InvalidParameterException(
+                'Expected an HTTP quality parameter named "q".'
+            );
+
+        return new self($parameter->content()->value());
 
     }
 

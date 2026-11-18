@@ -120,7 +120,7 @@ readonly class Parameter extends ValueObject {
      *
      * @return self Parsed HTTP parameter.
      */
-    final public static function parse (string $value):self {
+    public static function parse (string $value):self {
 
         $separator = Runtime\Str\SB\Search::firstPosition('=', $value);
 
