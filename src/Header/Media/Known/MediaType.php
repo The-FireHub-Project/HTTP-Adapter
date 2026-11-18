@@ -32,7 +32,7 @@ namespace FireHub\Adapter\HTTP\Header\Media\Known;
  * content negotiation patterns rather than concrete media types.
  * @since 1.0.0
  */
-enum TypeSubType:string {
+enum MediaType:string {
 
 
     /* * ============================================================
