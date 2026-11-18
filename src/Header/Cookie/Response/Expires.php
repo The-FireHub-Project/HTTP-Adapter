@@ -47,7 +47,7 @@ final readonly class Expires extends ValueObject {
      * ### Constructor
      * @since 1.0.0
      *
-     * @param \FireHub\Foundation\Temporal\DateTime<string> $datetime <p>
+     * @param \FireHub\Foundation\Temporal\DateTime<non-empty-string> $datetime <p>
      * Cookie expiration date and time.
      * </p>
      *
@@ -73,7 +73,7 @@ final readonly class Expires extends ValueObject {
      *
      * @since 1.0.0
      *
-     * @return \FireHub\Foundation\Temporal\DateTime<string> Cookie expiration date.
+     * @return \FireHub\Foundation\Temporal\DateTime<non-empty-string> Cookie expiration date.
      */
     public function datetime ():DateTime {
 

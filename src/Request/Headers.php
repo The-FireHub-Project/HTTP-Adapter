@@ -167,21 +167,15 @@ final readonly class Headers extends MessageHeaders {
     /**
      * ### Sets Request Cookies
      *
-     * Returns a new headers collection with the Cookie header replaced by the serialized request cookie collection.
-     *
-     * All cookie pairs are serialized into a single Cookie header field, preserving their original order and
-     * duplicate names.
+     * Replaces all existing Cookie header fields with a single serialized request cookie collection.
      *
      * <code>
-     * use FireHub\Adapter\HTTP\Header\Cookie;
-     * use FireHub\Adapter\HTTP\Header\Cookie\Request as RequestCookies;
-     *
-     * $cookies = new RequestCookies(
-     *     Cookie::parse('session=abc123'),
-     *     Cookie::parse('theme=dark')
+     * $headers = Headers::empty()->withCookie(
+     *     new RequestCookies(
+     *         Cookie::parse('session=abc123'),
+     *         Cookie::parse('theme=dark')
+     *     )
      * );
-     *
-     * $headers = $headers->withCookie($cookies);
      *
      * $headers->getCookie()->value();
      * // session=abc123; theme=dark
@@ -193,17 +187,17 @@ final readonly class Headers extends MessageHeaders {
      * @uses \FireHub\Adapter\HTTP\Header\Cookie\Request::value() To serialize the cookie collection.
      *
      * @param \FireHub\Adapter\HTTP\Header\Cookie\Request $cookies <p>
-     * Request cookie collection.
+     * Request cookies to serialize.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the serialized Cookie header
-     * field value is invalid.
-     * @throws \FireHub\Core\Exception\FireHubException If a value-object validation condition is not met.
-     * @throws \FireHub\Core\Type\Exception\ValueObjectException If a validation exception is not a FireHubException.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
-     * @return static New headers collection with updated cookies.
+     * @return static New headers collection containing the request cookies.
      */
-    public function withCookie (RequestCookies $cookies):self {
+    public function withCookies (RequestCookies $cookies):self {
 
         return $this->with(
             new Name('Cookie'),
@@ -397,7 +391,7 @@ final readonly class Headers extends MessageHeaders {
      * If no Cookie header fields exist, an empty collection is returned.
      *
      * <code>
-     * $cookies = $headers->getCookie();
+     * $cookies = $headers->getCookies();
      *
      * $cookies->get(
      *     new \FireHub\Adapter\HTTP\Header\Cookie\Name('session')
@@ -420,7 +414,7 @@ final readonly class Headers extends MessageHeaders {
      *
      * @return \FireHub\Adapter\HTTP\Header\Cookie\Request Collection of request cookies.
      */
-    public function getCookie ():RequestCookies {
+    public function getCookies ():RequestCookies {
 
         $cookies = [];
 

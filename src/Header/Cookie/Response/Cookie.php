@@ -368,6 +368,7 @@ final readonly class Cookie extends ValueObject {
         if ($this->partitioned)
             $attributes[] = 'Partitioned';
 
+        /** @var non-empty-string */
         return Runtime\Str\SB\Delimiter::implode($attributes, '; ');
 
     }
@@ -414,7 +415,7 @@ final readonly class Cookie extends ValueObject {
                 !$this->secure
                 || !$this->http_only
                 || $this->domain !== null
-                || !$this->path?->isRoot()
+                || $this->path?->isRoot() !== true
             ) throw new InvalidFieldValueException(
                 'Cookies with the __Host-Http- prefix require Secure, HttpOnly, Path=/, and no Domain.'
             );
@@ -424,7 +425,7 @@ final readonly class Cookie extends ValueObject {
             if (
                 !$this->secure
                 || $this->domain !== null
-                || !$this->path?->isRoot()
+                || $this->path?->isRoot() !== true
             ) throw new InvalidFieldValueException(
                 'Cookies with the __Host- prefix require Secure, Path=/, and no Domain.'
             );
