@@ -57,6 +57,8 @@ final readonly class MediaType extends Value {
      * ### Constructor
      * @since 1.0.0
      *
+     * @uses \FireHub\Adapter\HTTP\Header\Media\MediaType::value() To get the serialized media type.
+     *
      * @param \FireHub\Adapter\HTTP\Header\Media\Type $type <p>
      * Primary MIME media type.
      * </p>
