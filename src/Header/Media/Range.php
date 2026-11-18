@@ -248,6 +248,42 @@ final readonly class Range extends Value {
     }
 
     /**
+     * ### Checks whether a media type matches this range
+     *
+     * Determines whether the specified media type is included in the range.
+     *
+     * <code>
+     * $range = Range::parse('image/*');
+     *
+     * $range->matches(MediaType::parse('image/png')); // true
+     * $range->matches(MediaType::parse('text/html')); // false
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Media\Type::equals() To compare primary media types.
+     * @uses \FireHub\Adapter\HTTP\Header\Media\Subtype::equals() To compare media subtypes.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Media\MediaType $media <p>
+     * Concrete media type to match against this range.
+     * </p>
+     *
+     * @return bool True if the media type matches this range.
+     */
+    public function matches (MediaType $media):bool {
+
+        if ($this->type === null)
+            return true;
+
+        if (!$this->type->equals($media->type()))
+            return false;
+
+        return $this->subtype === null
+            || $this->subtype->equals($media->subtype());
+
+    }
+
+    /**
      * ### Returns the primary media type
      *
      * Returns null when the range matches all primary media types.

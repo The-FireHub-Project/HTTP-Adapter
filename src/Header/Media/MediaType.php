@@ -110,12 +110,12 @@ final readonly class MediaType extends Value {
      */
     public static function parse (string $value):self {
 
-        /** @var array{0: non-empty-string, 1: non-empty-string} $parts */
         $parts = Runtime\Str\SB\Delimiter::explode($value, '/', 2);
 
         if (Runtime\Arr\Inspection::count($parts) !== 2)
             throw new InvalidFieldValueException;
 
+        /** @var array{0: non-empty-string, 1: non-empty-string} $parts */
         return new self(
             new Type($parts[0]),
             new Subtype($parts[1])
