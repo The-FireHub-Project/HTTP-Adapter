@@ -68,7 +68,7 @@ final class Splitter {
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a quoted string is unterminated.
      *
-     * @return list<string> Split header value segments.
+     * @return non-empty-list<string> Split header value segments.
      */
     public static function split (string $value, string $delimiter):array {
 

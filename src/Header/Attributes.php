@@ -386,4 +386,17 @@ final readonly class Attributes extends ValueObject {
 
     }
 
+    /**
+     * @inheritDoc
+     *
+     * @since 1.0.0
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter> Attributes to compare.
+     */
+    protected function comparisonValue ():array {
+
+        return $this->attributes;
+
+    }
+
 }
