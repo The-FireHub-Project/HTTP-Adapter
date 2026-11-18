@@ -57,6 +57,84 @@ readonly class Headers {
     }
 
     /**
+     * ### Checks whether a header exists
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Content-Type'), new Value('application/json'));
+     *
+     * // Header names are compared case-insensitively.
+     * $headers->has(new Name('Content-Type')); // true
+     * $headers->has(new Name('content-type')); // true
+     * $headers->has(new Name('CONTENT-TYPE')); // true
+     * $headers->has(new Name('Authorization')); // false
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * Header name.
+     * </p>
+     *
+     * @return bool True if at least one occurrence exists.
+     */
+    final public function has (Name $name):bool {
+
+        foreach ($this->headers as $header)
+            if ($header['name']->equals($name))
+                return true;
+
+        return false;
+
+    }
+
+    /**
+     * ### Gets all values for a header
+     *
+     * Values are returned in their original order.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Accept'), new Value('application/json'))
+     *     ->add(new Name('X-Custom'), new Value('first'))
+     *     ->add(new Name('X-Custom'), new Value('second'));
+     *
+     * // Retrieve values in their original order.
+     * $values = $headers->get(new Name('x-custom'));
+     *
+     * foreach ($values as $value) {
+     *     echo $value->value();
+     * }
+     * // Outputs: firstsecond
+     *
+     * // Missing headers return an empty list.
+     * $headers->get(new Name('Authorization')); // []
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * Header name.
+     * </p>
+     *
+     * @return list<\FireHub\Adapter\HTTP\Header\Value<string>> Matching header values.
+     */
+    final public function get (Name $name):array {
+
+        $values = [];
+        foreach ($this->headers as $header)
+            if ($header['name']->equals($name))
+                $values[] = $header['value'];
+
+        return $values;
+
+    }
+
+    /**
      * ### Appends a header field
      *
      * Preserves all existing fields, including fields with the same name or value.
@@ -92,6 +170,132 @@ readonly class Headers {
             'name' => $name,
             'value' => $value
         ];
+
+        return new static($headers);
+
+    }
+
+    /**
+     * ### Replaces all occurrences of a header
+     *
+     * Removes existing occurrences of the specified header name and inserts the replacement at the position of its
+     * first occurrence.
+     *
+     * If the header does not exist, the replacement is appended.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('X-Custom'), new Value('first'))
+     *     ->add(new Name('Content-Type'), new Value('text/plain'))
+     *     ->add(new Name('X-Custom'), new Value('second'));
+     *
+     * // Replace all occurrences at the position of the first occurrence.
+     * $updated = $headers->with(
+     *     new Name('X-Custom'),
+     *     new Value('updated'),
+     *     new Value('additional')
+     * );
+     *
+     * $updated->get(new Name('X-Custom'));
+     *
+     * // [Value('updated'), Value('additional')]
+     *
+     * // The original collection remains unchanged.
+     * $headers->get(new Name('X-Custom'));
+     *
+     * // [Value('first'), Value('second')]
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * HTTP header name.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Value<string> $value <p>
+     * Header value.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Value<string> ...$additional <p>
+     * Additional header values.
+     * </p>
+     *
+     * @return static Updated header collection.
+     */
+    final public function with (Name $name, Value $value, Value ...$additional):static {
+
+        $replacements = [$value, ...$additional];
+        $headers = []; $inserted = false;
+        foreach ($this->headers as $header) {
+
+            if ($header['name']->equals($name)) {
+
+                if (!$inserted) {
+
+                    foreach ($replacements as $replacement)
+                        $headers[] = [
+                            'name' => $name,
+                            'value' => $replacement
+                        ];
+
+                    $inserted = true;
+
+                }
+
+                continue;
+
+            }
+
+            $headers[] = $header;
+
+        }
+
+        if (!$inserted)
+            foreach ($replacements as $replacement)
+                $headers[] = [
+                    'name' => $name,
+                    'value' => $replacement
+                ];
+
+        return new static($headers);
+
+    }
+
+    /**
+     * ### Removes all occurrences of a header
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Accept'), new Value('application/json'))
+     *     ->add(new Name('X-Custom'), new Value('first'))
+     *     ->add(new Name('X-Custom'), new Value('second'));
+     *
+     * // Remove all occurrences of the specified header.
+     * $updated = $headers->without(new Name('x-custom'));
+     *
+     * $updated->has(new Name('X-Custom')); // false
+     * $updated->has(new Name('Accept'));   // true
+     *
+     * // The original collection remains unchanged.
+     * $headers->has(new Name('X-Custom')); // true
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name<non-empty-string> $name <p>
+     * Header name.
+     * </p>
+     *
+     * @return static Updated header collection.
+     */
+    final public function without (Name $name):static {
+
+        $headers = [];
+        foreach ($this->headers as $header)
+            if (!$header['name']->equals($name))
+                $headers[] = $header;
 
         return new static($headers);
 
