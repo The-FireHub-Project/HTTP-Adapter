@@ -14,8 +14,10 @@
 namespace FireHub\Adapter\HTTP\Header\Cookie\Response;
 
 use FireHub\Core\Type\ValueObject;
+use FireHub\Core\Meta\Enum\Side;
 use FireHub\Adapter\HTTP\Header\Cookie as BaseCookie;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
+use FireHub\Foundation\Temporal\DateTime;
 use FireHub\Runtime;
 
 /**
@@ -107,6 +109,214 @@ final readonly class Cookie extends ValueObject {
     ) {
 
         $this->validate();
+
+    }
+
+    /**
+     * ### Parses an HTTP Response Cookie
+     *
+     * Parses a serialized Set-Cookie header field value into an immutable response cookie object.
+     *
+     * Recognizes the Domain, Path, Expires, Max-Age, Secure, HttpOnly, SameSite, and Partitioned attributes.
+     *
+     * Attribute names are matched case-insensitively. Unknown extension attributes are ignored.
+     *
+     * <code>
+     * $cookie = Cookie::parse(
+     *     'session=abc123; Path=/; Secure; HttpOnly; SameSite=Lax'
+     * );
+     *
+     * $cookie->cookie()->name()->value();
+     * // session
+     *
+     * $cookie->path()?->value();
+     * // /
+     *
+     * $cookie->isSecure();
+     * // true
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Cookie::parse() To parse the cookie pair.
+     * @uses \FireHub\Foundation\Temporal\DateTime::fromFormat() To parse expiration dates.
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::explode() To split the cookie attributes.
+     * @uses \FireHub\Runtime\Str\SB\Transform::trim() To trim attribute values.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert attribute names to lowercase.
+     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate values.
+     * @uses \FireHub\Runtime\Arr\Mutation::shift() To remove the cookie pair from the attribute list.
+     * @uses \FireHub\Runtime\Arr\Structure::pad() To pad attribute values with null.
+     * @uses \FireHub\Runtime\Filter::value() To parse integer values.
+     *
+     * @param string $value <p>
+     * Serialized Set-Cookie header field value.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a supported attribute is malformed.
+     * @throws \FireHub\Foundation\Temporal\Exception\InvalidDateTimeException If the expiration date is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Parsed HTTP response cookie.
+     */
+    public static function parse (string $value):self {
+
+        $segments = Runtime\Str\SB\Delimiter::explode($value, ';');
+
+        $pair = Runtime\Str\SB\Transform::trim(Runtime\Arr\Mutation::shift($segments) ?? '', characters: " \t");
+
+        if ($pair === '')
+            throw new InvalidFieldValueException(
+                'HTTP Set-Cookie header requires a cookie pair.'
+            );
+
+        $cookie = BaseCookie::parse($pair);
+
+        $domain = null;
+        $path = null;
+        $expires = null;
+        $max_age = null;
+        $secure = false;
+        $http_only = false;
+        $same_site = null;
+        $partitioned = false;
+
+        foreach ($segments as $segment) {
+
+            $segment = Runtime\Str\SB\Transform::trim($segment, characters: " \t");
+
+            if ($segment === '') continue;
+
+            /**
+             * @var non-empty-string $name
+             * @var null|non-empty-string $content
+             */
+            [$name, $content] = Runtime\Arr\Structure::pad( // @phpstan-ignore-line
+                Runtime\Str\SB\Delimiter::explode($segment, '=', 2),
+                2,
+                null
+            );
+
+            $name = Runtime\Str\SB\Casing::toLower(Runtime\Str\SB\Transform::trim($name, characters: " \t"));
+            $content = $content !== null
+                ? Runtime\Str\SB\Transform::trim($content, characters: " \t")
+                : null;
+
+            switch ($name) {
+
+                case 'domain':
+
+                    if ($content === null || $content === '')
+                        throw new InvalidFieldValueException(
+                            'Invalid Set-Cookie Domain attribute.'
+                        );
+
+                    /** @var non-empty-string $domain_value */
+                    $domain_value = Runtime\Str\SB\Transform::trim($content, Side::LEFT, '.');
+
+                    $domain = new Domain(
+                        $domain_value
+                    );
+
+                    break;
+
+                case 'path':
+
+                    if ($content === null || $content === '')
+                        throw new InvalidFieldValueException(
+                            'Invalid Set-Cookie Path attribute.'
+                        );
+
+                    $path = new Path($content);
+
+                    break;
+
+                case 'expires':
+
+                    if ($content === null || $content === '')
+                        throw new InvalidFieldValueException(
+                            'Invalid Set-Cookie Expires attribute.'
+                        );
+
+                    $expires = new Expires(
+                        DateTime::fromFormat(
+                            $content,
+                            '!D, d M Y H:i:s \G\M\T'
+                        )
+                    );
+
+                    break;
+
+                case 'max-age':
+
+                    if (
+                        $content === null
+                        || !Runtime\Str\SB\Regex::match('/\A-?(?:0|[1-9][0-9]*)\z/', $content)
+                    ) throw new InvalidFieldValueException(
+                        'Invalid Set-Cookie Max-Age attribute.'
+                    );
+
+                    /** @var int|false $seconds */
+                    $seconds = Runtime\Filter::value(
+                        $content,
+                        FILTER_VALIDATE_INT
+                    );
+
+                    if ($seconds === false)
+                        throw new InvalidFieldValueException(
+                            'Set-Cookie Max-Age exceeds the supported integer range.'
+                        );
+
+                    $max_age = new MaxAge($seconds);
+
+                    break;
+
+                case 'secure':
+
+                    $secure = true;
+
+                    break;
+
+                case 'httponly':
+
+                    $http_only = true;
+
+                    break;
+
+                case 'samesite':
+
+                    $same_site = match (Runtime\Str\SB\Casing::toLower($content ?? '')) {
+                        'strict' => SameSite::STRICT,
+                        'lax' => SameSite::LAX,
+                        'none' => SameSite::NONE,
+                        default => throw new InvalidFieldValueException(
+                            'Invalid Set-Cookie SameSite attribute.'
+                        )
+                    };
+
+                    break;
+
+                case 'partitioned':
+
+                    $partitioned = true;
+
+                    break;
+
+            }
+
+        }
+
+        return new self(
+            $cookie,
+            $domain,
+            $path,
+            $expires,
+            $max_age,
+            $secure,
+            $http_only,
+            $same_site,
+            $partitioned
+        );
 
     }
 

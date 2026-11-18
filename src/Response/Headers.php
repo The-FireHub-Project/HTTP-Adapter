@@ -15,9 +15,11 @@ namespace FireHub\Adapter\HTTP\Response;
 
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
-    Cookie\Response\Cookie as ResponseCookie,
+    Cookie\Response\Cookie as ResponseCookie, Cookie\Response\Domain as CookieDomain,
+    Cookie\Response\Path as CookiePath, Cookie\Name as CookieName,
     Name, Value
 };
+use FireHub\Runtime;
 
 /**
  * ### Represents immutable HTTP response headers
@@ -72,6 +74,78 @@ final readonly class Headers extends MessageHeaders {
         return $this->add(
             new Name('Set-Cookie'),
             new Value($cookie->value())
+        );
+
+    }
+
+    /**
+     * ### Removes HTTP Response Cookies
+     *
+     * Removes Set-Cookie header fields matching the specified cookie name.
+     *
+     * Optional Path and Domain parameters restrict which cookies are removed. Omitted parameters act as wildcards.
+     *
+     * Cookie values and other attributes are ignored during matching.
+     *
+     * <code>
+     * $headers = $headers->removeCookie(
+     *     new CookieName('session'),
+     *     path: new Path('/admin')
+     * );
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve existing Set-Cookie headers.
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::with() To replace Set-Cookie headers.
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::without() To remove all Set-Cookie headers.
+     * @uses \FireHub\Adapter\HTTP\Header\Cookie\Response\Cookie::parse() To parse response cookies.
+     * @uses \FireHub\Runtime\Arr\Structure::slice() To remove matching cookies.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Cookie\Name $name <p>
+     * Case-sensitive cookie name to remove.
+     * </p>
+     * @param null|\FireHub\Adapter\HTTP\Header\Cookie\Response\Path $path [optional] <p>
+     * Optional path filter. Null matches any path.
+     * </p>
+     * @param null|\FireHub\Adapter\HTTP\Header\Cookie\Response\Domain $domain [optional] <p>
+     * Optional domain filter. Null matches any domain.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the header name is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If an existing cookie is malformed.
+     * @throws \FireHub\Foundation\Temporal\Exception\InvalidDateTimeException If an expiration date is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Updated response headers collection.
+     */
+    public function removeCookie (CookieName $name, ?CookiePath $path = null, ?CookieDomain $domain = null):self {
+
+        $header = new Name('Set-Cookie');
+        $values = [];
+
+        foreach ($this->get($header) as $value) {
+
+            $cookie = ResponseCookie::parse($value->value());
+
+            if (
+                ($domain === null || $cookie->domain()?->value() === $domain->value())
+                && ($path === null || $cookie->path()?->value() === $path->value())
+                && $cookie->cookie()->name()->value() === $name->value()
+            ) continue;
+
+            $values[] = $value;
+
+        }
+
+        if ($values === [])
+            return $this->without($header);
+
+        return $this->with(
+            $header,
+            $values[0],
+            ...Runtime\Arr\Structure::slice($values, 1)
         );
 
     }
