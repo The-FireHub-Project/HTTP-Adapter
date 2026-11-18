@@ -147,7 +147,6 @@ final readonly class Quality extends Parameter {
 
         $value = $this->content()->value();
 
-        /** @var array{numeric-string, numeric-string} $parts */
         $parts = Runtime\Str\SB\Delimiter::explode($value, '.', 2);
 
         $integer = (int)$parts[0];
