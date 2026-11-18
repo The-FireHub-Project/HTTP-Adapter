@@ -11,7 +11,7 @@
  * @package Adapter\HTTP
  */
 
-namespace FireHub\Adapter\HTTP\Header\CacheControl;
+namespace FireHub\Adapter\HTTP\Header\Cache\Directive;
 
 /**
  * ### HTTP response Cache-Control directives
