@@ -275,7 +275,7 @@ readonly class Parameter extends ValueObject {
      *
      * @param string $content <p>
      * Serialized parameter content.
-     * </p>s
+     * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
      *

@@ -95,8 +95,7 @@ final readonly class Quality extends Parameter {
      * </code>
      *
      * @since 1.0.0
-     *
-     * @uses self::of() To validate and create the quality parameter.
+     *.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::parse() To parse the generic HTTP parameter.
      *
      * @param non-empty-string $value <p>
@@ -128,7 +127,7 @@ final readonly class Quality extends Parameter {
      * Returns the normalized quality value as an integer between 0 and 1000.
      *
      * <code>
-     * $quality = Quality::parse(q=0.8');
+     * $quality = Quality::parse('q=0.8');
      * $quality->weight(); // 800
      *
      * $quality = Quality::parse('q=0');
