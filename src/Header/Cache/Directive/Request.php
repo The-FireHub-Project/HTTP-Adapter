@@ -13,13 +13,15 @@
 
 namespace FireHub\Adapter\HTTP\Header\Cache\Directive;
 
+use FireHub\Adapter\HTTP\Header\Cache\Directive;
+
 /**
  * ### HTTP request Cache-Control directives
  *
  * Defines cache directives that clients can send in HTTP requests.
  * @since 1.0.0
  */
-enum Request:string {
+enum Request:string implements Directive {
 
     /**
      * ### Limits the acceptable response age
