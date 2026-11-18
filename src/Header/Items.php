@@ -122,56 +122,80 @@ final readonly class Items extends ValueObject {
     /**
      * ### Checks whether an HTTP item exists
      *
+     * Returns true if at least one HTTP item has the specified primary value.
+     *
      * <code>
-     * $items = Items::parse('text/html, application/json');
+     * $items = Items::parse(
+     *     'text/html; q=0.8, application/json'
+     * );
      *
      * $items->has(new Value('text/html')); // true
+     * $items->has(new Value('image/png')); // false
      * </code>
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\Items::get() To check for item existence.
+     * @uses \FireHub\Adapter\HTTP\Header\Item::content() To retrieve the primary item value.
+     * @uses \FireHub\Adapter\HTTP\Header\Value::equals() To compare primary item values.
      *
      * @param \FireHub\Adapter\HTTP\Header\Value $content <p>
      * Primary item value to search for.
      * </p>
      *
-     * @return bool True if the item exists.
+     * @return bool True if at least one matching item exists.
      */
     public function has (Value $content):bool {
 
-        return $this->get($content) !== null;
+        foreach ($this->items as $item)
+            if ($item->content()->equals($content))
+                return true;
+
+        return false;
 
     }
 
     /**
-     * ### Gets an HTTP item by its primary value
+     * ### Gets HTTP items by their primary value
+     *
+     * Returns all HTTP items whose primary content matches the specified value.
+     *
+     * Matching items are returned in their original order.
+     *
+     * If no matching items exist, an empty list is returned.
      *
      * <code>
-     * $items = Items::parse('text/html;q=0.8, application/json');
+     * $items = Items::parse(
+     *     'text/html; q=0.8, application/json, text/html; q=0.5'
+     * );
      *
-     * $items->get(new Value('text/html'))?->value();
-     * // text/html; q=0.8
+     * $matches = $items->get(new Value('text/html'));
+     *
+     * count($matches); // 2
+     *
+     * $matches[0]->value(); // text/html; q=0.8
+     * $matches[1]->value(); // text/html; q=0.5
      * </code>
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\Item::content() To get the item content.
-     * @uses \FireHub\Adapter\HTTP\Header\Value::equals() To check for item equality.
+     * @uses \FireHub\Adapter\HTTP\Header\Item::content() To retrieve the primary item value.
+     * @uses \FireHub\Adapter\HTTP\Header\Value::equals() To compare primary item values.
      *
      * @param \FireHub\Adapter\HTTP\Header\Value $content <p>
      * Primary item value to search for.
      * </p>
      *
-     * @return null|\FireHub\Adapter\HTTP\Header\Item Matching item or null.
+     * @return list<\FireHub\Adapter\HTTP\Header\Item> Matching HTTP items.
      */
-    public function get (Value $content):?Item {
+    public function get (Value $content):array {
+
+        $items = [];
 
         foreach ($this->items as $item)
             if ($item->content()->equals($content))
-                return $item;
+                $items[] = $item;
 
-        return null;
+        return $items;
 
     }
 
