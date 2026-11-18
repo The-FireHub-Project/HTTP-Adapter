@@ -391,7 +391,7 @@ final readonly class Cookie extends ValueObject {
      */
     private function validate ():void {
 
-        if ($this->sameSite === SameSite::NONE && !$this->secure)
+        if ($this->same_site === SameSite::NONE && !$this->secure)
             throw new InvalidFieldValueException(
                 'SameSite=None requires the Secure attribute.'
             );
@@ -412,7 +412,7 @@ final readonly class Cookie extends ValueObject {
 
             if (
                 !$this->secure
-                || !$this->httpOnly
+                || !$this->http_only
                 || $this->domain !== null
                 || !$this->path?->isRoot()
             ) throw new InvalidFieldValueException(
@@ -430,7 +430,7 @@ final readonly class Cookie extends ValueObject {
             );
 
         } else if (Runtime\Str\SB\Search::startsWith('__Http-', $name))
-            if (!$this->secure || !$this->httpOnly)
+            if (!$this->secure || !$this->http_only)
                 throw new InvalidFieldValueException(
                     'Cookies with the __Http- prefix require Secure and HttpOnly.'
                 );
