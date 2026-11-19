@@ -37,7 +37,7 @@ use FireHub\Runtime;
  *
  * @extends ValueObject<string>
  */
-final readonly class Items extends ValueObject {
+readonly class Items extends ValueObject {
 
     /**
      * ### HTTP items
@@ -45,12 +45,13 @@ final readonly class Items extends ValueObject {
      *
      * @var list<\FireHub\Adapter\HTTP\Header\Item>
      */
-    private array $items;
+    final protected array $items;
 
     /**
      * ### Constructor
      * @since 1.0.0
      *
+     * @uses \FireHub\Adapter\HTTP\Header\Items::validate() To validate the items.
      * @uses \FireHub\Runtime\Arr\Access::values() To remove the keys from the items array.
      *
      * @param \FireHub\Adapter\HTTP\Header\Item ...$items <p>
@@ -59,7 +60,10 @@ final readonly class Items extends ValueObject {
      *
      * @return void
      */
-    public function __construct (Item ...$items) {
+    final public function __construct (Item ...$items) {
+
+        foreach ($items as $item)
+            self::validate($item);
 
         $this->items = Runtime\Arr\Access::values($items);
 
@@ -94,11 +98,11 @@ final readonly class Items extends ValueObject {
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
-     * @return self Parsed items.
+     * @return static Parsed items.
      */
-    public static function parse (string $value):self {
+    final public static function parse (string $value):static {
 
-        if ($value === '') return new self;
+        if ($value === '') return new static;
 
         $items = [];
 
@@ -115,7 +119,7 @@ final readonly class Items extends ValueObject {
 
         }
 
-        return new self(...$items);
+        return new static(...$items);
 
     }
 
@@ -144,7 +148,7 @@ final readonly class Items extends ValueObject {
      *
      * @return bool True if at least one matching item exists.
      */
-    public function has (Value $content):bool {
+    final public function has (Value $content):bool {
 
         foreach ($this->items as $item)
             if ($item->content()->equals($content))
@@ -187,7 +191,7 @@ final readonly class Items extends ValueObject {
      *
      * @return list<\FireHub\Adapter\HTTP\Header\Item> Matching HTTP items.
      */
-    public function get (Value $content):array {
+    final public function get (Value $content):array {
 
         $items = [];
 
@@ -218,11 +222,11 @@ final readonly class Items extends ValueObject {
      * HTTP item to append.
      * </p>
      *
-     * @return self Updated collection.
+     * @return static Updated collection.
      */
-    public function add (Item $item):self {
+    final public function add (Item $item):static {
 
-        return new self(...[
+        return new static(...[
             ...$this->items,
             $item
         ]);
@@ -248,9 +252,9 @@ final readonly class Items extends ValueObject {
      * Primary item value to remove.
      * </p>
      *
-     * @return self Updated collection.
+     * @return static Updated collection.
      */
-    public function remove (Value $content):self {
+    final public function remove (Value $content):static {
 
         $items = [];
 
@@ -258,7 +262,7 @@ final readonly class Items extends ValueObject {
             if (!$item->content()->equals($content))
                 $items[] = $item;
 
-        return new self(...$items);
+        return new static(...$items);
 
     }
 
@@ -277,7 +281,7 @@ final readonly class Items extends ValueObject {
      *
      * @return non-negative-int Number of items.
      */
-    public function count ():int {
+    final public function count ():int {
 
         return Runtime\Arr\Inspection::count($this->items);
 
@@ -296,7 +300,7 @@ final readonly class Items extends ValueObject {
      *
      * @return list<\FireHub\Adapter\HTTP\Header\Item> Stored HTTP items.
      */
-    public function all ():array {
+    final public function all ():array {
 
         return $this->items;
 
@@ -319,7 +323,7 @@ final readonly class Items extends ValueObject {
      * @uses \FireHub\Adapter\HTTP\Header\Item::value() To get the item value.
      * @uses \FireHub\Runtime\Str\SB\Delimiter::implode() To serialize the items.
      */
-    public function value ():string {
+    final public function value ():string {
 
         $values = [];
 
@@ -342,5 +346,21 @@ final readonly class Items extends ValueObject {
         return $this->items;
 
     }
+
+    /**
+     * ### Validates an HTTP header item
+     *
+     * Allows specialized HTTP header collections to enforce their own validation rules.
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Item $item <p>
+     * HTTP header item to validate.
+     * </p>
+     *
+     * @return void
+     */
+    protected static function validate (Item $item):void {}
+
 
 }
