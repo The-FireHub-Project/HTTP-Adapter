@@ -27,10 +27,13 @@ use FireHub\Runtime;
  *
  * Cookie names are case-sensitive, and empty cookie values are permitted.
  *
- * Cookie values are validated according to the cookie-octet syntax defined  by RFC 6265.
+ * Cookie content is validated according to the cookie-octet syntax.  Optional surrounding double quotes are accepted
+ * during parsing but are not preserved during serialization.
+ *
+ * Unlike generic HTTP parameters, cookie values do not support HTTP quoted-string escape sequences.
  *
  * <code>
- * $pair = new Pair()
+ * $pair = new Pair(
  *     new Name('session'),
  *     new Value('abc123')
  * );
@@ -39,12 +42,13 @@ use FireHub\Runtime;
  * $pair->content()->value(); // abc123
  * $pair->value();            // session=abc123
  *
- * $empty = new Pair(
- *     new Name('session'),
- *     new Value('')
- * );
+ * $pair = Pair::parse('token=YWJjZA==');
  *
- * $empty->value(); // session=
+ * $pair->content()->value(); // YWJjZA==
+ *
+ * $empty = Pair::parse('session=');
+ *
+ * $empty->content()->value(); // ''
  * </code>
  *
  * @since 1.0.0
@@ -57,7 +61,7 @@ final readonly class Pair extends ValueObject {
      * ### Constructor
      * @since 1.0.0
      *
-     * @uses \FireHub\Core\Type\ValueObject::guard() To validate the cookie name.
+     * @uses \FireHub\Core\Type\ValueObject::guard() To validate cookie content.
      * @uses \FireHub\Adapter\HTTP\Header\Value::value() To retrieve the cookie content.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate cookie-octet syntax.
      *
@@ -94,9 +98,12 @@ final readonly class Pair extends ValueObject {
     /**
      * ### Parses an HTTP Cookie Pair
      *
-     * Parses a serialized cookie pair into its name and content.
+     * Parses a serialized HTTP cookie pair into its name and content.
      *
-     * Optional surrounding double quotes are removed during parsing.
+     * The first equals sign separates the cookie name from its content. Additional equals signs are preserved as
+     * part of the content.
+     *
+     * Optional surrounding double quotes are removed before validation.
      *
      * <code>
      * $pair = Pair::parse('session=abc123');
@@ -104,35 +111,39 @@ final readonly class Pair extends ValueObject {
      * $pair->name()->value();    // session
      * $pair->content()->value(); // abc123
      *
+     * $pair = Pair::parse('token=YWJjZA==');
+     *
+     * $pair->content()->value(); // YWJjZA==
+     *
      * $pair = Pair::parse('session="abc123"');
      *
      * $pair->content()->value(); // abc123
      *
-     * $empty = Pair::parse('session=');
+     * $pair = Pair::parse('session=');
      *
-     * $empty->content()->value(); // ''
+     * $pair->content()->value(); // ''
      * </code>
      *
      * @since 1.0.0
      *
      * @uses \FireHub\Runtime\Str\SB\Search::firstPosition() To locate the name-value separator.
      * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the cookie name and content.
-     * @uses \FireHub\Runtime\Str\SB\Inspection::length() To determine the string length.
+     * @uses \FireHub\Runtime\Str\SB\Inspection::length() To determine the content length.
      *
-     * @param string $pair <p>
+     * @param non-empty-string $value <p>
      * Serialized HTTP cookie pair.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the cookie pair is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the cookie content is invalid.
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If the cookie name is invalid.
-     * @throws \FireHub\Core\Exception\FireHubException If validation fails.
-     * @throws \FireHub\Core\Type\Exception\ValueObjectException If an invalid guard exception is returned.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
-     * @return self Parsed cookie pair.
+     * @return self Parsed HTTP cookie pair.
      */
-    public static function parse (string $pair):self {
+    public static function parse (string $value):self {
 
-        $separator = Runtime\Str\SB\Search::firstPosition('=', $pair);
+        $separator = Runtime\Str\SB\Search::firstPosition('=', $value);
 
         if ($separator === false)
             throw new InvalidFieldValueException(
@@ -140,18 +151,16 @@ final readonly class Pair extends ValueObject {
             );
 
         /** @var non-empty-string $name */
-        $name = Runtime\Str\SB\Access::part($pair, 0, $separator);
-        $content = Runtime\Str\SB\Access::part($pair, $separator + 1);
+        $name = Runtime\Str\SB\Access::part($value, 0, $separator);
+        $content = Runtime\Str\SB\Access::part($value, $separator + 1);
+
+        $length = Runtime\Str\SB\Inspection::length($content);
 
         if (
-            Runtime\Str\SB\Inspection::length($content) >= 2
+            $length >= 2
             && $content[0] === '"'
-            && $content[Runtime\Str\SB\Inspection::length($content) - 1] === '"'
-        ) $content = Runtime\Str\SB\Access::part(
-            $content,
-            1,
-            Runtime\Str\SB\Inspection::length($content) - 2
-        );
+            && $content[$length - 1] === '"'
+        ) $content = Runtime\Str\SB\Access::part($content, 1, $length - 2);
 
         return new self(
             new Name($name),
@@ -161,13 +170,14 @@ final readonly class Pair extends ValueObject {
     }
 
     /**
-     * ### Gets the Cookie Name
+     * ### Returns the Cookie Name
+     *
+     * Returns the name of this cookie pair.
+     *
+     * Cookie names are case-sensitive.
      *
      * <code>
-     * $pair = new Pair(
-     *     new Name('session'),
-     *     new Value('abc123')
-     * );
+     * $pair = Pair::parse('session=abc123');
      *
      * $pair->name()->value(); // session
      * </code>
@@ -183,15 +193,18 @@ final readonly class Pair extends ValueObject {
     }
 
     /**
-     * ### Gets the Cookie Content
+     * ### Returns the Cookie Content
+     *
+     * Returns the cookie content without surrounding double quotes.
      *
      * <code>
-     * $pair = new Pair(
-     *     new Name('session'),
-     *     new Value('abc123')
-     * );
+     * $pair = Pair::parse('session="abc123"');
      *
      * $pair->content()->value(); // abc123
+     *
+     * $empty = Pair::parse('session=');
+     *
+     * $empty->content()->value(); // ''
      * </code>
      *
      * @since 1.0.0
@@ -214,6 +227,10 @@ final readonly class Pair extends ValueObject {
      * );
      *
      * $pair->value(); // session=abc123
+     *
+     * $pair = Pair::parse('token=YWJjZA==');
+     *
+     * $pair->value(); // token=YWJjZA==
      * </code>
      *
      * @since 1.0.0
@@ -228,11 +245,12 @@ final readonly class Pair extends ValueObject {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * @since 1.0.0
      *
-     * @return array{\FireHub\Adapter\HTTP\Header\Name, \FireHub\Adapter\HTTP\Header\Value} Cookie components.
+     * @return array{\FireHub\Adapter\HTTP\Header\Name, \FireHub\Adapter\HTTP\Header\Value} Normalized cookie pair
+     * components.
      */
     protected function comparisonValue ():array {
 
