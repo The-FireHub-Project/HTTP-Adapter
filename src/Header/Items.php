@@ -51,7 +51,7 @@ readonly class Items extends ValueObject {
      * ### Constructor
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\Items::validate() To validate the items.
+     * @uses static::validate() To validate the items.
      * @uses \FireHub\Runtime\Arr\Access::values() To remove the keys from the items array.
      *
      * @param \FireHub\Adapter\HTTP\Header\Item ...$items <p>
@@ -63,7 +63,7 @@ readonly class Items extends ValueObject {
     final public function __construct (Item ...$items) {
 
         foreach ($items as $item)
-            self::validate($item);
+            static::validate($item);
 
         $this->items = Runtime\Arr\Access::values($items);
 

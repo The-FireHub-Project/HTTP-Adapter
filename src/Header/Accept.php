@@ -13,9 +13,10 @@
 
 namespace FireHub\Adapter\HTTP\Header;
 
-use FireHub\Adapter\HTTP\Header\Media\Range;
+use FireHub\Adapter\HTTP\Header\ {
+    Media\Range, Parameter\Quality
+};
 use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
-use FireHub\Runtime;
 
 /**
  * ### HTTP Accept Header
@@ -51,6 +52,7 @@ final readonly class Accept extends Items {
      * @uses \FireHub\Adapter\HTTP\Header\Item::attributes() To get the quality weight.
      * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To check for the quality weight name.
      * @uses \FireHub\Adapter\HTTP\Header\Value::value() To get the quality weight value.
+     * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To get the quality weight name.
      * @uses \FireHub\Adapter\HTTP\Header\Media\Range::parse() To validate the media range.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate quality weights.
      *
@@ -66,41 +68,20 @@ final readonly class Accept extends Items {
 
         $content = $item->content();
 
-        if (!$content instanceof Range) {
+        if (!$content instanceof Range)
+            Range::parse($content->value());
 
-            $value = $content->value();
-
-            if ($value === '')
-                throw new InvalidFieldValueException(
-                    'An Accept media range cannot be empty.'
-                );
-
-            Range::parse($value);
-
-        }
+        $quality = new Name('q');
 
         foreach ($item->attributes()->all() as $attribute) {
 
-            $name = $attribute instanceof Parameter
-                ? $attribute->name()
-                : $attribute;
-
-            if (!$name->equals(new Name('q')))
-                continue;
-
             if (!$attribute instanceof Parameter)
                 throw new InvalidFieldValueException(
-                    'The Accept quality parameter requires a value.'
+                    'Accept parameters must have a value.'
                 );
 
-            $quality = $attribute->content()->value();
-
-            if (!Runtime\Str\SB\Regex::match(
-                '/\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/',
-                $quality
-            )) throw new InvalidFieldValueException(
-                'Invalid Accept quality value.'
-            );
+            if ($attribute->name()->equals($quality))
+                new Quality($attribute->content()->value());
 
         }
 
