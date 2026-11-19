@@ -91,7 +91,7 @@ final readonly class Accept extends Items {
      * @uses \FireHub\Adapter\HTTP\Header\Item::content() To get the media range.
      * @uses \FireHub\Adapter\HTTP\Header\Item::attributes() To get the media parameters.
      * @uses \FireHub\Adapter\HTTP\Header\Value::value() To get the serialized header value.
-     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare attribute names.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equalsIgnoreCase() To compare attribute names.
      * @uses \FireHub\Adapter\HTTP\Header\Attributes::all() To get all attributes.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To get the attribute name.
      * @uses \FireHub\Adapter\HTTP\Header\Media\Range::parse() To validate the media range.
@@ -116,6 +116,7 @@ final readonly class Accept extends Items {
 
         $attributes = $item->attributes()->all();
         $normalized = [];
+        $names = [];
 
         $last = Runtime\Arr\Inspection::count($attributes) - 1;
         $quality = new Name('q');
@@ -127,7 +128,17 @@ final readonly class Accept extends Items {
                     'Accept attributes must be HTTP parameters.'
                 );
 
-            if (!$attribute->name()->equals($quality)) {
+            $name = $attribute->name();
+
+            foreach ($names as $existing)
+                if ($existing->equalsIgnoreCase($name))
+                    throw new InvalidFieldValueException(
+                        "Duplicate Accept parameter: {$name->value()}."
+                    );
+
+            $names[] = $name;
+
+            if (!$name->equalsIgnoreCase($quality)) {
 
                 $normalized[] = $attribute;
                 continue;

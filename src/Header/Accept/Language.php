@@ -143,7 +143,7 @@ final readonly class Language extends Items {
      * @uses \FireHub\Adapter\HTTP\Header\Value::value() To retrieve the serialized language range.
      * @uses \FireHub\Adapter\HTTP\Header\Language\Range::parse() To parse the language range.
      * @uses \FireHub\Adapter\HTTP\Header\Attributes::all() To retrieve all attributes.
-     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare parameter names.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equalsIgnoreCase() To compare attribute names.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To retrieve the parameter name.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::content() To retrieve the parameter value.
      *
@@ -180,9 +180,14 @@ final readonly class Language extends Items {
                     'Accept-Language attributes must be HTTP parameters.'
                 );
 
-            if (!$attribute->name()->equals($quality))
+            if (!$attribute->name()->equalsIgnoreCase($quality))
                 throw new InvalidFieldValueException(
                     'Accept-Language only supports the quality parameter.'
+                );
+
+            if ($attributes !== [])
+                throw new InvalidFieldValueException(
+                    'Duplicate Accept-Language quality parameter.'
                 );
 
             $attributes[] = $attribute instanceof Quality

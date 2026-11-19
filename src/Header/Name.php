@@ -68,4 +68,31 @@ readonly class Name extends ValueObject {
 
     }
 
+    /**
+     * ### Compares HTTP Header Field Names
+     *
+     * Compares field names case-insensitively, as required by HTTP.
+     *
+     * <code>
+     * // Content-Type and content-type represent the same HTTP field name.
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize field names.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::value() To retrieve field names.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
+     * Name to compare.
+     * </p>
+     *
+     * @return bool True if both names identify the same HTTP field.
+     */
+    public function equalsIgnoreCase (self $name):bool {
+
+        return Runtime\Str\SB\Casing::toLower($this->value())
+            === Runtime\Str\SB\Casing::toLower($name->value());
+
+    }
+
 }

@@ -145,7 +145,7 @@ final readonly class Encoding extends Items {
      * @uses \FireHub\Adapter\HTTP\Header\Coding\Content\Wildcard::parse() To parse the wildcard.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter\Quality::parse() To parse the quality parameter.
      * @uses \FireHub\Adapter\HTTP\Header\Attributes::all() To retrieve all attributes.
-     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare parameter names.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equalsIgnoreCase() To compare attribute names.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To retrieve the parameter name.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::content() To retrieve the parameter value.
      *
@@ -189,9 +189,14 @@ final readonly class Encoding extends Items {
                     'Accept-Encoding attributes must be HTTP parameters.'
                 );
 
-            if (!$attribute->name()->equals($quality))
+            if (!$attribute->name()->equalsIgnoreCase($quality))
                 throw new InvalidFieldValueException(
                     'Accept-Encoding only supports the quality parameter.'
+                );
+
+            if ($attributes !== [])
+                throw new InvalidFieldValueException(
+                    'Duplicate Accept-Encoding quality parameter.'
                 );
 
             $attributes[] = $attribute instanceof Quality

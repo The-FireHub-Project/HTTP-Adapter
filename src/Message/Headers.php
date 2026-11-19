@@ -72,7 +72,7 @@ readonly class Headers {
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equalsIgnoreCase() To compare header names.
      *
      * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * Header name.
@@ -83,7 +83,7 @@ readonly class Headers {
     final public function has (Name $name):bool {
 
         foreach ($this->headers as $header)
-            if ($header['name']->equals($name))
+            if ($header['name']->equalsIgnoreCase($name))
                 return true;
 
         return false;
@@ -115,7 +115,7 @@ readonly class Headers {
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equalsIgnoreCase() To compare header names.
      *
      * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * Header name.
@@ -127,7 +127,7 @@ readonly class Headers {
 
         $values = [];
         foreach ($this->headers as $header)
-            if ($header['name']->equals($name))
+            if ($header['name']->equalsIgnoreCase($name))
                 $values[] = $header['value'];
 
         return $values;
@@ -208,7 +208,7 @@ readonly class Headers {
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equalsIgnoreCase() To compare header names.
      *
      * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * HTTP header name.
@@ -228,7 +228,7 @@ readonly class Headers {
         $headers = []; $inserted = false;
         foreach ($this->headers as $header) {
 
-            if ($header['name']->equals($name)) {
+            if ($header['name']->equalsIgnoreCase($name)) {
 
                 if (!$inserted) {
 
@@ -282,7 +282,7 @@ readonly class Headers {
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare header names.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equalsIgnoreCase() To compare header names.
      *
      * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * Header name.
@@ -294,7 +294,7 @@ readonly class Headers {
 
         $headers = [];
         foreach ($this->headers as $header)
-            if (!$header['name']->equals($name))
+            if (!$header['name']->equalsIgnoreCase($name))
                 $headers[] = $header;
 
         return new static($headers);
