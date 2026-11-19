@@ -31,7 +31,7 @@ readonly class Value extends ValueObject {
      * ### Constructor
      * @since 1.0.0
      *
-     * @uses \FireHub\Core\Type\Identifier::guard() To enforce the invariant that an identifier value cannot be empty.
+     * @uses \FireHub\Core\Type\ValueObject::guard() To enforce the invariant that an identifier value cannot be empty.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the HTTP header field value.
      *
      * @param string $value <p>
