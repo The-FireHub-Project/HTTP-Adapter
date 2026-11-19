@@ -56,37 +56,15 @@ final readonly class Attributes extends ValueObject {
      * ### Constructor
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To get the attribute name.
-     * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare attribute names.
      * @uses \FireHub\Runtime\Arr\Access::values() To preserve insertion order.
      *
      * @param \FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter ...$attributes <p>
      * Attributes to store.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If an attribute name is duplicated.
-     *
      * @return void
      */
     public function __construct (Name|Parameter ...$attributes) {
-
-        $names = [];
-
-        foreach ($attributes as $attribute) {
-
-            $name = $attribute instanceof Parameter
-                ? $attribute->name()
-                : $attribute;
-
-            foreach ($names as $existing)
-                if ($existing->equals($name))
-                    throw new InvalidParameterException(
-                        "Duplicate HTTP attribute: {$name->value()}."
-                    );
-
-            $names[] = $name;
-
-        }
 
         $this->attributes = Runtime\Arr\Access::values($attributes);
 
@@ -125,8 +103,7 @@ final readonly class Attributes extends ValueObject {
      * Serialized HTTP attributes.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If an attribute is invalid or
-     * duplicated.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If an attribute is invalid.
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a quoted string is unterminated.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
@@ -227,16 +204,21 @@ final readonly class Attributes extends ValueObject {
     }
 
     /**
-     * ### Adds a new attribute
+     * ### Adds an HTTP Attribute
      *
-     * Throws an exception if an attribute with the same name already exists.
+     * Appends an attribute to the collection while preserving existing attributes, insertion order, and duplicate
+     * names.
      *
      * <code>
-     * $attributes = new Attributes(new Name('Secure'));
+     * $attributes = new Attributes(
+     *     new Parameter(new Name('id'), new Value('123'))
+     * );
      *
-     * $updated = $attributes->add(new Name('HttpOnly'));
+     * $updated = $attributes->add(
+     *     new Parameter(new Name('id'), new Value('456'))
+     * );
      *
-     * $updated->value(); // Secure; HttpOnly
+     * $updated->value(); // id=123; id=456
      * </code>
      *
      * @since 1.0.0
@@ -244,8 +226,6 @@ final readonly class Attributes extends ValueObject {
      * @param \FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter $attribute <p>
      * Attribute to append.
      * </p>
-     *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the attribute already exists.
      *
      * @return self Updated collection.
      */
@@ -285,8 +265,6 @@ final readonly class Attributes extends ValueObject {
      * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
      * Name of the attribute to remove.
      * </p>
-     *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If an attribute name is duplicated.
      *
      * @return self Updated collection without the specified attribute.
      */

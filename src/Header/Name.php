@@ -68,17 +68,4 @@ readonly class Name extends ValueObject {
 
     }
 
-    /**
-     * @inheritDoc
-     *
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To convert the string to lowercase.
-     */
-    protected function comparisonValue ():string {
-
-        return Runtime\Str\SB\Casing::toLower($this->name);
-
-    }
-
 }
