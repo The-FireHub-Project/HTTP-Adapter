@@ -16,7 +16,7 @@ namespace FireHub\Adapter\HTTP\Request;
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
     Accept\Encoding as AcceptEncoding, Accept\Language as AcceptLanguage,
-    Accept, Name, Value
+    Accept, Cookies, Name, Value
 };
 
 /**
@@ -103,7 +103,7 @@ final readonly class Headers extends MessageHeaders {
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
-     * @return \FireHub\Adapter\HTTP\Header\Accept|null Parsed Accept header, or null if absent.
+     * @return null|\FireHub\Adapter\HTTP\Header\Accept Parsed Accept header, or null if absent.
      */
     public function getAccept ():?Accept {
 
@@ -201,7 +201,7 @@ final readonly class Headers extends MessageHeaders {
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
-     * @return \FireHub\Adapter\HTTP\Header\Accept\Encoding|null Parsed Accept-Encoding header, or null if absent.
+     * @return null|\FireHub\Adapter\HTTP\Header\Accept\Encoding Parsed Accept-Encoding header, or null if absent.
      */
     public function getAcceptEncoding ():?AcceptEncoding {
 
@@ -308,7 +308,7 @@ final readonly class Headers extends MessageHeaders {
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      *
-     * @return \FireHub\Adapter\HTTP\Header\Accept\Language|null Parsed Accept-Language header, or null if absent.
+     * @return null|\FireHub\Adapter\HTTP\Header\Accept\Language Parsed Accept-Language header, or null if absent.
      */
     public function getAcceptLanguage ():?AcceptLanguage {
 
@@ -328,6 +328,104 @@ final readonly class Headers extends MessageHeaders {
         }
 
         return new AcceptLanguage(...$items);
+
+    }
+
+    /**
+     * ### Sets the HTTP Cookie Header
+     *
+     * Replaces all existing Cookie header fields with the supplied collection of cookie pairs.
+     *
+     * The Cookie instance is serialized before storage.
+     *
+     * <code>
+     * $headers = Headers::empty()->withCookie(
+     *     Cookie::parse('session=abc123; theme=dark')
+     * );
+     *
+     * $headers->getCookie()?->value();
+     * // session=abc123; theme=dark
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Cookie::value() To serialize the Cookie header.
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::with() To replace existing header fields.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Cookies $cookie <p>
+     * Cookie header containing the cookie pairs.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return self Updated request headers.
+     */
+    public function withCookie (Cookies $cookie):self {
+
+        return $this->with(
+            new Name('Cookie'),
+            new Value($cookie->value())
+        );
+
+    }
+
+    /**
+     * ### Gets the HTTP Cookie Header
+     *
+     * Retrieves all Cookie header field values and parses each field independently.
+     *
+     * Parsed cookie pairs are combined into a single Cookie collection while preserving their original order and
+     * duplicate names.
+     *
+     * Returns null when the Cookie header is absent.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Cookie'), new Value('session=abc123'))
+     *     ->add(new Name('Cookie'), new Value('theme=dark; lang=en'));
+     *
+     * $cookies = $headers->getCookie();
+     *
+     * $cookies?->count(); // 3
+     * $cookies?->value(); // session=abc123; theme=dark; lang=en
+     *
+     * Headers::empty()->getCookie(); // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Cookie header fields.
+     * @uses \FireHub\Adapter\HTTP\Header\Value::value() To retrieve each field value.
+     * @uses \FireHub\Adapter\HTTP\Header\Cookie::parse() To parse individual header fields.
+     * @uses \FireHub\Adapter\HTTP\Header\Cookie::all() To retrieve parsed cookie pairs.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a cookie pair is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldNameException If a cookie name is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Cookies Parsed Cookies header, or null if absent.
+     */
+    public function getCookie ():?Cookies {
+
+        $values = $this->get(new Name('Cookie'));
+
+        if ($values === []) return null;
+
+        $cookies = [];
+
+        foreach ($values as $value) {
+
+            $parsed = Cookies::parse($value->value());
+
+            foreach ($parsed->all() as $cookie)
+                $cookies[] = $cookie;
+
+        }
+
+        return new Cookies(...$cookies);
 
     }
 
