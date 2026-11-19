@@ -94,7 +94,7 @@ readonly class Items extends ValueObject {
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the primary value is empty or an
-     * attribute is invalid or duplicated.
+     * attribute is invalid.
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a quoted string is unterminated.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.

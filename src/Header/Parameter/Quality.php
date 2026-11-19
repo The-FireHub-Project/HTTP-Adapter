@@ -29,7 +29,7 @@ use FireHub\Runtime;
  * The original quality representation is preserved.
  *
  * <code>
- * use FireHub\Adapter\HTTP\Header\Quality;
+ * use FireHub\Adapter\HTTP\Header\Parameter\Quality;
  *
  * $quality = new Quality('0.8');
  *
@@ -95,8 +95,9 @@ final readonly class Quality extends Parameter {
      * </code>
      *
      * @since 1.0.0
-     *.
+     *
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::parse() To parse the generic HTTP parameter.
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equalsIgnoreCase() To compare the parameter name.
      *
      * @param non-empty-string $value <p>
      * Serialized HTTP quality parameter.
@@ -112,7 +113,7 @@ final readonly class Quality extends Parameter {
 
         $parameter = parent::parse($value);
 
-        if ($parameter->name()->value() !== 'q')
+        if (!$parameter->name()->equalsIgnoreCase(new Name('q')))
             throw new InvalidParameterException(
                 'Expected an HTTP quality parameter named "q".'
             );

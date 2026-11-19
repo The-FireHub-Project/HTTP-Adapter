@@ -32,6 +32,8 @@ use FireHub\Runtime;
  * - Generic media values are converted into Range instances.
  * - Generic quality parameters are converted into Quality instances.
  * - Existing Range and Quality instances are preserved.
+ * - Parameter names are compared case-insensitively.
+ * - Duplicate parameter names are rejected.
  * - The optional quality parameter must be the last attribute.
  *
  * Invalid media ranges, parameters, and quality weights are rejected during normalization.
@@ -98,6 +100,7 @@ final readonly class Accept extends Items {
      * @uses \FireHub\Runtime\Arr\Inspection::count() To get the number of attributes.
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the media range is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the quality value is invalid.
      * @throws \FireHub\Core\Exception\FireHubException If component validation fails.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If an invalid guard exception is returned.
      */

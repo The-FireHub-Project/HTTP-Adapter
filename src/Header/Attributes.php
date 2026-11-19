@@ -24,7 +24,7 @@ use FireHub\Runtime;
  * Stores valueless attributes and name-value parameters while preserving their insertion order and original name
  * casing.
  *
- * Attribute names are unique and compared case-insensitively.
+ * Duplicate attribute names are permitted.
  *
  * This class validates generic attribute syntax without enforcing header-specific attribute semantics.
  *
@@ -75,7 +75,7 @@ final readonly class Attributes extends ValueObject {
      *
      * Delimiters inside quoted strings are preserved. Surrounding HTTP, optional whitespace is ignored.
      *
-     * Empty segments and duplicate attribute names are rejected.
+     * Empty segments are rejected. Duplicate attribute names are preserved.
      *
      * <code>
      * $attributes = Attributes::parse(
@@ -143,7 +143,8 @@ final readonly class Attributes extends ValueObject {
      *     new Name('HttpOnly')
      * );
      *
-     * $attributes->has(new Name('httponly')); // true
+     * $attributes->has(new Name('HttpOnly')); // true
+     * $attributes->has(new Name('httponly')); // false
      * </code>
      *
      * @since 1.0.0
@@ -163,16 +164,18 @@ final readonly class Attributes extends ValueObject {
     }
 
     /**
-     * ### Gets an attribute by name
+     * ### Gets the first attribute by name
      *
      * <code>
      * $attributes = new Attributes(
      *     new Parameter(new Name('SameSite'), new Value('Lax'))
      * );
      *
-     * $attribute = $attributes->get(new Name('samesite'));
+     * $attribute = $attributes->get(new Name('SameSite'));
      *
      * $attribute?->value(); // SameSite=Lax
+     *
+     * $attributes->get(new Name('samesite')); // null
      * </code>
      *
      * @since 1.0.0
@@ -239,11 +242,11 @@ final readonly class Attributes extends ValueObject {
     }
 
     /**
-     * ### Removes an HTTP attribute
+     * Removes all attributes matching the specified name.
      *
-     * Removes the attribute matching the specified name. Attribute names are compared case-insensitive.
+     * Attribute names are compared case-sensitive.
      *
-     * If the attribute does not exist, the collection remains unchanged.
+     * If no matching attributes exist, the collection remains unchanged.
      *
      * <code>
      * $attributes = new Attributes(
@@ -252,7 +255,7 @@ final readonly class Attributes extends ValueObject {
      *     new Parameter(new Name('SameSite'), new Value('Lax'))
      * );
      *
-     * $updated = $attributes->remove(new Name('secure'));
+     * $updated = $attributes->remove(new Name('Secure'));
      *
      * $updated->value(); // HttpOnly; SameSite=Lax
      * </code>

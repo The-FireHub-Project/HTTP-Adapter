@@ -98,7 +98,7 @@ final readonly class Headers extends MessageHeaders {
      * @uses \FireHub\Adapter\HTTP\Header\Items::all() To retrieve parsed media ranges.
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the primary value is empty or an
-     * attribute is invalid or duplicated.
+     * attribute is invalid.
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a quoted string is unterminated.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
@@ -196,7 +196,7 @@ final readonly class Headers extends MessageHeaders {
      * @uses \FireHub\Adapter\HTTP\Header\Items::all() To retrieve parsed content codings.
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the primary value is empty or an
-     * attribute is invalid or duplicated.
+     * attribute is invalid.
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a quoted string is unterminated.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
@@ -302,7 +302,7 @@ final readonly class Headers extends MessageHeaders {
      * @uses \FireHub\Adapter\HTTP\Header\Items::all() To retrieve parsed language ranges.
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the primary value is empty or an
-     * attribute is invalid or duplicated.
+     * attribute is invalid.
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a language range or attribute
      * is invalid.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.

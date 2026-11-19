@@ -74,7 +74,13 @@ readonly class Name extends ValueObject {
      * Compares field names case-insensitively, as required by HTTP.
      *
      * <code>
-     * // Content-Type and content-type represent the same HTTP field name.
+     * $name = new Name('Content-Type');
+     *
+     * $name->equals(new Name('content-type')); // false
+     *
+     * $name->equalsIgnoreCase(new Name('content-type')); // true
+     * $name->equalsIgnoreCase(new Name('CONTENT-TYPE')); // true
+     * $name->equalsIgnoreCase(new Name('Accept')); // false
      * </code>
      *
      * @since 1.0.0
