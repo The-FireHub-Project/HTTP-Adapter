@@ -14,7 +14,7 @@
 namespace FireHub\Adapter\HTTP\Header;
 
 use FireHub\Adapter\HTTP\Header\ {
-    Media\Range, Parameter\Quality
+    Media\Range, Parameter\Quality, Parameter\Quoted,
 };
 use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
 use FireHub\Runtime;
@@ -143,7 +143,10 @@ final readonly class Accept extends Items {
 
             if (!$name->equalsIgnoreCase($quality)) {
 
-                $normalized[] = $attribute;
+                $normalized[] = $attribute instanceof Quoted
+                    ? $attribute
+                    : Quoted::parse($attribute->value());
+
                 continue;
 
             }

@@ -408,7 +408,7 @@ final readonly class Headers extends MessageHeaders {
      *
      * @return null|\FireHub\Adapter\HTTP\Header\Cookies Parsed Cookies header, or null if absent.
      */
-    public function getCookie ():?Cookies {
+    public function getCookies ():?Cookies {
 
         $values = $this->get(new Name('Cookie'));
 

@@ -82,7 +82,7 @@ readonly class Parameter extends ValueObject {
 
         $this->guard(
             fn() => Runtime\Str\SB\Regex::match(
-                '/\A[\x09\x20-\x7E\x80-\xFF]*\z/',
+                '/\A[\x20-\x7E\x80-\xFF]*\z/',
                 $content->value()
             ),
             fn() => new InvalidParameterException(
@@ -93,26 +93,34 @@ readonly class Parameter extends ValueObject {
     }
 
     /**
-     * ### Parses an HTTP header parameter
+     * ### Parses an HTTP Parameter
      *
-     * Parses a serialized HTTP parameter into its name and decoded content.
+     * Parses a generic HTTP name-value pair.
+     *
+     * The first equals sign separates the name from the content.
+     * Additional equals signs are preserved as part of the content.
      *
      * <code>
-     * $parameter = Parameter::parse('charset=utf-8');
+     * $parameter = Parameter::parse('Path=/users');
      *
-     * $parameter->name()->value();    // charset
-     * $parameter->content()->value(); // utf-8
+     * $parameter->name()->value();    // Path
+     * $parameter->content()->value(); // /users
+     *
+     * $parameter = Parameter::parse('token=abc==');
+     *
+     * $parameter->content()->value(); // abc==
+     *
+     * $parameter = Parameter::parse('session=');
+     *
+     * $parameter->content()->value(); // ''
      * </code>
      *
      * @since 1.0.0
      *
-     * @uses self::parseContent() To parse parameter content.
-     * @uses \FireHub\Runtime\Str\SB\Access::part() To retrieve the parameter name and content.
-     * @uses \FireHub\Runtime\Str\SB\Search::firstPosition() To find the equals sign.
+     * @uses \FireHub\Runtime\Str\SB\Search::firstPosition() To locate the separator.
+     * @uses \FireHub\Runtime\Str\SB\Access::part() To extract the components.
      *
-     * @param non-empty-string $value <p>
-     * Serialized HTTP parameter.
-     * </p>
+     * @param non-empty-string $value Serialized HTTP parameter.
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
@@ -133,14 +141,9 @@ readonly class Parameter extends ValueObject {
         $name = Runtime\Str\SB\Access::part($value, 0, $separator);
         $content = Runtime\Str\SB\Access::part($value, $separator + 1);
 
-        if ($content === '')
-            throw new InvalidParameterException(
-                'An HTTP parameter value cannot be empty unless quoted.'
-            );
-
         return new self(
             new Name($name),
-            new Value(self::parseContent($content))
+            new Value($content)
         );
 
     }
@@ -195,34 +198,21 @@ readonly class Parameter extends ValueObject {
      *
      * <code>
      * $parameter = new Parameter(
-     *     new Name('filename'),
-     *     new Value('Annual Report.pdf')
+     *     new Name('Path'),
+     *     new Value('/users')
      * );
      *
-     * $parameter->value(); // filename="Annual Report.pdf"
+     * $parameter->value(); // Path=/users
      * </code>
      *
      * @since 1.0.0
      *
-     * @uses self::isToken() To determine if the parameter content is a token or quoted string.
      * @uses \FireHub\Adapter\HTTP\Header\Name::value() To retrieve the parameter name.
      * @uses \FireHub\Adapter\HTTP\Header\Value::value() To retrieve the parameter content.
-     * @uses \FireHub\Runtime\Str\SB\Replace::replace() To escape special characters.
-     *
-     * @return non-empty-string Serialized HTTP parameter.
      */
-    final public function value ():string {
+    public function value ():string {
 
-        $content = $this->content->value();
-
-        if (self::isToken($content))
-            return $this->name->value() . '=' . $content;
-
-        return $this->name->value() . '="' . Runtime\Str\SB\Replace::replace(
-                ['\\', '"'],
-                ['\\\\', '\\"'],
-                $content
-            ) . '"';
+        return $this->name->value() . '=' . $this->content->value();
 
     }
 
@@ -240,121 +230,6 @@ readonly class Parameter extends ValueObject {
             $this->name,
             $this->content
         ];
-
-    }
-
-    /**
-     * ### Validates an HTTP token
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate HTTP token characters.
-     *
-     * @param string $value <p>
-     * HTTP token value to validate.
-     * </p>
-     *
-     * @return bool True if the value is a valid HTTP token.
-     */
-    private static function isToken (string $value):bool {
-
-        return Runtime\Str\SB\Regex::match(
-            "/\A[!#$%&'*+.^_`|~0-9A-Za-z-]+\z/",
-            $value
-        );
-
-    }
-
-    /**
-     * ### Parses HTTP parameter content
-     *
-     * Validates token content or decodes a quoted-string representation.
-     * @since 1.0.0
-     *
-     * @uses self::parseQuotedContent() To parse quoted-string content.
-     * @uses self::parseTokenContent() To parse token content.
-     *
-     * @param string $content <p>
-     * Serialized parameter content.
-     * </p>
-     *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
-     *
-     * @return string Decoded parameter content.
-     */
-    private static function parseContent (string $content):string {
-
-        if ($content[0] === '"')
-            return self::parseQuotedContent($content);
-
-        if (!self::isToken($content))
-            throw new InvalidParameterException(
-                'Invalid HTTP parameter token value.'
-            );
-
-        return $content;
-
-    }
-
-    /**
-     * ### Parses quoted HTTP parameter content
-     *
-     * Validates quoted-string syntax and decodes quoted-pair escape sequences.
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Runtime\Str\SB\Inspection::length() To determine the length of the quoted-string.
-     * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate quoted-string characters.
-     *
-     * @param string $content <p>
-     * Serialized quoted-string content.
-     * </p>
-     *
-     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the parameter content is invalid.
-     *
-     * @return string Decoded parameter content.
-     */
-    private static function parseQuotedContent (string $content):string {
-
-        $length = Runtime\Str\SB\Inspection::length($content);
-
-        if ($length < 2 || $content[$length - 1] !== '"')
-            throw new InvalidParameterException(
-                'Invalid quoted HTTP parameter value.'
-            );
-
-        $decoded = '';
-
-        for ($index = 1; $index < $length - 1; $index++) {
-
-            $character = $content[$index];
-
-            if ($character === '\\') {
-
-                if (++$index >= $length - 1)
-                    throw new InvalidParameterException(
-                        'Incomplete escape sequence in HTTP parameter.'
-                    );
-
-                $character = $content[$index];
-
-                if (!Runtime\Str\SB\Regex::match(
-                    '/\A[\x09\x20-\x7E\x80-\xFF]\z/',
-                    $character
-                )) throw new InvalidParameterException(
-                    'Invalid escaped character in HTTP parameter.'
-                );
-
-            } else if (!Runtime\Str\SB\Regex::match(
-                '/\A[\x09\x20-\x21\x23-\x5B\x5D-\x7E\x80-\xFF]\z/',
-                $character
-            )) throw new InvalidParameterException(
-                'Invalid character in quoted HTTP parameter.'
-            );
-
-            $decoded .= $character;
-
-        }
-
-        return $decoded;
 
     }
 
