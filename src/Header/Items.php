@@ -51,21 +51,22 @@ readonly class Items extends ValueObject {
      * ### Constructor
      * @since 1.0.0
      *
-     * @uses static::validate() To validate the items.
-     * @uses \FireHub\Runtime\Arr\Access::values() To remove the keys from the items array.
+     * @uses static::normalize() To normalize the items before storage.
      *
      * @param \FireHub\Adapter\HTTP\Header\Item ...$items <p>
-     * HTTP items to store.
+     * HTTP items to store,
      * </p>
      *
      * @return void
      */
     final public function __construct (Item ...$items) {
 
-        foreach ($items as $item)
-            static::validate($item);
+        $normalized = [];
 
-        $this->items = Runtime\Arr\Access::values($items);
+        foreach ($items as $item)
+            $normalized[] = static::normalize($item);
+
+        $this->items = $normalized;
 
     }
 
@@ -348,19 +349,19 @@ readonly class Items extends ValueObject {
     }
 
     /**
-     * ### Validates an HTTP header item
+     * ### Normalizes an HTTP Header Item
      *
-     * Allows specialized HTTP header collections to enforce their own validation rules.
-     *
+     * Allows specialized HTTP header collections to normalize their items before storage.
      * @since 1.0.0
      *
-     * @param \FireHub\Adapter\HTTP\Header\Item $item <p>
-     * HTTP header item to validate.
-     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Item $item HTTP item to normalize.
      *
-     * @return void
+     * @return \FireHub\Adapter\HTTP\Header\Item Normalized HTTP item.
      */
-    protected static function validate (Item $item):void {}
+    protected static function normalize (Item $item):Item {
 
+        return $item;
+
+    }
 
 }

@@ -28,47 +28,51 @@ use FireHub\Runtime;
  *
  * Each entry is represented by an HTTP Item containing a media range and its associated attributes.
  *
- * The optional quality parameter must be the last attribute and may be represented by either a generic Parameter
- * or a specialized Quality instance.
+ * All items are automatically normalized during construction:
+ * - Generic media values are converted into Range instances.
+ * - Generic quality parameters are converted into Quality instances.
+ * - Existing Range and Quality instances are preserved.
+ * - The optional quality parameter must be the last attribute.
+ *
+ * Invalid media ranges, parameters, and quality weights are rejected during normalization.
  *
  * <code>
  * use FireHub\Adapter\HTTP\Header\ {
- *     Accept, Item, Attributes, Name, Value, Parameter,
  *     Media\Range, Parameter\Quality
+ *     Accept, Item, Attributes, Name, Value, Parameter
  * };
  *
- * // Parse an Accept header.
+ * // Parse and normalize an Accept header.
  * $accept = Accept::parse(
  *     'text/html;level=1;q=0.8, application/json;q=0.9'
  * );
  *
  * $accept->count(); // 2
  *
- * // Create an Accept header using strongly typed quality parameters.
+ * // Create an Accept header using generic HTTP components.
  * $accept = new Accept(
  *     new Item(
- *         Range::parse('text/html'),
+ *         new Value('text/html'),
  *         new Attributes(
  *             new Parameter(new Name('level'), new Value('1')),
- *             new Quality('0.8')
+ *             new Parameter(new Name('q'), new Value('0.8'))
  *         )
- *     ),
- *     new Item(
- *         Range::parse('application/json'),
- *         new Attributes(new Quality('0.9'))
  *     )
  * );
  *
- * $accept->value();
- * // text/html; level=1; q=0.8, application/json; q=0.9
+ * // The stored components are automatically normalized.
+ * $item = $accept->all()[0];
  *
- * // Generic quality parameters are also supported.
+ * $item->content() instanceof Range; // true
+ * $item->attributes()->get(new Name('q')) instanceof Quality; // true
+ *
+ * $accept->value(); // text/html; level=1; q=0.8
+ *
+ * // Strongly typed components are also supported.
  * $accept = new Accept(
  *     new Item(
  *         Range::parse('application/json'),
- *         new Attributes(
- *             new Parameter(new Name('q'), new Value('0.9'))
- *         )
+ *         new Attributes(new Quality('0.9'))
  *     )
  * );
  *
@@ -91,18 +95,13 @@ final readonly class Accept extends Items {
      * @uses \FireHub\Adapter\HTTP\Header\Attributes::all() To get all attributes.
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To get the attribute name.
      * @uses \FireHub\Adapter\HTTP\Header\Media\Range::parse() To validate the media range.
-     * @uses \FireHub\Adapter\HTTP\Header\Parameter\Quality::parse() To validate the quality parameter.
      * @uses \FireHub\Runtime\Arr\Inspection::count() To get the number of attributes.
-     *
-     * @param \FireHub\Adapter\HTTP\Header\Item $item <p>
-     * Accept item to validate.
-     * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the media range is invalid.
      * @throws \FireHub\Core\Exception\FireHubException If component validation fails.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If an invalid guard exception is returned.
      */
-    protected static function validate (Item $item):void {
+    protected static function normalize (Item $item):Item {
 
         $content = $item->content();
 
@@ -111,11 +110,13 @@ final readonly class Accept extends Items {
             /** @var non-empty-string $value */
             $value = $content->value();
 
-            Range::parse($value);
+            $content = Range::parse($value);
 
         }
 
         $attributes = $item->attributes()->all();
+        $normalized = [];
+
         $last = Runtime\Arr\Inspection::count($attributes) - 1;
         $quality = new Name('q');
 
@@ -126,18 +127,28 @@ final readonly class Accept extends Items {
                     'Accept attributes must be HTTP parameters.'
                 );
 
-            if (!$attribute->name()->equals($quality))
+            if (!$attribute->name()->equals($quality)) {
+
+                $normalized[] = $attribute;
                 continue;
+
+            }
 
             if ($index !== $last)
                 throw new InvalidFieldValueException(
                     'The Accept quality parameter must be the last attribute.'
                 );
 
-            if (!$attribute instanceof Quality)
-                new Quality($attribute->content()->value());
+            $normalized[] = $attribute instanceof Quality
+                ? $attribute
+                : new Quality($attribute->content()->value());
 
         }
+
+        return new Item(
+            $content,
+            new Attributes(...$normalized)
+        );
 
     }
 
