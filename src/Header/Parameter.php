@@ -18,17 +18,19 @@ use FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException;
 use FireHub\Runtime;
 
 /**
- * ### Represents an HTTP header parameter
+ * ### Represents an HTTP Header Parameter
  *
- * Immutable value object representing a generic HTTP header parameter consisting of a name and a value.
+ * Immutable value object representing a generic HTTP header parameter consisting of a name and content.
  *
- * Parameter names follow HTTP token syntax and are case-insensitive. Parameter content may be represented as a token
- * or a quoted string.
+ * Parameter names follow HTTP token syntax.
  *
- * The original parameter name and decoded content are preserved. Quoting and escaping are applied automatically
- * during serialization.
+ * Parameter content is preserved without interpreting or decoding header-specific syntax.
  *
- * This class validates parameter syntax without interpreting header-specific parameter semantics.
+ * The first equals sign separates the parameter name from its content. Additional equals signs are preserved.
+ *
+ * Serialization returns the name and content without applying quotation marks or escaping.
+ *
+ * Header-specific parameter validation belongs to specialized implementations.
  *
  * <code>
  * use FireHub\Adapter\HTTP\Header\ {
@@ -46,7 +48,7 @@ use FireHub\Runtime;
  *
  * $parameter = Parameter::parse('filename="Annual Report.pdf"');
  *
- * $parameter->content()->value(); // Annual Report.pdf
+ * $parameter->content()->value(); // "Annual Report.pdf"
  * </code>
  *
  * @since 1.0.0
@@ -82,7 +84,7 @@ readonly class Parameter extends ValueObject {
 
         $this->guard(
             fn() => Runtime\Str\SB\Regex::match(
-                '/\A[\x20-\x7E\x80-\xFF]*\z/',
+                '/\A[\x09\x20-\x7E\x80-\xFF]*\z/',
                 $content->value()
             ),
             fn() => new InvalidParameterException(

@@ -145,7 +145,10 @@ final readonly class Accept extends Items {
 
                 $normalized[] = $attribute instanceof Quoted
                     ? $attribute
-                    : Quoted::parse($attribute->value());
+                    : new Quoted(
+                        $name,
+                        $attribute->content()
+                    );
 
                 continue;
 

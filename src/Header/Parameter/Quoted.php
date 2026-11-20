@@ -22,9 +22,35 @@ use FireHub\Runtime;
 /**
  * ### HTTP Token or Quoted-String Parameter
  *
- * Represents a parameter whose value follows HTTP token or quoted-string syntax.
+ * Represents an HTTP parameter whose content follows token or quoted-string syntax.
  *
- * The content is stored without surrounding quotation marks. Serialization adds quotation marks only when required.
+ * Parameter content is stored in decoded form.
+ *
+ * Token-compatible content is serialized without quotation marks. Other valid content is serialized as an escaped
+ * quoted-string.
+ *
+ * <code>
+ * $parameter = new Quoted(
+ *     new Name('charset'),
+ *     new Value('utf-8')
+ * );
+ *
+ * $parameter->value(); // charset=utf-8
+ *
+ * $parameter = new Quoted(
+ *     new Name('filename'),
+ *     new Value('Annual Report.pdf')
+ * );
+ *
+ * $parameter->value(); // filename="Annual Report.pdf"
+ *
+ * $parameter = Quoted::parse(
+ *     'filename="Annual Report.pdf"'
+ * );
+ *
+ * $parameter->content()->value(); // Annual Report.pdf
+ * </code>
+ *
  * @since 1.0.0
  */
 final readonly class Quoted extends Parameter {
