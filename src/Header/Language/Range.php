@@ -70,6 +70,7 @@ final readonly class Range extends Value {
      * ### Constructor
      * @since 1.0.0
      *
+     * @uses \FireHub\Core\Type\ValueObject::guard() To validate the basic language range.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the basic language range.
      *
      * @param non-empty-string $value <p>
@@ -84,14 +85,15 @@ final readonly class Range extends Value {
      */
     public function __construct (string $value) {
 
-        if (
-            $value !== '*'
-            && !Runtime\Str\SB\Regex::match(
-                '/\A[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*\z/',
-                $value
+        $this->guard(
+            fn() => $value === '*'
+                || Runtime\Str\SB\Regex::match(
+                    '/\A[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*\z/',
+                    $value
+                ),
+            fn() => new InvalidFieldValueException(
+                'Invalid HTTP basic language range.'
             )
-        ) throw new InvalidFieldValueException(
-            'Invalid HTTP basic language range.'
         );
 
         parent::__construct($value);

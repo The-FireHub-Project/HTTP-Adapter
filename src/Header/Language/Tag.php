@@ -46,6 +46,7 @@ final readonly class Tag extends Value {
      * ### Constructor
      * @since 1.0.0
      *
+     * @uses \FireHub\Core\Type\ValueObject::guard() To validate the language tag.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the language tag.
      *
      * @param non-empty-string $value <p>
@@ -60,11 +61,14 @@ final readonly class Tag extends Value {
      */
     public function __construct (string $value) {
 
-        if (!Runtime\Str\SB\Regex::match(
-            '/\A[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*\z/',
-            $value
-        )) throw new InvalidFieldValueException(
-            'Invalid HTTP language tag.'
+        $this->guard(
+            fn() => Runtime\Str\SB\Regex::match(
+                '/\A[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*\z/',
+                $value
+            ),
+            fn() => new InvalidFieldValueException(
+                'Invalid HTTP language tag.'
+            )
         );
 
         parent::__construct($value);
