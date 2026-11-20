@@ -39,7 +39,7 @@ use FireHub\Runtime;
  *
  * @since 1.0.0
  */
-final readonly class Attributes extends Collection {
+readonly class Attributes extends Collection {
 
     /**
      * ### Parses a semicolon-separated HTTP attribute list
@@ -163,7 +163,7 @@ final readonly class Attributes extends Collection {
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To get the attribute name.
      * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare attribute names.
      */
-    public function remove (Name $name):self {
+    public function remove (Name $name):static {
 
         $attributes = [];
 
@@ -178,7 +178,7 @@ final readonly class Attributes extends Collection {
 
         }
 
-        return new self(...$attributes);
+        return new static(...$attributes);
 
     }
 

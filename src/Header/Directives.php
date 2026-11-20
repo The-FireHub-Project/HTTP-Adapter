@@ -39,7 +39,7 @@ use FireHub\Runtime;
  *
  * @since 1.0.0
  */
-final readonly class Directives extends Collection {
+readonly class Directives extends Collection {
 
     /**
      * ### Constructor
