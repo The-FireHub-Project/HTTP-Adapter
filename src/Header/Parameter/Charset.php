@@ -49,6 +49,7 @@ final readonly class Charset extends Quoted {
      *
      * @uses \FireHub\Core\Type\ValueObject::guard() To validate the character encoding identifier.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the character encoding identifier.
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize the character encoding identifier.
      *
      * @param \FireHub\Core\Type\Str\Encoding|string $encoding <p>
      * Character encoding identifier.
@@ -62,9 +63,11 @@ final readonly class Charset extends Quoted {
      */
     public function __construct (Encoding|string $encoding) {
 
-        $value = $encoding instanceof Encoding
-            ? $encoding->value
-            : $encoding;
+        $value = Runtime\Str\SB\Casing::toLower(
+            $encoding instanceof Encoding
+                ? $encoding->value
+                : $encoding
+        );
 
         $this->guard(
             static fn():bool => Runtime\Str\SB\Regex::match(
@@ -159,10 +162,8 @@ final readonly class Charset extends Quoted {
     public function encoding ():?Encoding {
 
         foreach (Encoding::cases() as $encoding)
-            if (Runtime\Str\SB\Casing::toLower($encoding->value) === Runtime\Str\SB\Casing::toLower(
-                    $this->content()->value()
-                )
-            ) return $encoding;
+            if (Runtime\Str\SB\Casing::toLower($encoding->value) === $this->content()->value())
+                return $encoding;
 
         return null;
 
