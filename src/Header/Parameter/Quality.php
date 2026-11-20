@@ -50,6 +50,7 @@ final readonly class Quality extends Parameter {
      * ### Constructor
      * @since 1.0.0
      *
+     * @uses \FireHub\Core\Type\ValueObject::guard() To validate the HTTP quality value.
      * @uses \FireHub\Runtime\Str\SB\Regex::match() To validate the HTTP quality value.
      *
      * @param string $quality <p>
@@ -64,11 +65,14 @@ final readonly class Quality extends Parameter {
      */
     public function __construct (string $quality) {
 
-        if (!Runtime\Str\SB\Regex::match(
-            '/\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/',
-            $quality
-        )) throw new InvalidParameterException(
-            'HTTP quality must be between 0 and 1 with at most three decimal places.'
+        $this->guard(
+            static fn():bool => Runtime\Str\SB\Regex::match(
+                '/\A(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)\z/',
+                $quality
+                ),
+            static fn() => new InvalidParameterException(
+                'Invalid HTTP quality value. Expected a value between 0 and 1 with at most three decimal places.'
+            )
         );
 
         parent::__construct(
