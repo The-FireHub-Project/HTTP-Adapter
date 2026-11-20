@@ -53,7 +53,7 @@ use FireHub\Runtime;
  *
  * @since 1.0.0
  */
-final readonly class Quoted extends Parameter {
+readonly class Quoted extends Parameter {
 
     /**
      * ### Constructor
