@@ -13,7 +13,6 @@
 
 namespace FireHub\Adapter\HTTP\Header;
 
-use FireHub\Core\Type\ValueObject;
 use FireHub\Adapter\HTTP\Header\Parsing\Splitter;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException;
 use FireHub\Runtime;
@@ -39,36 +38,8 @@ use FireHub\Runtime;
  * </code>
  *
  * @since 1.0.0
- *
- * @extends \FireHub\Core\Type\ValueObject<string>
  */
-final readonly class Attributes extends ValueObject {
-
-    /**
-     * ### Attributes
-     * @since 1.0.0
-     *
-     * @var list<\FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter>
-     */
-    private array $attributes;
-
-    /**
-     * ### Constructor
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Runtime\Arr\Access::values() To preserve insertion order.
-     *
-     * @param \FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter ...$attributes <p>
-     * Attributes to store.
-     * </p>
-     *
-     * @return void
-     */
-    public function __construct (Name|Parameter ...$attributes) {
-
-        $this->attributes = Runtime\Arr\Access::values($attributes);
-
-    }
+final readonly class Attributes extends Collection {
 
     /**
      * ### Parses a semicolon-separated HTTP attribute list
@@ -136,35 +107,7 @@ final readonly class Attributes extends ValueObject {
     }
 
     /**
-     * ### Checks whether an attribute exists
-     *
-     * <code>
-     * $attributes = new Attributes(
-     *     new Name('HttpOnly')
-     * );
-     *
-     * $attributes->has(new Name('HttpOnly')); // true
-     * $attributes->has(new Name('httponly')); // false
-     * </code>
-     *
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Adapter\HTTP\Header\Attributes::get() To check for attribute existence.
-     *
-     * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
-     * Attribute name to search for.
-     * </p>
-     *
-     * @return bool True if the attribute exists.
-     */
-    public function has (Name $name):bool {
-
-        return $this->get($name) !== null;
-
-    }
-
-    /**
-     * ### Gets the first attribute by name
+     * {@inheritDoc}
      *
      * <code>
      * $attributes = new Attributes(
@@ -182,16 +125,10 @@ final readonly class Attributes extends ValueObject {
      *
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To get the attribute name.
      * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare attribute names.
-     *
-     * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
-     * Attribute name to search for.
-     * </p>
-     *
-     * @return null|\FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter Matching attribute or null.
      */
     public function get (Name $name):null|Name|Parameter {
 
-        foreach ($this->attributes as $attribute) {
+        foreach ($this->parameters as $attribute) {
 
             $current = $attribute instanceof Parameter
                 ? $attribute->name()
@@ -207,46 +144,7 @@ final readonly class Attributes extends ValueObject {
     }
 
     /**
-     * ### Adds an HTTP Attribute
-     *
-     * Appends an attribute to the collection while preserving existing attributes, insertion order, and duplicate
-     * names.
-     *
-     * <code>
-     * $attributes = new Attributes(
-     *     new Parameter(new Name('id'), new Value('123'))
-     * );
-     *
-     * $updated = $attributes->add(
-     *     new Parameter(new Name('id'), new Value('456'))
-     * );
-     *
-     * $updated->value(); // id=123; id=456
-     * </code>
-     *
-     * @since 1.0.0
-     *
-     * @param \FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter $attribute <p>
-     * Attribute to append.
-     * </p>
-     *
-     * @return self Updated collection.
-     */
-    public function add (Name|Parameter $attribute):self {
-
-        return new self(...[
-            ...$this->attributes,
-            $attribute
-        ]);
-
-    }
-
-    /**
-     * Removes all attributes matching the specified name.
-     *
-     * Attribute names are compared case-sensitive.
-     *
-     * If no matching attributes exist, the collection remains unchanged.
+     * {@inheritDoc}
      *
      * <code>
      * $attributes = new Attributes(
@@ -264,18 +162,12 @@ final readonly class Attributes extends ValueObject {
      *
      * @uses \FireHub\Adapter\HTTP\Header\Parameter::name() To get the attribute name.
      * @uses \FireHub\Adapter\HTTP\Header\Name::equals() To compare attribute names.
-     *
-     * @param \FireHub\Adapter\HTTP\Header\Name $name <p>
-     * Name of the attribute to remove.
-     * </p>
-     *
-     * @return self Updated collection without the specified attribute.
      */
     public function remove (Name $name):self {
 
         $attributes = [];
 
-        foreach ($this->attributes as $attribute) {
+        foreach ($this->parameters as $attribute) {
 
             $current = $attribute instanceof Parameter
                 ? $attribute->name()
@@ -287,53 +179,6 @@ final readonly class Attributes extends ValueObject {
         }
 
         return new self(...$attributes);
-
-    }
-
-    /**
-     * ### Returns the number of attributes
-     *
-     * <code>
-     * $attributes = new Attributes(
-     *     new Name('Secure'),
-     *     new Name('HttpOnly')
-     * );
-     *
-     * $attributes->count(); // 2
-     * </code>
-     *
-     * @since 1.0.0
-     *
-     * @uses \FireHub\Runtime\Arr\Inspection::count() To get the number of attributes.
-     *
-     * @return non-negative-int Number of attributes.
-     */
-    public function count ():int {
-
-        return Runtime\Arr\Inspection::count($this->attributes);
-
-    }
-
-    /**
-     * ### Returns all attributes
-     *
-     * <code>
-     * $attributes = new Attributes(
-     *     new Name('Secure'),
-     *     new Name('HttpOnly')
-     * );
-     *
-     * $attributes->all();
-     * // [Name('Secure'), Name('HttpOnly')]
-     * </code>
-     *
-     * @since 1.0.0
-     *
-     * @return list<\FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter> Stored attributes.
-     */
-    public function all ():array {
-
-        return $this->attributes;
 
     }
 
@@ -360,23 +205,10 @@ final readonly class Attributes extends ValueObject {
 
         $values = [];
 
-        foreach ($this->attributes as $attribute)
+        foreach ($this->parameters as $attribute)
             $values[] = $attribute->value();
 
         return Runtime\Str\SB\Delimiter::implode($values, '; ');
-
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @since 1.0.0
-     *
-     * @return list<\FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter> Attributes to compare.
-     */
-    protected function comparisonValue ():array {
-
-        return $this->attributes;
 
     }
 
