@@ -13,12 +13,11 @@
 
 namespace FireHub\Adapter\HTTP\Message;
 
-use FireHub\Adapter\HTTP\Header\{
-    Name, Value
-};
 use FireHub\Adapter\HTTP\Header\ {
+    Cache\Control as CacheControl,
     Content\Disposition as ContentDisposition, Content\Encoding as ContentEncoding, Content\Language as ContentLanguage,
-    Content\Length as ContentLength, Content\Type as ContentType
+    Content\Length as ContentLength, Content\Type as ContentType,
+    Name, Value
 };
 use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
 use FireHub\Runtime;
@@ -814,6 +813,109 @@ readonly class Headers {
             );
 
         return ContentLength::parse($values[0]->value());
+
+    }
+
+    /**
+     * ### Sets the HTTP Cache-Control Header
+     *
+     * Replaces all existing Cache-Control header fields with the supplied collection of cache directives.
+     *
+     * The supplied Control instance is serialized before storage.
+     *
+     * <code>
+     * $headers = Headers::empty()->withCacheControl(
+     *     new Control(
+     *         new Directive\PublicCache(),
+     *         new Directive\MaxAge(3600)
+     *     )
+     * );
+     *
+     * $headers->getCacheControl()?->value();
+     * // public, max-age=3600
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Cache\Control::value() To serialize the Cache-Control directives.
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::with() To replace existing header fields.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Cache\Control $control <p>
+     * Cache-Control directives to store.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the serialized header value is
+     * invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return static Updated HTTP headers.
+     */
+    public function withCacheControl (CacheControl $control):static {
+
+        return $this->with(
+            new Name('Cache-Control'),
+            new Value($control->value())
+        );
+
+    }
+
+    /**
+     * ### Gets the HTTP Cache-Control Header
+     *
+     * Retrieves all Cache-Control header field values and parses each field independently.
+     *
+     * Parsed directives are combined into a single Control collection while preserving their original order and
+     * duplicate directives.
+     *
+     * Returns null when the Cache-Control header is absent.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Cache-Control'), new Value('public'))
+     *     ->add(new Name('Cache-Control'), new Value('max-age=3600'));
+     *
+     * $control = $headers->getCacheControl();
+     *
+     * $control?->count(); // 2
+     * $control?->value(); // public, max-age=3600
+     *
+     * Headers::empty()->getCacheControl(); // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve Cache-Control header fields.
+     * @uses \FireHub\Adapter\HTTP\Header\Value::value() To retrieve serialized field values.
+     * @uses \FireHub\Adapter\HTTP\Header\Cache\Control::parse() To parse each Cache-Control header field.
+     * @uses \FireHub\Adapter\HTTP\Header\Collection::all() To retrieve parsed cache directives.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If a recognized cache directive is
+     * invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Cache\Control Parsed Cache-Control directives, or null if absent.
+     */
+    public function getCacheControl ():?CacheControl {
+
+        $values = $this->get(new Name('Cache-Control'));
+
+        if ($values === []) return null;
+
+        $directives = [];
+
+        foreach ($values as $value) {
+
+            $parsed = CacheControl::parse($value->value());
+
+            foreach ($parsed->all() as $directive)
+                $directives[] = $directive;
+
+        }
+
+        return new CacheControl(...$directives);
 
     }
 
