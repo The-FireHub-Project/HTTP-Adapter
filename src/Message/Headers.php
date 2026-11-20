@@ -18,7 +18,7 @@ use FireHub\Adapter\HTTP\Header\{
 };
 use FireHub\Adapter\HTTP\Header\ {
     Content\Disposition as ContentDisposition, Content\Encoding as ContentEncoding, Content\Language as ContentLanguage,
-    Content\Type as ContentType
+    Content\Length as ContentLength, Content\Type as ContentType
 };
 use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
 use FireHub\Runtime;
@@ -738,6 +738,82 @@ readonly class Headers {
         $value = $values[0]->value();
 
         return ContentDisposition::parse($value);
+
+    }
+
+    /**
+     * ### Sets the Content-Length Header
+     *
+     * Returns a new headers collection with the Content-Length field set to the specified byte count.
+     *
+     * Existing Content-Length values are replaced.
+     *
+     * <code>
+     * $headers = $headers->withContentLength(
+     *     new ContentLength(1024)
+     * );
+     *
+     * $headers->getContentLength()?->bytes(); // 1024
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::with() To replace the header field.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Length::value() To serialize the content length.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Content\Length $length <p>
+     * Content length in bytes.
+     * </p>
+     *
+     * @return static Updated headers collection.
+     */
+    final public function withContentLength (ContentLength $length):static {
+
+        return $this->with(
+            new Name('Content-Length'),
+            new Value($length->value())
+        );
+
+    }
+
+    /**
+     * ### Gets the Content-Length Header
+     *
+     * Returns the parsed Content-Length header value, or null if absent.
+     *
+     * Multiple Content-Length field values are rejected to avoid ambiguous message framing.
+     *
+     * <code>
+     * $length = $headers->getContentLength();
+     *
+     * $length?->bytes(); // 1024
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve the header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Length::parse() To parse the content length.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To check for multiple Content-Length fields.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header is invalid or ambiguous.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Content\Length Parsed content length or null.
+     */
+    final public function getContentLength ():?ContentLength {
+
+        $values = $this->get(new Name('Content-Length'));
+
+        if ($values === [])
+            return null;
+
+        if (Runtime\Arr\Inspection::count($values) !== 1)
+            throw new InvalidFieldValueException(
+                'Content-Length must contain exactly one header field value.'
+            );
+
+        return ContentLength::parse($values[0]->value());
 
     }
 
