@@ -52,6 +52,34 @@ use FireHub\Runtime;
 readonly class Control extends Directives {
 
     /**
+     * ### Constructor
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Cache\Control::normalize() To normalize known cache directives.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter ...$directives <p>
+     * Cache-Control directives.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If a recognized directive contains an
+     * invalid argument.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return void
+     */
+    public function __construct (Name|Parameter ...$directives) {
+
+        $normalized = [];
+
+        foreach ($directives as $directive)
+            $normalized[] = self::normalize($directive);
+
+        parent::__construct(...$normalized);
+
+    }
+
+    /**
      * ### Parses a Cache-Control Header
      *
      * Parses a comma-separated Cache-Control header value into a collection of typed cache directives.
@@ -203,6 +231,110 @@ readonly class Control extends Directives {
         );
 
         return $directive;
+
+    }
+
+    /**
+     * ### Normalizes a Cache-Control Directive
+     *
+     * Converts recognized generic HTTP directives into their specialized Cache-Control value objects.
+     *
+     * Already specialized directives are preserved.
+     *
+     * Unknown extension directives remain unchanged.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Str\SB\Casing::toLower() To normalize directive names.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter $directive <p>
+     * Directive to normalize.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If a recognized directive is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return \FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter Normalized directive.
+     */
+    private static function normalize (Name|Parameter $directive):Name|Parameter {
+
+        $name = $directive instanceof Parameter
+            ? $directive->name()
+            : $directive;
+
+        $name = Runtime\Str\SB\Casing::toLower($name->value());
+
+        return match ($name) {
+            'max-age' => $directive instanceof Directive\MaxAge
+                ? $directive
+                : Directive\MaxAge::parse($directive->value()),
+            's-maxage' => $directive instanceof Directive\SMaxAge
+                ? $directive
+                : Directive\SMaxAge::parse($directive->value()),
+            'max-stale' => $directive instanceof Directive\MaxStale
+                ? $directive
+                : Directive\MaxStale::parse($directive->value()),
+            'min-fresh' => $directive instanceof Directive\MinFresh
+                ? $directive
+                : Directive\MinFresh::parse($directive->value()),
+            'stale-while-revalidate' => $directive instanceof Directive\StaleWhileRevalidate
+                ? $directive
+                : Directive\StaleWhileRevalidate::parse($directive->value()),
+            'stale-if-error' => $directive instanceof Directive\StaleIfError
+                ? $directive
+                : Directive\StaleIfError::parse($directive->value()),
+            'no-cache' => $directive instanceof Directive\NoCache
+                ? $directive
+                : Directive\NoCache::parse($directive->value()),
+            'private' => $directive instanceof Directive\PrivateCache
+                ? $directive
+                : Directive\PrivateCache::parse($directive->value()),
+            'no-store' => self::normalizeFlag($directive, new Directive\NoStore()),
+            'no-transform' => self::normalizeFlag($directive, new Directive\NoTransform()),
+            'only-if-cached' => self::normalizeFlag($directive, new Directive\OnlyIfCached()),
+            'must-revalidate' => self::normalizeFlag($directive, new Directive\MustRevalidate()),
+            'proxy-revalidate' => self::normalizeFlag($directive, new Directive\ProxyRevalidate()),
+            'must-understand' => self::normalizeFlag($directive, new Directive\MustUnderstand()),
+            'public' => self::normalizeFlag($directive, new Directive\PublicCache()),
+            'immutable' => self::normalizeFlag($directive, new Directive\Immutable()),
+            default => $directive
+
+        };
+
+    }
+
+    /**
+     * ### Normalizes a Cache-Control Flag Directive
+     *
+     * Converts a generic HTTP name into a specialized Cache-Control flag directive.
+     *
+     * Flag directives must not contain arguments.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Name::equalsIgnoreCase() To validate the directive name.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Name|\FireHub\Adapter\HTTP\Header\Parameter $directive <p>
+     * Directive to normalize.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Header\Name $expected <p>
+     * Specialized flag directive.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the directive contains an argument.
+     *
+     * @return \FireHub\Adapter\HTTP\Header\Name Normalized flag directive.
+     */
+    private static function normalizeFlag (Name|Parameter $directive, Name $expected):Name {
+
+        if ($directive instanceof Parameter)
+            throw new InvalidParameterException(
+                'Cache-Control ' . $expected->value() .
+                ' directive must not contain an argument.'
+            );
+
+        return $directive instanceof $expected
+            ? $directive
+            : $expected;
 
     }
 
