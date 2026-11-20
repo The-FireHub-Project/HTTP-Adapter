@@ -16,6 +16,9 @@ namespace FireHub\Adapter\HTTP\Message;
 use FireHub\Adapter\HTTP\Header\{
     Name, Value
 };
+use FireHub\Adapter\HTTP\Header\ {
+    Content\Encoding as ContentEncoding, Content\Language as ContentLanguage
+};
 
 /**
  * ### Represents an immutable collection of HTTP headers
@@ -332,6 +335,205 @@ readonly class Headers {
     final public function all ():array {
 
         return $this->headers;
+
+    }
+
+    /**
+     * ### Sets the HTTP Content-Encoding Header
+     *
+     * Replaces all existing Content-Encoding header fields with the supplied collection of content codings.
+     *
+     * Content codings are serialized in the order in which they were applied to the representation.
+     *
+     * The original header collection remains unchanged.
+     *
+     * <code>
+     * $headers = Headers::empty()->withContentEncoding(
+     *     ContentEncoding::parse('gzip, br')
+     * );
+     *
+     * $headers->getContentEncoding()?->value();
+     * // gzip, br
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Encoding::value() To serialize the content codings.
+     * @uses self::with() To replace existing Content-Encoding header fields.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Content\Encoding $encoding <p>
+     * Content-Encoding header containing the applied content codings.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the serialized header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return static Updated HTTP headers.
+     */
+    final public function withContentEncoding (ContentEncoding $encoding):static {
+
+        return $this->with(
+            new Name('Content-Encoding'),
+            new Value($encoding->value())
+        );
+
+    }
+
+    /**
+     * ### Gets the HTTP Content-Encoding Header
+     *
+     * Retrieves all Content-Encoding header field values and parses each field independently.
+     *
+     * Parsed content codings are combined into a single collection while preserving their original order.
+     *
+     * Returns null when the Content-Encoding header is absent.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Content-Encoding'), new Value('gzip'))
+     *     ->add(new Name('Content-Encoding'), new Value('br'));
+     *
+     * $encoding = $headers->getContentEncoding();
+     *
+     * $encoding?->count(); // 2
+     * $encoding?->value(); // gzip, br
+     *
+     * Headers::empty()->getContentEncoding(); // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses self::get() To retrieve Content-Encoding header fields.
+     * @uses \FireHub\Adapter\HTTP\Header\Value::value() To retrieve each field value.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Encoding::parse() To parse individual header fields.
+     * @uses \FireHub\Adapter\HTTP\Header\Items::all() To retrieve parsed content codings.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a content coding is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the header contains invalid items.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Content\Encoding Parsed Content-Encoding header, or null if absent.
+     */
+    final public function getContentEncoding ():?ContentEncoding {
+
+        $values = $this->get(new Name('Content-Encoding'));
+
+        if ($values === []) return null;
+
+        $items = [];
+
+        foreach ($values as $value) {
+
+            $parsed = ContentEncoding::parse($value->value());
+
+            foreach ($parsed->all() as $item)
+                $items[] = $item;
+
+        }
+
+        return new ContentEncoding(...$items);
+
+    }
+
+    /**
+     * ### Sets the HTTP Content-Language Header
+     *
+     * Replaces all existing Content-Language header fields with the supplied collection of language tags.
+     *
+     * Language tags identify the intended audience of the representation rather than necessarily every language
+     * appearing in its content.
+     *
+     * The original header collection remains unchanged.
+     *
+     * <code>
+     * $headers = Headers::empty()->withContentLanguage(
+     *     ContentLanguage::parse('hr-HR, en-US')
+     * );
+     *
+     * $headers->getContentLanguage()?->value();
+     * // hr-HR, en-US
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Language::value() To serialize the language tags.
+     * @uses self::with() To replace existing Content-Language header fields.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Content\Language $language <p>
+     * Content-Language header containing the representation language tags.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the serialized header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return static Updated HTTP headers.
+     */
+    final public function withContentLanguage (ContentLanguage $language):static {
+
+        return $this->with(
+            new Name('Content-Language'),
+            new Value($language->value())
+        );
+
+    }
+
+    /**
+     * ### Gets the HTTP Content-Language Header
+     *
+     * Retrieves all Content-Language header field values and parses each field independently.
+     *
+     * Parsed language tags are combined into a single collection while preserving their original order.
+     *
+     * Returns null when the Content-Language header is absent.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(new Name('Content-Language'), new Value('hr-HR'))
+     *     ->add(new Name('Content-Language'), new Value('en-US'));
+     *
+     * $language = $headers->getContentLanguage();
+     *
+     * $language?->count(); // 2
+     * $language?->value(); // hr-HR, en-US
+     *
+     * Headers::empty()->getContentLanguage(); // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses self::get() To retrieve Content-Language header fields.
+     * @uses \FireHub\Adapter\HTTP\Header\Value::value() To retrieve each field value.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Language::parse() To parse individual header fields.
+     * @uses \FireHub\Adapter\HTTP\Header\Items::all() To retrieve parsed language tags.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If a language tag is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the header contains invalid items.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Content\Language Parsed Content-Language header, or null if absent.
+     */
+    final public function getContentLanguage ():?ContentLanguage {
+
+        $values = $this->get(new Name('Content-Language'));
+
+        if ($values === []) return null;
+
+        $items = [];
+
+        foreach ($values as $value) {
+
+            $parsed = ContentLanguage::parse($value->value());
+
+            foreach ($parsed->all() as $item)
+                $items[] = $item;
+
+        }
+
+        return new ContentLanguage(...$items);
 
     }
 
