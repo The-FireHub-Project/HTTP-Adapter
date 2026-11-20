@@ -38,7 +38,7 @@ use FireHub\Runtime;
  *
  * @extends \FireHub\Core\Type\ValueObject<non-empty-string>
  */
-final readonly class Item extends ValueObject {
+readonly class Item extends ValueObject {
 
     /**
      * ### Constructor

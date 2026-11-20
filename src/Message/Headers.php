@@ -17,8 +17,10 @@ use FireHub\Adapter\HTTP\Header\{
     Name, Value
 };
 use FireHub\Adapter\HTTP\Header\ {
-    Content\Encoding as ContentEncoding, Content\Language as ContentLanguage
+    Content\Encoding as ContentEncoding, Content\Language as ContentLanguage, Content\Type as ContentType
 };
+use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
+use FireHub\Runtime;
 
 /**
  * ### Represents an immutable collection of HTTP headers
@@ -534,6 +536,105 @@ readonly class Headers {
         }
 
         return new ContentLanguage(...$items);
+
+    }
+
+    /**
+     * ### Sets the HTTP Content-Type Header
+     *
+     * Replaces all existing Content-Type header fields with the supplied media type and its parameters.
+     *
+     * The original header collection remains unchanged.
+     *
+     * <code>
+     * $headers = Headers::empty()->withContentType(
+     *     ContentType::parse('text/html; charset=UTF-8')
+     * );
+     *
+     * $headers->getContentType()?->value();
+     * // text/html; charset=utf-8
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Type::value() To serialize the Content-Type header.
+     * @uses self::with() To replace existing Content-Type header fields.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Content\Type $type <p>
+     * Content-Type header containing the media type and its parameters.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the serialized header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return static Updated HTTP headers.
+     */
+    final public function withContentType (ContentType $type):static {
+
+        return $this->with(
+            new Name('Content-Type'),
+            new Value($type->value())
+        );
+
+    }
+
+    /**
+     * ### Gets the HTTP Content-Type Header
+     *
+     * Retrieves and parses the Content-Type header.
+     *
+     * Unlike list-based HTTP fields, Content-Type represents a single media type and cannot be combined with
+     * multiple field values.
+     *
+     * Returns null when the header is absent.
+     *
+     * Throws an exception when multiple Content-Type fields are present.
+     *
+     * <code>
+     * $headers = Headers::empty()
+     *     ->add(
+     *         new Name('Content-Type'),
+     *         new Value('application/json; charset=UTF-8')
+     *     );
+     *
+     * $type = $headers->getContentType();
+     *
+     * $type?->content()->value(); // application/json
+     * $type?->value();            // application/json; charset=utf-8
+     *
+     * Headers::empty()->getContentType(); // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses self::get() To retrieve Content-Type header fields.
+     * @uses \FireHub\Adapter\HTTP\Header\Value::value() To retrieve the serialized field value.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Type::parse() To parse the Content-Type header.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To check for multiple Content-Type fields.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If multiple Content-Type fields are present or the media type is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If a Content-Type parameter is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Content\Type Parsed Content-Type header, or null if absent.
+     */
+    final public function getContentType ():?ContentType {
+
+        $values = $this->get(new Name('Content-Type'));
+
+        if ($values === []) return null;
+
+        if (Runtime\Arr\Inspection::count($values) !== 1)
+            throw new InvalidFieldValueException(
+                'Content-Type must contain exactly one header field.'
+            );
+
+        /** @var non-empty-string $value */
+        $value = $values[0]->value();
+
+        return ContentType::parse($value);
 
     }
 
