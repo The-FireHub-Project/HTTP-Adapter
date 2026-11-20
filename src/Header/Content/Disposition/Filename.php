@@ -11,7 +11,7 @@
  * @package Adapter\HTTP
  */
 
-namespace FireHub\Adapter\HTTP\Header\Disposition;
+namespace FireHub\Adapter\HTTP\Header\Content\Disposition;
 
 use FireHub\Adapter\HTTP\Header\{
     Name,
@@ -19,7 +19,6 @@ use FireHub\Adapter\HTTP\Header\{
 };
 use FireHub\Adapter\HTTP\Header\Parameter\Quoted;
 use FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException;
-use FireHub\Runtime;
 
 /**
  * ### HTTP Content-Disposition Filename Parameter

@@ -11,7 +11,7 @@
  * @package Adapter\HTTP
  */
 
-namespace FireHub\Adapter\HTTP\Header\Disposition;
+namespace FireHub\Adapter\HTTP\Header\Content\Disposition;
 
 use FireHub\Core\Type\Str\Encoding;
 use FireHub\Adapter\HTTP\Header\{

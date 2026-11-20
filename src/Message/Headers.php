@@ -17,7 +17,8 @@ use FireHub\Adapter\HTTP\Header\{
     Name, Value
 };
 use FireHub\Adapter\HTTP\Header\ {
-    Content\Encoding as ContentEncoding, Content\Language as ContentLanguage, Content\Type as ContentType
+    Content\Disposition as ContentDisposition, Content\Encoding as ContentEncoding, Content\Language as ContentLanguage,
+    Content\Type as ContentType
 };
 use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
 use FireHub\Runtime;
@@ -635,6 +636,108 @@ readonly class Headers {
         $value = $values[0]->value();
 
         return ContentType::parse($value);
+
+    }
+
+    /**
+     * ### Sets the Content-Disposition Header
+     *
+     * Returns a new headers collection with the Content-Disposition field set to the specified value.
+     *
+     * Any existing Content-Disposition values are replaced.
+     *
+     * <code>
+     * $headers = $headers->withContentDisposition(
+     *     new ContentDisposition(
+     *         Type::attachment(),
+     *         new Attributes(
+     *             new Filename('report.pdf')
+     *         )
+     *     )
+     * );
+     *
+     * $headers->getContentDisposition()?->type()->value();
+     * // attachment
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::with() To replace the header field.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Disposition::value() To serialize the disposition.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Content\Disposition $disposition <p>
+     * Content-Disposition header value.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the serialized header value is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return static Updated headers collection.
+     */
+    final public function withContentDisposition (ContentDisposition $disposition):static {
+
+        return $this->with(
+            new Name('Content-Disposition'),
+            new Value($disposition->value())
+        );
+
+    }
+
+    /**
+     * ### Gets the Content-Disposition Header
+     *
+     * Returns the parsed Content-Disposition header value.
+     *
+     * Returns null when the header is absent.
+     *
+     * Content-Disposition must contain exactly one header field value. Multiple field values are rejected instead of
+     * being combined.
+     *
+     * <code>
+     * $disposition = $headers->getContentDisposition();
+     *
+     * if ($disposition !== null) {
+     *
+     *     $disposition->type()->value(); // attachment
+     *
+     *     $filename = $disposition->getParameter(
+     *         new Name('filename')
+     *     );
+     *
+     * }
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::get() To retrieve the header values.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Disposition::parse() To parse the header.
+     * @uses \FireHub\Runtime\Arr\Inspection::count() To check for multiple Content-Disposition fields.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If multiple Content-Disposition
+     * fields exist or the value is invalid.
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidParameterException If the disposition parameters are invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Content\Disposition Parsed Content-Disposition header or null.
+     */
+    final public function getContentDisposition ():?ContentDisposition {
+
+        $values = $this->get(new Name('Content-Disposition'));
+
+        if ($values === [])
+            return null;
+
+        if (Runtime\Arr\Inspection::count($values) !== 1)
+            throw new InvalidFieldValueException(
+                'Content-Disposition must contain exactly one header field.'
+            );
+
+        /** @var non-empty-string $value */
+        $value = $values[0]->value();
+
+        return ContentDisposition::parse($value);
 
     }
 
