@@ -67,91 +67,140 @@ final readonly class Matcher {
     /**
      * ### Matches an HTTP request
      *
-     * Searches registered route candidates for a matching request method and URI path.
+     * Resolves the most specific route pattern matching the request path, then selects the route matching the
+     * requested HTTP method.
      *
-     * Static routes take precedence over dynamic routes.
-     *
-     * Returns null when no route matches.
+     * Route specificity is independent of the HTTP method.
      *
      * <code>
      * $match = $matcher->match(
      *     Standard::GET,
-     *     new Path('/users/123/posts/456')
+     *     new Path('/users/123')
      * );
      *
-     * $match?->parameters();
+     * $match?->parameter('id');
      *
-     * // ['id' => '123', 'post' => '456']
+     * // '123'
      * </code>
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Router\Storage::candidates() To search for route candidates.
-     * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchSegments() To extract named parameters.
-     * @uses \FireHub\Foundation\Uri\Component\Path::normalized() To normalize the request path.
-     * @uses \FireHub\Runtime\Str\SB\Delimiter::explode() To split the normalized path into segments.
-     * @uses \FireHub\Runtime\Str\SB\Access::part() To access the normalized path segment.
-     * @uses \FireHub\Runtime\Arr\Inspection::count() To determine the number of path segments.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchingRoutes() To retrieve matching routes.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::compareSpecificity() To compare route specificity.
      *
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
      * HTTP request method.
      * </p>
-     * @param \FireHub\Foundation\Uri\Component\Path<string> $path<p>
+     * @param \FireHub\Foundation\Uri\Component\Path<string> $path <p>
      * HTTP request path.
      * </p>
      *
-     * @return null|\FireHub\Adapter\HTTP\Router\RouteMatch Matched route or null.
+     * @return null|RouteMatch Matched route or null.
      */
     public function match (Method $method, Path $path):?RouteMatch {
 
-        $normalized = $path->normalized();
+        $matches = $this->matchingRoutes($path);
 
-        $segments = $normalized === '/'
-            ? []
-            : Runtime\Str\SB\Delimiter::explode(
-                Runtime\Str\SB\Access::part($normalized, 1),
-                '/'
-            );
+        if ($matches === [])
+            return null;
 
-        $static_match = null;
-        $dynamic_match = null;
-        $static_path_exists = false;
+        $best = $matches[0];
 
-        foreach ($this->storage->candidates($path) as $route) {
-
-            $parameters = $this->matchSegments(
-                $route->pattern(),
-                $segments
-            );
-
-            if ($parameters === null)
-                continue;
-
-            if (!$route->pattern()->isDynamic()) {
-
-                $static_path_exists = true;
-
-                if ($route->method()->value() === $method->value())
-                    $static_match = new RouteMatch($route, []);
-
-                continue;
-
-            }
+        foreach ($matches as $match) {
 
             if (
-                $dynamic_match === null
-                && $route->method()->value() === $method->value()
-            ) $dynamic_match = new RouteMatch(
-                $route,
-                $parameters
-            );
+                $this->compareSpecificity(
+                    $match->route()->pattern(),
+                    $best->route()->pattern()
+                ) > 0
+            ) $best = $match;
 
         }
 
-        if ($static_path_exists)
-            return $static_match;
+        foreach ($matches as $match) {
 
-        return $dynamic_match;
+            if (
+                $this->compareSpecificity(
+                    $match->route()->pattern(),
+                    $best->route()->pattern()
+                ) !== 0
+            ) continue;
+
+            if ($match->route()->method()->value() === $method->value())
+                return $match;
+
+        }
+
+        return null;
+
+    }
+
+    /**
+     * ### Gets allowed HTTP methods for a request path
+     *
+     * Returns HTTP methods registered for the most specific matching route pattern.
+     *
+     * Less specific matching patterns are ignored.
+     *
+     * <code>
+     * $methods = $matcher->allowedMethods(
+     *     new Path('/users/123')
+     * );
+     *
+     * // ['GET', 'POST']
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchingRoutes() To retrieve matching routes.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::compareSpecificity() To compare route specificity.
+     * @uses \FireHub\Runtime\Arr\Inspection::inArray() To check for duplicate HTTP method tokens.
+     *
+     * @param \FireHub\Foundation\Uri\Component\Path<string> $path <p>
+     * HTTP request path.
+     * </p>
+     *
+     * @return list<non-empty-string> Allowed HTTP method tokens.
+     */
+    public function allowedMethods (Path $path):array {
+
+        $matches = $this->matchingRoutes($path);
+
+        if ($matches === [])
+            return [];
+
+        $best = $matches[0];
+
+        foreach ($matches as $match) {
+
+            if (
+                $this->compareSpecificity(
+                    $match->route()->pattern(),
+                    $best->route()->pattern()
+                ) > 0
+            ) $best = $match;
+
+        }
+
+        $methods = [];
+
+        foreach ($matches as $match) {
+
+            if (
+                $this->compareSpecificity(
+                    $match->route()->pattern(),
+                    $best->route()->pattern()
+                ) !== 0
+            ) continue;
+
+            $method = $match->route()->method()->value();
+
+            if (!Runtime\Arr\Inspection::inArray($methods, $method))
+                $methods[] = $method;
+
+        }
+
+        return $methods;
 
     }
 
@@ -217,6 +266,104 @@ final readonly class Matcher {
         }
 
         return $parameters;
+
+    }
+
+    /**
+     * ### Compares route pattern specificity
+     *
+     * Compares two route patterns from left to right.
+     *
+     * A static segment has higher priority than a dynamic segment at the first position where the patterns differ.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Pattern::canonicalSegments() To retrieve the canonical route segments.
+     *
+     * @param \FireHub\Adapter\HTTP\Router\Pattern $first <p>
+     * First route pattern.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Router\Pattern $second <p>
+     * Second route pattern.
+     * </p>
+     *
+     * @return int<-1, 1> Positive if the first pattern has higher priority, negative if the second has higher
+     * priority, or zero if equal.
+     */
+    private function compareSpecificity (Pattern $first, Pattern $second):int {
+
+        $first_segments = $first->canonicalSegments();
+        $second_segments = $second->canonicalSegments();
+
+        foreach ($first_segments as $index => $segment) {
+
+            if (!isset($second_segments[$index]))
+                break;
+
+            $first_dynamic = $segment[0] === '{';
+            $second_dynamic = $second_segments[$index][0] === '{';
+
+            if ($first_dynamic === $second_dynamic)
+                continue;
+
+            return $first_dynamic ? -1 : 1;
+
+        }
+
+        return 0;
+
+    }
+
+    /**
+     * ### Gets routes matching a request path
+     *
+     * Matches route patterns independently of HTTP methods.
+     *
+     * Extracts named parameters for every matching route.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchSegments() To match route segments.
+     * @uses \FireHub\Adapter\HTTP\Router\Storage::candidates() To retrieve candidate routes.
+     * @uses \FireHub\Foundation\Uri\Component\Path::normalized() To retrieve the normalized path.
+     * @uses \FireHub\Runtime\Str\SB\Delimiter::explode() To split the normalized path into segments.
+     * @uses \FireHub\Runtime\Str\SB\Access::part() To access the segment.
+     *
+     * @param \FireHub\Foundation\Uri\Component\Path<string> $path <p>
+     * HTTP request path.
+     * </p>
+     *
+     * @return list<\FireHub\Adapter\HTTP\Router\RouteMatch> Routes matching the request path.
+     */
+    private function matchingRoutes (Path $path):array {
+
+        $normalized = $path->normalized();
+
+        $segments = $normalized === '/'
+            ? []
+            : Runtime\Str\SB\Delimiter::explode(
+                Runtime\Str\SB\Access::part($normalized, 1),
+                '/'
+            );
+
+        $matches = [];
+
+        foreach ($this->storage->candidates($path) as $route) {
+
+            $parameters = $this->matchSegments(
+                $route->pattern(),
+                $segments
+            );
+
+            if ($parameters === null)
+                continue;
+
+            $matches[] = new RouteMatch(
+                $route,
+                $parameters
+            );
+
+        }
+
+        return $matches;
 
     }
 
