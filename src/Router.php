@@ -23,8 +23,8 @@ use FireHub\Adapter\HTTP\Response\ {
 };
 use FireHub\Adapter\HTTP\Header\Allow;
 use FireHub\Adapter\HTTP\Router\ {
-    Matcher\AllowedMethods, Storage\Map,
-    Dispatcher, Matcher, Pattern, Route, RouteBuilder, Storage
+    Matcher\AllowedMethods, Route\Name, Storage\Map,
+    Dispatcher, Matcher, Route, RouteBuilder, Storage
 };
 use Closure;
 
@@ -535,6 +535,38 @@ final class Router implements Handler {
             ResponseStatus::METHOD_NOT_ALLOWED,
             headers: $headers
         );
+
+    }
+
+    /**
+     * ### Finds a registered route by name
+     *
+     * Retrieves a route definition using its unique name.
+     *
+     * Returns null when no route with the specified name exists.
+     *
+     * <code>
+     * $route = $router->route(
+     *     new Name('users.show')
+     * );
+     *
+     * if ($route !== null)
+     *     echo $route->pattern()->value();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Storage::findByName() To retrieve the registered route.
+     *
+     * @param \FireHub\Adapter\HTTP\Router\Route\Name $name <p>
+     * Registered route name.
+     * </p>
+     *
+     * @return null|\FireHub\Adapter\HTTP\Router\Route Matching route, or null if not found.
+     */
+    public function route (Name $name):?Route {
+
+        return $this->storage->findByName($name);
 
     }
 

@@ -14,14 +14,16 @@
 namespace FireHub\Adapter\HTTP\Router\Storage;
 
 use FireHub\Adapter\HTTP\Router\ {
-    Route, Storage
+    Route\Name, Route, Storage
 };
 use FireHub\Foundation\DataStructure\ {
     Factory\MapFactory, Factory\SetFactory,
     Map as MapDS, Set as SetDS
 };
 use FireHub\Foundation\Uri\Component\Path;
-use FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException;
+use FireHub\Adapter\HTTP\Router\Exception\ {
+    DuplicateRouteException, DuplicateRouteNameException
+};
 use FireHub\Runtime;
 
 /**
@@ -87,6 +89,14 @@ final class Map implements Storage {
     private SetDS $signatures;
 
     /**
+     * ### Named route index
+     * @since 1.0.0
+     *
+     * @var \FireHub\Foundation\DataStructure\Map<string, \FireHub\Adapter\HTTP\Router\Route>
+     */
+    private MapDS $named_routes;
+
+    /**
      * ### Constructor
      * @since 1.0.0
      *
@@ -109,9 +119,13 @@ final class Map implements Storage {
         /** @var \FireHub\Foundation\DataStructure\Set<string> $signatures */
         $signatures = $set_factory->arr([]);
 
+        /** @var \FireHub\Foundation\DataStructure\Map<string, \FireHub\Adapter\HTTP\Router\Route> $named */
+        $named = $map_factory->arr([]);
+
         $this->static_routes = $static;
         $this->dynamic_routes = $dynamic;
         $this->signatures = $signatures;
+        $this->named_routes = $named;
 
     }
 
@@ -141,21 +155,37 @@ final class Map implements Storage {
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If an equivalent route is already
      * registered.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteNameException If a route with the same name is
+     * already registered.
      */
     public function add (Route $route):void {
 
         $pattern = $route->pattern();
+        $name = $route->name();
 
         $signature = $route->method()->value()
             . ':'
-            . $route->pattern()->signature();
+            . $pattern->signature();
 
         if ($this->signatures->contains($signature))
             throw new DuplicateRouteException;
 
+        if ($name !== null) {
+
+            $existing = $this->named_routes->get(
+                $name->value()
+            );
+
+            if ($existing->isSome())
+                throw new DuplicateRouteNameException;
+
+        }
+
         if ($pattern->isDynamic()) {
 
-            $key = Runtime\Arr\Inspection::count($pattern->segments());
+            $key = Runtime\Arr\Inspection::count(
+                $pattern->segments()
+            );
 
             $existing = $this->dynamic_routes->get($key);
 
@@ -176,7 +206,7 @@ final class Map implements Storage {
 
             $existing = $this->static_routes->get($key);
 
-            /** @var list<Route> $routes */
+            /** @var list<\FireHub\Adapter\HTTP\Router\Route> $routes */
             $routes = $existing->isSome()
                 ? $existing->value()
                 : [];
@@ -188,6 +218,12 @@ final class Map implements Storage {
         }
 
         $this->signatures->add($signature);
+
+        if ($name !== null)
+            $this->named_routes->set(
+                $name->value(),
+                $route
+            );
 
     }
 
@@ -251,6 +287,35 @@ final class Map implements Storage {
         }
 
         return $candidates;
+
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <code>
+     * $route = $storage->findByName(
+     *     new Name('users.show')
+     * );
+     *
+     * if ($route !== null)
+     *     echo $route->pattern()->value();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Foundation\DataStructure\Map::get() To retrieve the named route.
+     */
+    public function findByName (Name $name):?Route {
+
+        $route = $this->named_routes->get(
+            $name->value()
+        );
+
+        /** @var null|\FireHub\Adapter\HTTP\Router\Route */
+        return $route->isSome()
+            ? $route->value()
+            : null;
 
     }
 

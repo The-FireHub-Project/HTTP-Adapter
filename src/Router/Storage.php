@@ -13,6 +13,7 @@
 
 namespace FireHub\Adapter\HTTP\Router;
 
+use FireHub\Adapter\HTTP\Router\Route\Name;
 use FireHub\Foundation\Uri\Component\Path;
 
 /**
@@ -107,6 +108,32 @@ interface Storage {
      * @return list<\FireHub\Adapter\HTTP\Router\Route> Potentially matching routes.
      */
     public function candidates (Path $path):array;
+
+    /**
+     * ### Finds a registered route by name
+     *
+     * Returns the route associated with the given name.
+     *
+     * Route names are case-sensitive.
+     *
+     * <code>
+     * $route = $storage->findByName(
+     *     new Name('users.show')
+     * );
+     *
+     * if ($route !== null)
+     *     echo $route->pattern()->value();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Router\Route\Name $name <p>
+     * Name of the registered route.
+     * </p>
+     *
+     * @return null|\FireHub\Adapter\HTTP\Router\Route Matching route, or null if not found.
+     */
+    public function findByName (Name $name):?Route;
 
     /**
      * ### Gets all registered routes

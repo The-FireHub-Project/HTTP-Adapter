@@ -16,9 +16,7 @@ namespace FireHub\Adapter\HTTP\Router;
 use FireHub\Adapter\HTTP\Middleware;
 use FireHub\Adapter\HTTP\Request\Method;
 use FireHub\Adapter\HTTP\Router\Route\Name;
-use FireHub\Adapter\HTTP\Router\Exception\ {
-    InvalidRouteNameException, RouteBuilderAlreadyBuiltException
-};
+use FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException;
 use Closure;
 
 /**
@@ -38,7 +36,7 @@ use Closure;
  * );
  *
  * $route = $builder
- *     ->name('users.show')
+ *     ->name(new Name('users.show'))
  *     ->middleware(new AuthenticationMiddleware())
  *     ->build();
  * </code>
@@ -97,7 +95,7 @@ final class RouteBuilder {
      * Assigns a unique identifier that can later be used to retrieve the route or generate its URI.
      *
      * <code>
-     * $builder->name('users.show');
+     * $builder->name(new Name('users.show'));
      * </code>
      *
      * @since 1.0.0
