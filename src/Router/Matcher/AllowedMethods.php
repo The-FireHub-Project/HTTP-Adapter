@@ -68,17 +68,12 @@ final readonly class AllowedMethods {
             $seen[$method] = true;
             $effective[] = $method;
 
-            if (
-                $method === Standard::GET->value
-                && !isset($seen[Standard::HEAD->value])
-            ) {
-
-                $seen[Standard::HEAD->value] = true;
-                $effective[] = Standard::HEAD->value;
-
-            }
-
         }
+
+        if (
+            isset($seen[Standard::GET->value])
+            && !isset($seen[Standard::HEAD->value])
+        ) $effective[] = Standard::HEAD->value;
 
         if (
             $effective !== []

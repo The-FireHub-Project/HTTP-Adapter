@@ -14,6 +14,7 @@
 namespace FireHub\Adapter\HTTP\Router;
 
 use FireHub\Adapter\HTTP\Request\Method;
+use FireHub\Adapter\HTTP\Request\Method\Standard;
 use FireHub\Foundation\Uri\Component\Path;
 use FireHub\Runtime;
 
@@ -99,34 +100,24 @@ final readonly class Matcher {
      */
     public function match (Method $method, Path $path):?RouteMatch {
 
-        $matches = $this->matchingRoutes($path);
+        $matches = $this->bestMatches($path);
 
         if ($matches === [])
             return null;
 
-        $best = $matches[0];
-
         foreach ($matches as $match) {
 
-            if (
-                $this->compareSpecificity(
-                    $match->route()->pattern(),
-                    $best->route()->pattern()
-                ) > 0
-            ) $best = $match;
+            if ($match->route()->method()->value() === $method->value())
+                return $match;
 
         }
 
+        if ($method->value() !== Standard::HEAD->value)
+            return null;
+
         foreach ($matches as $match) {
 
-            if (
-                $this->compareSpecificity(
-                    $match->route()->pattern(),
-                    $best->route()->pattern()
-                ) !== 0
-            ) continue;
-
-            if ($match->route()->method()->value() === $method->value())
+            if ($match->route()->method()->value() === Standard::GET->value)
                 return $match;
 
         }
@@ -138,9 +129,9 @@ final readonly class Matcher {
     /**
      * ### Gets allowed HTTP methods for a request path
      *
-     * Returns HTTP methods registered for the most specific matching route pattern.
+     * Returns explicitly registered HTTP methods for the most specific matching route pattern.
      *
-     * Less specific matching patterns are ignored.
+     * Implicit HEAD and OPTIONS methods are not included.
      *
      * <code>
      * $methods = $matcher->allowedMethods(
@@ -152,17 +143,50 @@ final readonly class Matcher {
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchingRoutes() To retrieve matching routes.
-     * @uses \FireHub\Adapter\HTTP\Router\Matcher::compareSpecificity() To compare route specificity.
-     * @uses \FireHub\Runtime\Arr\Inspection::inArray() To check for duplicate HTTP method tokens.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::bestMatches() To retrieve the most specific matching routes.
+     * @uses \FireHub\Runtime\Arr\Inspection::inArray() To check if a method is already in the list.
      *
      * @param \FireHub\Foundation\Uri\Component\Path<string> $path <p>
      * HTTP request path.
      * </p>
      *
-     * @return list<non-empty-string> Allowed HTTP method tokens.
+     * @return list<non-empty-string> Explicitly registered HTTP methods.
      */
     public function allowedMethods (Path $path):array {
+
+        $methods = [];
+
+        foreach ($this->bestMatches($path) as $match) {
+
+            $method = $match->route()->method()->value();
+
+            if (!Runtime\Arr\Inspection::inArray($methods, $method))
+                $methods[] = $method;
+
+        }
+
+        return $methods;
+
+    }
+
+    /**
+     * ### Gets the most specific matching routes
+     *
+     * Resolves all routes matching the request path and retains only those with the highest route pattern specificity.
+     *
+     * HTTP methods do not affect route specificity.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchingRoutes() To retrieve matching routes.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::compareSpecificity() To compare route specificity.
+     *
+     * @param \FireHub\Foundation\Uri\Component\Path<string> $path <p>
+     * HTTP request path.
+     * </p>
+     *
+     * @return list<\FireHub\Adapter\HTTP\Router\RouteMatch> Most specific matching routes.
+     */
+    private function bestMatches (Path $path):array {
 
         $matches = $this->matchingRoutes($path);
 
@@ -182,7 +206,7 @@ final readonly class Matcher {
 
         }
 
-        $methods = [];
+        $best_matches = [];
 
         foreach ($matches as $match) {
 
@@ -190,17 +214,12 @@ final readonly class Matcher {
                 $this->compareSpecificity(
                     $match->route()->pattern(),
                     $best->route()->pattern()
-                ) !== 0
-            ) continue;
-
-            $method = $match->route()->method()->value();
-
-            if (!Runtime\Arr\Inspection::inArray($methods, $method))
-                $methods[] = $method;
+                ) === 0
+            ) $best_matches[] = $match;
 
         }
 
-        return $methods;
+        return $best_matches;
 
     }
 
