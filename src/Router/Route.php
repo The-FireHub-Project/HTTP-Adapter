@@ -38,11 +38,13 @@ use Closure;
  *
  * @since 1.0.0
  *
- * @phpstan-type RouteHandler = (
+ * @phpstan-type RouteHandler (
  *     Closure(
- *      \FireHub\Adapter\HTTP\ExecutionContext,
- *      \FireHub\Adapter\HTTP\Router\RouteMatch
- *     ):\FireHub\Adapter\HTTP\Response|class-string<\FireHub\Adapter\HTTP\Controller>
+ *         \FireHub\Adapter\HTTP\ExecutionContext,
+ *         \FireHub\Adapter\HTTP\Router\RouteMatch
+ *     ):\FireHub\Adapter\HTTP\Response
+ *     | class-string<\FireHub\Adapter\HTTP\Controller>
+ *     | array{class-string<\FireHub\Adapter\HTTP\Controller>, non-empty-string}
  * )
  */
 final readonly class Route {
@@ -66,7 +68,7 @@ final readonly class Route {
     public function __construct (
         private Method $method,
         private Pattern $pattern,
-        private Closure|string $handler
+        private Closure|string|array $handler
     ) {}
 
     /**
@@ -120,7 +122,7 @@ final readonly class Route {
      *
      * @return RouteHandler Route handler.
      */
-    public function handler ():Closure|string {
+    public function handler ():Closure|string|array {
 
         return $this->handler;
 
