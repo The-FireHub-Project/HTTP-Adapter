@@ -13,9 +13,7 @@
 
 namespace FireHub\Adapter\HTTP\Router;
 
-use FireHub\Adapter\HTTP\ExecutionContext;
 use FireHub\Adapter\HTTP\Request\Method;
-use FireHub\Adapter\HTTP\Response;
 use Closure;
 
 /**
