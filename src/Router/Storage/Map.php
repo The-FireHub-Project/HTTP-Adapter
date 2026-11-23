@@ -22,7 +22,7 @@ use FireHub\Foundation\DataStructure\ {
 };
 use FireHub\Foundation\Uri\Component\Path;
 use FireHub\Adapter\HTTP\Router\Exception\ {
-    DuplicateRouteException, DuplicateRouteNameException
+    DuplicateRouteException, DuplicateRouteNameException, StorageFrozenException
 };
 use FireHub\Runtime;
 
@@ -63,6 +63,12 @@ use FireHub\Runtime;
  * @since 1.0.0
  */
 final class Map implements Storage {
+
+    /**
+     * ### Storage freeze state
+     * @since 1.0.0
+     */
+    private bool $frozen = false;
 
     /**
      * ### Static route index
@@ -157,8 +163,12 @@ final class Map implements Storage {
      * registered.
      * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteNameException If a route with the same name is
      * already registered.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\StorageFrozenException If the storage is frozen.
      */
     public function add (Route $route):void {
+
+        if ($this->frozen)
+            throw new StorageFrozenException;
 
         $pattern = $route->pattern();
         $name = $route->name();
@@ -345,6 +355,30 @@ final class Map implements Storage {
                 $routes[] = $route;
 
         return $routes;
+
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 1.0.0
+     */
+    public function freeze ():self {
+
+        $this->frozen = true;
+
+        return $this;
+
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 1.0.0
+     */
+    public function isFrozen ():bool {
+
+        return $this->frozen;
 
     }
 

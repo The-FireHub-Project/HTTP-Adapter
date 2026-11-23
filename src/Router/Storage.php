@@ -13,6 +13,7 @@
 
 namespace FireHub\Adapter\HTTP\Router;
 
+use FireHub\Core\Boundary\Capability\Freezable;
 use FireHub\Adapter\HTTP\Router\Route\Name;
 use FireHub\Foundation\Uri\Component\Path;
 
@@ -47,7 +48,7 @@ use FireHub\Foundation\Uri\Component\Path;
  *
  * @since 1.0.0
  */
-interface Storage {
+interface Storage extends Freezable {
 
     /**
      * ### Registers an HTTP route

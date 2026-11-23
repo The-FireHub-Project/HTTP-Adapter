@@ -570,4 +570,46 @@ final class Router implements Handler {
 
     }
 
+    /**
+     * ### Freezes route registration
+     *
+     * Prevents further modifications to the underlying route storage.
+     *
+     * <code>
+     * $router->freeze();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Storage::freeze() To freeze the route storage.
+     *
+     * @return void
+     */
+    public function freeze ():void {
+
+        $this->storage->freeze();
+
+    }
+
+    /**
+     * ### Checks whether route registration is frozen
+     *
+     * <code>
+     * if ($router->isFrozen()) {
+     *     // Route registration is closed.
+     * }
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Storage::isFrozen() To check if route storage is frozen.
+     *
+     * @return bool True if route storage is frozen.
+     */
+    public function isFrozen ():bool {
+
+        return $this->storage->isFrozen();
+
+    }
+
 }
