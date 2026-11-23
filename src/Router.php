@@ -120,7 +120,8 @@ final class Router implements Handler {
      * $router->add(
      *     RequestMethod::GET,
      *     '/users/{id}',
-     *     [UserController::class, 'show']
+     *     [UserController::class, 'show'],
+     *     new AuthenticationMiddleware()
      * );
      * </code>
      *
@@ -137,6 +138,9 @@ final class Router implements Handler {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
+     * Route-specific middleware in execution order.
+     * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If the route is already registered.
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route pattern is invalid.
@@ -145,13 +149,14 @@ final class Router implements Handler {
      *
      * @phpstan-import-type RouteHandler from Route
      */
-    public function add (Method $method, string $pattern, Closure|string|array $handler):void {
+    public function add (Method $method, string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
 
         $this->storage->add(
             new Route(
                 $method,
                 new Pattern($pattern),
-                $handler
+                $handler,
+                ...$middleware
             )
         );
 
@@ -174,15 +179,18 @@ final class Router implements Handler {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
+     * Route-specific middleware in execution order.
+     * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If the route is already registered.
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route pattern is invalid.
      *
      * @return void
      */
-    public function get (string $pattern, Closure|string|array $handler):void {
+    public function get (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
 
-        $this->add(RequestMethod::GET, $pattern, $handler);
+        $this->add(RequestMethod::GET, $pattern, $handler, ...$middleware);
 
     }
 
@@ -203,15 +211,18 @@ final class Router implements Handler {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
+     * Route-specific middleware in execution order.
+     * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If the route is already registered.
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route pattern is invalid.
      *
      * @return void
      */
-    public function post (string $pattern, Closure|string|array $handler):void {
+    public function post (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
 
-        $this->add(RequestMethod::POST, $pattern, $handler);
+        $this->add(RequestMethod::POST, $pattern, $handler, ...$middleware);
 
     }
 
@@ -232,15 +243,18 @@ final class Router implements Handler {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
+     * Route-specific middleware in execution order.
+     * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If the route is already registered.
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route pattern is invalid.
      *
      * @return void
      */
-    public function put (string $pattern, Closure|string|array $handler):void {
+    public function put (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
 
-        $this->add(RequestMethod::PUT, $pattern, $handler);
+        $this->add(RequestMethod::PUT, $pattern, $handler, ...$middleware);
 
     }
 
@@ -261,15 +275,18 @@ final class Router implements Handler {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
+     * Route-specific middleware in execution order.
+     * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If the route is already registered.
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route pattern is invalid.
      *
      * @return void
      */
-    public function patch (string $pattern, Closure|string|array $handler):void {
+    public function patch (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
 
-        $this->add(RequestMethod::PATCH, $pattern, $handler);
+        $this->add(RequestMethod::PATCH, $pattern, $handler, ...$middleware);
 
     }
 
@@ -290,15 +307,18 @@ final class Router implements Handler {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
+     * Route-specific middleware in execution order.
+     * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If the route is already registered.
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route pattern is invalid.
      *
      * @return void
      */
-    public function delete (string $pattern, Closure|string|array $handler):void {
+    public function delete (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
 
-        $this->add(RequestMethod::DELETE, $pattern, $handler);
+        $this->add(RequestMethod::DELETE, $pattern, $handler, ...$middleware);
 
     }
 
@@ -319,15 +339,18 @@ final class Router implements Handler {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
+     * Route-specific middleware in execution order.
+     * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If the route is already registered.
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route pattern is invalid.
      *
      * @return void
      */
-    public function head (string $pattern, Closure|string|array $handler):void {
+    public function head (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
 
-        $this->add(RequestMethod::HEAD, $pattern, $handler);
+        $this->add(RequestMethod::HEAD, $pattern, $handler, ...$middleware);
 
     }
 
@@ -350,15 +373,18 @@ final class Router implements Handler {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
+     * Route-specific middleware in execution order.
+     * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If the route is already registered.
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route pattern is invalid.
      *
      * @return void
      */
-    public function options (string $pattern, Closure|string|array $handler):void {
+    public function options (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
 
-        $this->add(RequestMethod::OPTIONS, $pattern, $handler);
+        $this->add(RequestMethod::OPTIONS, $pattern, $handler, ...$middleware);
 
     }
 
