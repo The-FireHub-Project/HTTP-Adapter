@@ -400,6 +400,8 @@ final readonly class Adapter {
      * The application manages the dependency injection scope lifecycle, while the HTTP adapter ensures that execution
      * is permitted only while the adapter is initialized.
      *
+     * Supports handler objects implementing the Handler interface and closures accepting an HTTP execution context.
+     *
      * <code>
      * use FireHub\Adapter\HTTP\ExecutionContext;
      * use FireHub\Adapter\HTTP\Response;
@@ -425,7 +427,7 @@ final readonly class Adapter {
      * @param \FireHub\Adapter\HTTP\Request $request <p>
      * HTTP request to process.
      * </p>
-     * @param Closure(\FireHub\Adapter\HTTP\ExecutionContext):\FireHub\Adapter\HTTP\Response $handler <p>
+     * @param \FireHub\Adapter\HTTP\Handler|Closure(\FireHub\Adapter\HTTP\ExecutionContext):\FireHub\Adapter\HTTP\Response $handler <p>
      * HTTP request handler.
      * </p>
      *
@@ -438,12 +440,22 @@ final readonly class Adapter {
      * @internal This method is intended for internal use by the HTTP adapter and its integrations. It is not part of
      * the public API and may change without notice.
      */
-    public function handle (Request $request, Closure $handler):Response {
+    public function handle (Request $request, Handler|Closure $handler):Response {
 
         return $this->execute(
-            fn(ApplicationContext $context):Response => $handler(
-                new ExecutionContext($request, $context)
-            )
+            function (ApplicationContext $context) use ($request, $handler):Response {
+
+                $execution_context = new ExecutionContext(
+                    $request,
+                    $context
+                );
+
+                if ($handler instanceof Closure)
+                    return $handler($execution_context);
+
+                return $handler->handle($execution_context);
+
+            }
         );
 
     }
@@ -458,6 +470,8 @@ final readonly class Adapter {
      *
      * Both operations execute before the application execution scope is closed, allowing streamed responses to
      * access scoped dependencies throughout emission.
+     *
+     * Supports handler objects and closures.
      *
      * The HTTP adapter does not depend on a specific response emitter.
      *
@@ -484,7 +498,7 @@ final readonly class Adapter {
      * @param \FireHub\Adapter\HTTP\Request $request <p>
      * HTTP request to process.
      * </p>
-     * @param Closure(\FireHub\Adapter\HTTP\ExecutionContext):\FireHub\Adapter\HTTP\Response $handler <p>
+     * @param \FireHub\Adapter\HTTP\Handler|Closure(\FireHub\Adapter\HTTP\ExecutionContext):\FireHub\Adapter\HTTP\Response $handler <p>
      * HTTP request handler.
      * </p>
      * @param \FireHub\Adapter\HTTP\Integration\Native\Emitter $emitter <p>
@@ -497,16 +511,30 @@ final readonly class Adapter {
      *
      * @return void
      */
-    public function serve (Request $request, Closure $handler, Emitter $emitter):void {
+    public function serve (Request $request, Handler|Closure $handler, Emitter $emitter):void {
 
         $this->execute(
             function (ApplicationContext $context) use ($request, $handler, $emitter):void {
 
-                $response = $handler(
-                    new ExecutionContext($request, $context)
+                $execution_context = new ExecutionContext(
+                    $request,
+                    $context
                 );
 
-                $emitter->emit($request, $response);
+                if ($handler instanceof Closure) {
+
+                    $response = $handler($execution_context);
+
+                } else {
+
+                    $response = $handler->handle($execution_context);
+
+                }
+
+                $emitter->emit(
+                    $request,
+                    $response
+                );
 
             }
         );

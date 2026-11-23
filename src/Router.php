@@ -14,8 +14,7 @@
 namespace FireHub\Adapter\HTTP;
 
 use FireHub\Adapter\HTTP\Request\ {
-    Method\Custom as CustomMethod, Method\Standard as RequestMethod,
-    Target\Absolute, Target\Origin,
+    Method\Standard as RequestMethod, Target\Absolute, Target\Origin,
     Method
 };
 use FireHub\Adapter\HTTP\Response\ {
@@ -70,7 +69,7 @@ use Closure;
  *     | array{class-string<\FireHub\Adapter\HTTP\Controller>, non-empty-string}
  * )
  */
-final class Router {
+final class Router implements Handler {
 
     /**
      * ### Route storage
@@ -360,6 +359,33 @@ final class Router {
     public function options (string $pattern, Closure|string|array $handler):void {
 
         $this->add(RequestMethod::OPTIONS, $pattern, $handler);
+
+    }
+
+    /**
+     * ### Handles an HTTP request
+     *
+     * Processes an HTTP request by dispatching it to the matching route.
+     *
+     * Delegates route matching, handler execution, and automatic HTTP error responses to the router dispatcher.
+     *
+     * <code>
+     * $response = $router->handle($context);
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router::dispatch() To dispatch the request.
+     *
+     * @param \FireHub\Adapter\HTTP\ExecutionContext $context <p>
+     * Current HTTP execution context.
+     * </p>
+     *
+     * @return \FireHub\Adapter\HTTP\Response HTTP response.
+     */
+    public function handle (ExecutionContext $context):Response {
+
+        return $this->dispatch($context);
 
     }
 
