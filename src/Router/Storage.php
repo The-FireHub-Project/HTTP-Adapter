@@ -28,10 +28,10 @@ use FireHub\Foundation\Uri\Component\Path;
  * algorithms but must provide equivalent matching behavior.
  *
  * <code>
- * use FireHub\Adapter\HTTP\Router\Storage\MapStorage;
+ * use FireHub\Adapter\HTTP\Router\Storage\Map;
  * use FireHub\Foundation\Uri\Component\Path;
  *
- * $storage = new MapStorage();
+ * $storage = new Map();
  *
  * $storage->add($route);
  *

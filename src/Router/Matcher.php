@@ -138,30 +138,35 @@ final readonly class Matcher {
      *     new Path('/users/123')
      * );
      *
-     * // ['GET', 'POST']
+     * // [Standard::GET, Standard::POST]
      * </code>
      *
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Router\Matcher::bestMatches() To retrieve the most specific matching routes.
-     * @uses \FireHub\Runtime\Arr\Inspection::inArray() To check if a method is already in the list.
+     * @uses \FireHub\Adapter\HTTP\Request\Method::value() To compare HTTP method names.
      *
      * @param \FireHub\Foundation\Uri\Component\Path<string> $path <p>
      * HTTP request path.
      * </p>
      *
-     * @return list<non-empty-string> Explicitly registered HTTP methods.
+     * @return list<\FireHub\Adapter\HTTP\Request\Method> Explicitly registered HTTP methods.
      */
     public function allowedMethods (Path $path):array {
 
-        $methods = [];
-
+        $methods = []; $seen = [];
         foreach ($this->bestMatches($path) as $match) {
 
-            $method = $match->route()->method()->value();
+            $method = $match->route()->method();
 
-            if (!Runtime\Arr\Inspection::inArray($methods, $method))
-                $methods[] = $method;
+            $name = $method->value();
+
+            if (isset($seen[$name]))
+                continue;
+
+            $seen[$name] = true;
+
+            $methods[] = $method;
 
         }
 

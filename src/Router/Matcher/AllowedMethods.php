@@ -14,23 +14,30 @@
 namespace FireHub\Adapter\HTTP\Router\Matcher;
 
 use FireHub\Adapter\HTTP\Request\Method;
-use FireHub\Adapter\HTTP\Request\Method\Standard;
+use FireHub\Adapter\HTTP\Request\Method\ {
+    Custom, Standard
+};
 
 /**
  * ### Represents allowed HTTP methods
  *
- * Provides the effective HTTP methods supported by a matched route pattern, including implicit HEAD and OPTIONS
- * support.
+ * Provides the effective HTTP request methods supported by a matched route pattern, including implicit HEAD and
+ * OPTIONS support.
+ *
+ * Standard HTTP methods are represented by their corresponding enum cases, while extension methods are represented
+ * by custom method objects.
+ *
+ * Duplicate methods are removed while preserving their original order.
  *
  * <code>
- * $allowed = new AllowedMethods([
- *     'GET',
- *     'POST'
- * ]);
+ * $allowed = new AllowedMethods(
+ *     Standard::GET,
+ *     Standard::POST
+ * );
  *
- * $allowed->values();
+ * $allowed->methods();
  *
- * // ['GET', 'HEAD', 'POST', 'OPTIONS']
+ * // [Standard::GET, Standard::POST, Standard::HEAD, Standard::OPTIONS]
  * </code>
  *
  * @since 1.0.0
@@ -41,7 +48,7 @@ final readonly class AllowedMethods {
      * ### Effective HTTP methods
      * @since 1.0.0
      *
-     * @var list<non-empty-string>
+     * @var list<\FireHub\Adapter\HTTP\Request\Method>
      */
     private array $methods;
 
@@ -49,23 +56,26 @@ final readonly class AllowedMethods {
      * ### Constructor
      * @since 1.0.0
      *
-     * @param list<non-empty-string> $methods <p>
-     * Explicitly registered HTTP methods.
+     * @param \FireHub\Adapter\HTTP\Request\Method ...$methods <p>
+     * Explicitly registered HTTP request methods.
      * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Request\Method\Exception\InvalidMethodNameException If a method token is invalid.
      *
      * @return void
      */
-    public function __construct (array $methods) {
+    public function __construct (Method ...$methods) {
 
-        $effective = [];
-        $seen = [];
-
+        $effective = []; $seen = [];
         foreach ($methods as $method) {
 
-            if (isset($seen[$method]))
+            $name = $method->value();
+
+            if (isset($seen[$name]))
                 continue;
 
-            $seen[$method] = true;
+            $seen[$name] = true;
+
             $effective[] = $method;
 
         }
@@ -73,12 +83,12 @@ final readonly class AllowedMethods {
         if (
             isset($seen[Standard::GET->value])
             && !isset($seen[Standard::HEAD->value])
-        ) $effective[] = Standard::HEAD->value;
+        ) $effective[] = Standard::HEAD;
 
         if (
             $effective !== []
             && !isset($seen[Standard::OPTIONS->value])
-        ) $effective[] = Standard::OPTIONS->value;
+        ) $effective[] = Standard::OPTIONS;
 
         $this->methods = $effective;
 
@@ -87,18 +97,22 @@ final readonly class AllowedMethods {
     /**
      * ### Checks whether an HTTP method is allowed
      *
-     * <code>
-     * $allowed->contains(Standard::HEAD);
+     * Determines whether the specified HTTP method belongs to the effective set of supported methods.
      *
-     * // true
+     * Method names are compared case-sensitive.
+     *
+     * <code>
+     * $allowed = new AllowedMethods(['GET']);
+     *
+     * $allowed->contains(Standard::GET);  // true
+     * $allowed->contains(Standard::HEAD); // true
+     * $allowed->contains(Standard::POST); // false
      * </code>
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Request\Method::value() To retrieve the method value.
-     *
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
-     * HTTP request method.
+     * HTTP request method to check.
      * </p>
      *
      * @return bool True if the method is allowed.
@@ -106,7 +120,7 @@ final readonly class AllowedMethods {
     public function contains (Method $method):bool {
 
         foreach ($this->methods as $allowed)
-            if ($allowed === $method->value())
+            if ($allowed->value() === $method->value())
                 return true;
 
         return false;
@@ -116,19 +130,57 @@ final readonly class AllowedMethods {
     /**
      * ### Gets allowed HTTP methods
      *
-     * <code>
-     * $allowed->values();
+     * Returns the effective HTTP methods as standard enum cases or custom method objects.
      *
-     * // ['GET', 'HEAD', 'POST', 'OPTIONS']
+     * <code>
+     * $allowed = new AllowedMethods([
+     *     'GET',
+     *     'POST'
+     * ]);
+     *
+     * $allowed->methods();
+     *
+     * // [Standard::GET, Standard::POST, Standard::HEAD, Standard::OPTIONS]
      * </code>
      *
      * @since 1.0.0
      *
-     * @return list<non-empty-string> Allowed HTTP methods.
+     * @return list<\FireHub\Adapter\HTTP\Request\Method> Allowed HTTP methods.
+     */
+    public function methods ():array {
+
+        return $this->methods;
+
+    }
+
+    /**
+     * ### Gets allowed HTTP method names
+     *
+     * Returns the effective HTTP methods as their serialized string values.
+     *
+     * <code>
+     * $allowed = new AllowedMethods([
+     *     'GET',
+     *     'POST'
+     * ]);
+     *
+     * $allowed->values();
+     *
+     * // ['GET', 'POST', 'HEAD', 'OPTIONS']
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @return list<non-empty-string> Allowed HTTP method names.
      */
     public function values ():array {
 
-        return $this->methods;
+        $values = [];
+
+        foreach ($this->methods as $method)
+            $values[] = $method->value();
+
+        return $values;
 
     }
 

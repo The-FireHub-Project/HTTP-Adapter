@@ -15,7 +15,7 @@ namespace FireHub\Adapter\HTTP\Response;
 
 use FireHub\Adapter\HTTP\Message\Headers as MessageHeaders;
 use FireHub\Adapter\HTTP\Header\ {
-    Name, SetCookie, Value
+    Allow, Name, SetCookie, Value
 };
 use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
 
@@ -29,6 +29,103 @@ use FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException;
  * @since 1.0.0
  */
 final readonly class Headers extends MessageHeaders {
+
+    /**
+     * ### Sets the HTTP Allow header
+     *
+     * Replaces all existing Allow header fields with the supplied collection of permitted HTTP methods.
+     *
+     * The original response header collection remains unchanged.
+     *
+     * <code>
+     * $headers = Headers::empty()->withAllow(
+     *     new Allow(
+     *         Standard::GET,
+     *         Standard::HEAD,
+     *         Standard::POST
+     *     )
+     * );
+     *
+     * $headers->getAllow()?->value();
+     *
+     * // GET, HEAD, POST
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Header\Allow::value() To serialize the allowed methods.
+     * @uses self::with() To replace the existing Allow header.
+     *
+     * @param \FireHub\Adapter\HTTP\Header\Allow $allow <p>
+     * Allowed HTTP request methods.
+     * </p>
+     *
+     * @return self Updated HTTP response headers.
+     */
+    public function withAllow (Allow $allow):self {
+
+        return $this->with(
+            new Name('Allow'),
+            new Value($allow->value())
+        );
+
+    }
+
+    /**
+     * ### Gets the HTTP Allow header
+     *
+     * Retrieves the Allow header and parses its permitted HTTP methods.
+     *
+     * Returns null when the Allow header is absent.
+     *
+     * <code>
+     * $headers = Headers::empty()->withAllow(
+     *     new Allow(
+     *         Standard::GET,
+     *         Standard::POST
+     *     )
+     * );
+     *
+     * $allow = $headers->getAllow();
+     *
+     * $allow?->contains(Standard::GET);
+     *
+     * // true
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses self::get() To retrieve the Allow header.
+     * @uses \FireHub\Adapter\HTTP\Header\Allow::parse() To parse its value.
+     *
+     * @throws \FireHub\Adapter\HTTP\Header\Exception\InvalidFieldValueException If the header value is invalid.
+     * @throws \FireHub\Adapter\HTTP\Request\Method\Exception\InvalidMethodNameException If the method token is invalid.
+     * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
+     * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
+     *
+     * @return null|\FireHub\Adapter\HTTP\Header\Allow Parsed Allow header or null if absent.
+     */
+    public function getAllow ():?Allow {
+
+        $values = $this->get(new Name('Allow'));
+
+        if ($values === [])
+            return null;
+
+        $methods = [];
+
+        foreach ($values as $value) {
+
+            $parsed = Allow::parse($value->value());
+
+            foreach ($parsed->methods() as $method)
+                $methods[] = $method;
+
+        }
+
+        return new Allow(...$methods);
+
+    }
 
     /**
      * ### Adds an HTTP Set-Cookie Header
