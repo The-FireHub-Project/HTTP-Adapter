@@ -40,8 +40,7 @@ use Closure;
  *
  * @phpstan-type RouteHandler (
  *     Closure(
- *         \FireHub\Adapter\HTTP\ExecutionContext,
- *         \FireHub\Adapter\HTTP\Router\RouteMatch
+ *         \FireHub\Adapter\HTTP\Router\ActionContext
  *     ):\FireHub\Adapter\HTTP\Response
  *     | class-string<\FireHub\Adapter\HTTP\Controller>
  *     | array{class-string<\FireHub\Adapter\HTTP\Controller>, non-empty-string}
