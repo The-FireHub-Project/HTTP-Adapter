@@ -180,13 +180,19 @@ final class Group {
      * <code>
      * $group->add(
      *     Standard::GET,
-     *     '/users/{id}',
-     *     [UserController::class, 'show'],
-     *     new AuthorizationMiddleware()
+     *     '/users',
+     *     UserController::class,
+     *     static function (RouteBuilder $route):void {
+     *         $route->name('users.index');
+     *     }
      * );
      * </code>
      *
      * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Group::combine() To combine the group prefix with the route path.
+     * @uses \FireHub\Adapter\HTTP\Router\RouteBuilder::middleware() To apply inherited and route-specific middleware.
+     * @uses \FireHub\Adapter\HTTP\Router::add() To register the route.
      *
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
      * HTTP request method.
@@ -197,23 +203,36 @@ final class Group {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Route-specific middleware.
+     * @param null|Closure(\FireHub\Adapter\HTTP\Router\RouteBuilder):void $configure <p>
+     * Optional route configuration callback.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If the route is already registered.
-     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route pattern is invalid.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
+     * been built.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route path pattern is invalid.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If an equivalent route is already
+     * registered.
      *
      * @return void
      */
-    public function add (Method $method, string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
+    public function add (Method $method, string $pattern, Closure|string|array $handler, ?Closure $configure = null):void {
+
+        $middleware = $this->middleware;
 
         $this->router->add(
             $method,
             $this->combine($pattern),
             $handler,
-            ...$this->middleware,
-            ...$middleware
+            static function (RouteBuilder $builder) use (
+                $middleware,
+                $configure
+            ):void {
+
+                $builder->middleware(...$middleware);
+
+                $configure?->__invoke($builder);
+
+            }
         );
 
     }
@@ -235,15 +254,21 @@ final class Group {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Route-specific middleware.
+     * @param null|Closure(\FireHub\Adapter\HTTP\Router\RouteBuilder):void $configure <p>
+     * Optional route configuration callback.
      * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
+     * been built.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route path pattern is invalid.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If an equivalent route is already
+     * registered.
      *
      * @return void
      */
-    public function get (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
+    public function get (string $pattern, Closure|string|array $handler, ?Closure $configure = null):void {
 
-        $this->add(Standard::GET, $pattern, $handler, ...$middleware);
+        $this->add(Standard::GET, $pattern, $handler, $configure);
 
     }
 
@@ -264,15 +289,21 @@ final class Group {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Route-specific middleware.
+     * @param null|Closure(\FireHub\Adapter\HTTP\Router\RouteBuilder):void $configure <p>
+     * Optional route configuration callback.
      * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
+     * been built.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route path pattern is invalid.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If an equivalent route is already
+     * registered.
      *
      * @return void
      */
-    public function post (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
+    public function post (string $pattern, Closure|string|array $handler, ?Closure $configure = null):void {
 
-        $this->add(Standard::POST, $pattern, $handler, ...$middleware);
+        $this->add(Standard::POST, $pattern, $handler, $configure);
 
     }
 
@@ -293,15 +324,21 @@ final class Group {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Route-specific middleware.
+     * @param null|Closure(\FireHub\Adapter\HTTP\Router\RouteBuilder):void $configure <p>
+     * Optional route configuration callback.
      * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
+     * been built.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route path pattern is invalid.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If an equivalent route is already
+     * registered.
      *
      * @return void
      */
-    public function put (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
+    public function put (string $pattern, Closure|string|array $handler, ?Closure $configure = null):void {
 
-        $this->add(Standard::PUT, $pattern, $handler, ...$middleware);
+        $this->add(Standard::PUT, $pattern, $handler, $configure);
 
     }
 
@@ -322,15 +359,21 @@ final class Group {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Route-specific middleware.
+     * @param null|Closure(\FireHub\Adapter\HTTP\Router\RouteBuilder):void $configure <p>
+     * Optional route configuration callback.
      * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
+     * been built.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route path pattern is invalid.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If an equivalent route is already
+     * registered.
      *
      * @return void
      */
-    public function patch (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
+    public function patch (string $pattern, Closure|string|array $handler, ?Closure $configure = null):void {
 
-        $this->add(Standard::PATCH, $pattern, $handler, ...$middleware);
+        $this->add(Standard::PATCH, $pattern, $handler, $configure);
 
     }
 
@@ -351,15 +394,21 @@ final class Group {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Route-specific middleware.
+     * @param null|Closure(\FireHub\Adapter\HTTP\Router\RouteBuilder):void $configure <p>
+     * Optional route configuration callback.
      * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
+     * been built.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route path pattern is invalid.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If an equivalent route is already
+     * registered.
      *
      * @return void
      */
-    public function delete (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
+    public function delete (string $pattern, Closure|string|array $handler, ?Closure $configure = null):void {
 
-        $this->add(Standard::DELETE, $pattern, $handler, ...$middleware);
+        $this->add(Standard::DELETE, $pattern, $handler, $configure);
 
     }
 
@@ -380,15 +429,21 @@ final class Group {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Route-specific middleware.
+     * @param null|Closure(\FireHub\Adapter\HTTP\Router\RouteBuilder):void $configure <p>
+     * Optional route configuration callback.
      * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
+     * been built.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route path pattern is invalid.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If an equivalent route is already
+     * registered.
      *
      * @return void
      */
-    public function head (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
+    public function head (string $pattern, Closure|string|array $handler, ?Closure $configure = null):void {
 
-        $this->add(Standard::HEAD, $pattern, $handler, ...$middleware);
+        $this->add(Standard::HEAD, $pattern, $handler, $configure);
 
     }
 
@@ -409,15 +464,21 @@ final class Group {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Route-specific middleware.
+     * @param null|Closure(\FireHub\Adapter\HTTP\Router\RouteBuilder):void $configure <p>
+     * Optional route configuration callback.
      * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
+     * been built.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route path pattern is invalid.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\DuplicateRouteException If an equivalent route is already
+     * registered.
      *
      * @return void
      */
-    public function options (string $pattern, Closure|string|array $handler, Middleware ...$middleware):void {
+    public function options (string $pattern, Closure|string|array $handler, ?Closure $configure = null):void {
 
-        $this->add(Standard::OPTIONS, $pattern, $handler, ...$middleware);
+        $this->add(Standard::OPTIONS, $pattern, $handler, $configure);
 
     }
 

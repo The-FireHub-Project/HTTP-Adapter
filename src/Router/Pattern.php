@@ -81,7 +81,7 @@ final readonly class Pattern extends ValueObject {
      * ### Constructor
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Router\Path\Pattern::parse() To validate and parse the route path pattern.
+     * @uses \FireHub\Adapter\HTTP\Router\Pattern::parse() To validate and parse the route path pattern.
      * @uses \FireHub\Foundation\Uri\Encoding\Percent::normalize() To normalize percent-encoded characters.
      * @uses \FireHub\Runtime\Str\SB\Search::endsWith() To check if the pattern ends with a slash.
      *

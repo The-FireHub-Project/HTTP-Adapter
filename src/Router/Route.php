@@ -70,6 +70,9 @@ final readonly class Route {
      * @param \FireHub\Adapter\HTTP\Router\Pattern $pattern <p>
      * Validated route pattern.
      * </p>
+     * @param null|non-empty-string $name <p>
+     * Route name.
+     * </p>
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
@@ -83,6 +86,7 @@ final readonly class Route {
         private Method $method,
         private Pattern $pattern,
         private Closure|string|array $handler,
+        private ?string $name = null,
         Middleware ...$middleware
     ) {
 
@@ -144,6 +148,27 @@ final readonly class Route {
     public function handler ():Closure|string|array {
 
         return $this->handler;
+
+    }
+
+    /**
+     * ### Gets the route name
+     *
+     * Returns the configured route name or null when the route has not been named.
+     *
+     * <code>
+     * $route->name();
+     *
+     * // 'users.show'
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @return null|non-empty-string Route name.
+     */
+    public function name ():?string {
+
+        return $this->name;
 
     }
 
