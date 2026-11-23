@@ -32,18 +32,18 @@ use FireHub\Runtime;
  * Static routes are indexed by their normalized request paths, while dynamic routes are grouped by their number of
  * path segments.
  *
- * Route registration preserves insertion order and rejects duplicate method and structural pattern combinations.
+ * Route registration rejects duplicate method and structural pattern combinations.
  *
  * Candidate retrieval is independent of the HTTP request method, allowing the matcher to detect method mismatches.
  *
  * <code>
- * use FireHub\Adapter\HTTP\Router\Storage\MapStorage;
+ * use FireHub\Adapter\HTTP\Router\Storage\Map;
  * use FireHub\Adapter\HTTP\Router\Route;
  * use FireHub\Adapter\HTTP\Router\Pattern;
  * use FireHub\Adapter\HTTP\Request\Method\Standard;
  * use FireHub\Foundation\Uri\Component\Path;
  *
- * $storage = new MapStorage();
+ * $storage = new Map();
  *
  * $storage->add(
  *     new Route(
