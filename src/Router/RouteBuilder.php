@@ -15,6 +15,7 @@ namespace FireHub\Adapter\HTTP\Router;
 
 use FireHub\Adapter\HTTP\Middleware;
 use FireHub\Adapter\HTTP\Request\Method;
+use FireHub\Adapter\HTTP\Router\Route\Name;
 use FireHub\Adapter\HTTP\Router\Exception\ {
     InvalidRouteNameException, RouteBuilderAlreadyBuiltException
 };
@@ -51,10 +52,8 @@ final class RouteBuilder {
     /**
      * ### Route name
      * @since 1.0.0
-     *
-     * @var null|non-empty-string
      */
-    private ?string $name = null;
+    private ?Name $name = null;
 
     /**
      * ### Route middleware
@@ -105,24 +104,18 @@ final class RouteBuilder {
      *
      * @uses \FireHub\Adapter\HTTP\Router\RouteBuilder::assertConfigurable() To ensure the builder is not already built.
      *
-     * @param non-empty-string $name <p>
+     * @param \FireHub\Adapter\HTTP\Router\Route\Name $name <p>
      * Route name.
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
      * been built.
-     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRouteNameException If the route name is empty.
      *
      * @return self Current builder.
      */
-    public function name (string $name):self {
+    public function name (Name $name):self {
 
         $this->assertConfigurable();
-
-        if ($name === '')
-            throw new InvalidRouteNameException(
-                'Route name cannot be empty.'
-            );
 
         $this->name = $name;
 

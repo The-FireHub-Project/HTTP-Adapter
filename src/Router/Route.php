@@ -15,6 +15,7 @@ namespace FireHub\Adapter\HTTP\Router;
 
 use FireHub\Adapter\HTTP\Middleware;
 use FireHub\Adapter\HTTP\Request\Method;
+use FireHub\Adapter\HTTP\Router\Route\Name;
 use FireHub\Runtime;
 use Closure;
 
@@ -70,7 +71,7 @@ final readonly class Route {
      * @param \FireHub\Adapter\HTTP\Router\Pattern $pattern <p>
      * Validated route pattern.
      * </p>
-     * @param null|non-empty-string $name <p>
+     * @param null|\FireHub\Adapter\HTTP\Router\Route\Name $name <p>
      * Route name.
      * </p>
      * @param RouteHandler $handler <p>
@@ -86,7 +87,7 @@ final readonly class Route {
         private Method $method,
         private Pattern $pattern,
         private Closure|string|array $handler,
-        private ?string $name = null,
+        private ?Name $name = null,
         Middleware ...$middleware
     ) {
 
@@ -154,19 +155,20 @@ final readonly class Route {
     /**
      * ### Gets the route name
      *
-     * Returns the configured route name or null when the route has not been named.
+     * Returns the route name when configured, or null for unnamed routes.
      *
      * <code>
-     * $route->name();
+     * $name = $route->name();
      *
-     * // 'users.show'
+     * if ($name !== null)
+     *     echo $name->value();
      * </code>
      *
      * @since 1.0.0
      *
-     * @return null|non-empty-string Route name.
+     * @return null|Name Route name.
      */
-    public function name ():?string {
+    public function name ():?Name {
 
         return $this->name;
 
