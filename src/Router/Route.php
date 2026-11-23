@@ -13,7 +13,9 @@
 
 namespace FireHub\Adapter\HTTP\Router;
 
+use FireHub\Adapter\HTTP\Middleware;
 use FireHub\Adapter\HTTP\Request\Method;
+use FireHub\Runtime;
 use Closure;
 
 /**
@@ -49,8 +51,18 @@ use Closure;
 final readonly class Route {
 
     /**
+     * ### Route middleware
+     * @since 1.0.0
+     *
+     * @var list<\FireHub\Adapter\HTTP\Middleware>
+     */
+    private array $middleware;
+
+    /**
      * ### Constructor
      * @since 1.0.0
+     *
+     * @uses \FireHub\Runtime\Arr\Access::values() To preserve insertion order.
      *
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
      * HTTP request method.
@@ -61,14 +73,22 @@ final readonly class Route {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
+     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
+     * Route middleware.
+     * </p>
      *
      * @return void
      */
     public function __construct (
         private Method $method,
         private Pattern $pattern,
-        private Closure|string|array $handler
-    ) {}
+        private Closure|string|array $handler,
+        Middleware ...$middleware
+    ) {
+
+        $this->middleware = Runtime\Arr\Access::values($middleware);
+
+    }
 
     /**
      * ### Gets the HTTP request method
@@ -124,6 +144,25 @@ final readonly class Route {
     public function handler ():Closure|string|array {
 
         return $this->handler;
+
+    }
+
+    /**
+     * ### Gets route middleware
+     *
+     * Returns middleware components associated with this route in execution order.
+     *
+     * <code>
+     * $middleware = $route->middleware();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @return list<\FireHub\Adapter\HTTP\Middleware> Route middleware.
+     */
+    public function middleware ():array {
+
+        return $this->middleware;
 
     }
 

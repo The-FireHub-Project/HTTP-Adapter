@@ -13,6 +13,7 @@
 
 namespace FireHub\Adapter\HTTP\Router;
 
+use FireHub\Adapter\HTTP\Middleware\Pipeline;
 use FireHub\Adapter\HTTP\ {
     Controller, ExecutionContext, Response
 };
@@ -60,8 +61,9 @@ final readonly class Dispatcher {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Router\RouteMatch::route() To retrieve the matched route.
-     * @uses \FireHub\Runtime\DataIs::callable() To check if the resolved controller action is callable.
-     * @uses \FireHub\Runtime\DataIs::string() To check if the route handler is a string.
+     * @uses \FireHub\Adapter\HTTP\Router\Route::middleware() To retrieve the route middleware.
+     * @uses \FireHub\Adapter\HTTP\Router\Dispatcher::execute() To execute the route handler.
+     * @uses \FireHub\Adapter\HTTP\Middleware\Pipeline::handle() To execute the middleware pipeline.
      *
      * @param \FireHub\Adapter\HTTP\Router\RouteMatch $match <p>
      * Matched HTTP route.
@@ -76,6 +78,44 @@ final readonly class Dispatcher {
      * @return \FireHub\Adapter\HTTP\Response HTTP response.
      */
     public function dispatch (RouteMatch $match, ExecutionContext $context):Response {
+
+        $middleware = $match->route()->middleware();
+
+        if ($middleware === [])
+            return $this->execute($match, $context);
+
+        $pipeline = new Pipeline(
+            fn (ExecutionContext $context):Response => $this->execute(
+                $match,
+                $context
+            ),
+            ...$middleware
+        );
+
+        return $pipeline->handle($context);
+
+    }
+
+    /**
+     * ### Executes a matched route handler
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\RouteMatch::route() To retrieve the matched route.
+     * @uses \FireHub\Adapter\HTTP\Router\Route::handler() To retrieve the route handler.
+     * @uses \FireHub\Adapter\HTTP\ExecutionContext::scope() To retrieve the current dependency injection scope.
+     * @uses \FireHub\Runtime\DataIs::callable() To check if the resolved controller action is callable.
+     * @uses \FireHub\Runtime\DataIs::string() To check if the route handler is a string.
+     *
+     * @param \FireHub\Adapter\HTTP\Router\RouteMatch $match <p>
+     * Matched route.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\ExecutionContext $context <p>
+     * HTTP execution context.
+     * </p>
+     *
+     * @return \FireHub\Adapter\HTTP\Response HTTP response.
+     */
+    private function execute (RouteMatch $match, ExecutionContext $context):Response {
 
         $handler = $match->route()->handler();
 
