@@ -14,10 +14,9 @@
 namespace FireHub\Adapter\HTTP\Router;
 
 use FireHub\Adapter\HTTP\ {
-    ExecutionContext, Response
+    Controller, ExecutionContext, Response
 };
 use FireHub\Adapter\HTTP\Router\Exception\InvalidRouteHandlerException;
-use FireHub\Runtime;
 use Closure;
 
 /**
@@ -65,7 +64,6 @@ final readonly class Dispatcher {
      * @uses \FireHub\Adapter\HTTP\Router\Route::handler() To retrieve the route handler.
      * @uses \FireHub\Adapter\HTTP\ExecutionContext::scope() To retrieve the execution dependency injection scope.
      * @uses \FireHub\Core\Boundary\Resolver::get() To resolve a registered controller.
-     * @uses \FireHub\Runtime\DataIs::callable() To check if the resolved controller is callable.
      *
      * @param \FireHub\Adapter\HTTP\Router\RouteMatch $match <p>
      * Matched HTTP route.
@@ -88,19 +86,12 @@ final readonly class Dispatcher {
 
         $controller = $context->scope()->get($handler);
 
-        if (!Runtime\DataIs::callable($controller))
+        if (!$controller instanceof Controller)
             throw new InvalidRouteHandlerException(
-                'The resolved route controller must be invokable.'
+                'The resolved route controller must implement the Controller interface.'
             );
 
-        $response = $controller($context, $match);
-
-        if (!$response instanceof Response)
-            throw new InvalidRouteHandlerException(
-                'The route controller must return an HTTP response.'
-            );
-
-        return $response;
+        return $controller($context, $match);
 
     }
 
