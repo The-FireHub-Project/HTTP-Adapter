@@ -15,8 +15,13 @@ namespace FireHub\Adapter\HTTP\Router;
 
 use FireHub\Adapter\HTTP\Middleware;
 use FireHub\Adapter\HTTP\Request\Method;
-use FireHub\Adapter\HTTP\Router\Route\Name;
-use FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException;
+use FireHub\Adapter\HTTP\Router\ {
+    Constraint\Number, Route\Name
+};
+use FireHub\Adapter\HTTP\Router\Exception\ {
+    InvalidRouteConstraintException, RouteBuilderAlreadyBuiltException
+};
+use FireHub\Runtime;
 use Closure;
 
 /**
@@ -52,6 +57,14 @@ final class RouteBuilder {
      * @since 1.0.0
      */
     private ?Name $name = null;
+
+    /**
+     * ### Route parameter constraints
+     * @since 1.0.0
+     *
+     * @var array<non-empty-string, \FireHub\Adapter\HTTP\Router\Constraint>
+     */
+    private array $constraints = [];
 
     /**
      * ### Route middleware
@@ -122,6 +135,73 @@ final class RouteBuilder {
     }
 
     /**
+     * ### Adds a route parameter constraint
+     *
+     * Associates a constraint with a named route parameter.
+     *
+     * <code>
+     * $builder->where(
+     *     'id',
+     *     new Number()
+     * );
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\RouteBuilder::assertConfigurable() To ensure the builder is not already built.
+     *
+     * @param non-empty-string $parameter <p>
+     * Route parameter name.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Router\Constraint $constraint <p>
+     * Parameter constraint.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
+     * been built.
+     *
+     * @return self Current builder.
+     */
+    public function where (string $parameter, Constraint $constraint):self {
+
+        $this->assertConfigurable();
+
+        $this->constraints[$parameter] = $constraint;
+
+        return $this;
+
+    }
+
+    /**
+     * ### Restricts a route parameter to decimal digits
+     *
+     * <code>
+     * $builder->whereNumber('id');
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\RouteBuilder::where() To add the constraint.
+     *
+     * @param non-empty-string $parameter <p>
+     * Route parameter name.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
+     * been built.
+     *
+     * @return self Current builder.
+     */
+    public function whereNumber (string $parameter):self {
+
+        return $this->where(
+            $parameter,
+            new Number
+        );
+
+    }
+
+    /**
      * ### Appends route middleware
      *
      * Adds middleware components in their execution order.
@@ -174,6 +254,8 @@ final class RouteBuilder {
      * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
      * been built.
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the route path pattern is invalid.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRouteConstraintException If a route parameter constraint
+     * is invalid.
      *
      * @return \FireHub\Adapter\HTTP\Router\Route Immutable route definition.
      *
@@ -183,11 +265,22 @@ final class RouteBuilder {
 
         $this->assertConfigurable();
 
+        $pattern = new Pattern($this->pattern);
+
+        foreach ($this->constraints as $parameter => $constraint)
+            if (!Runtime\Arr\Inspection::inArray(
+                $pattern->parameters(),
+                $parameter
+            )) throw new InvalidRouteConstraintException(
+                "Route parameter '$parameter' does not exist."
+            );
+
         $route = new Route(
             $this->method,
             new Pattern($this->pattern),
             $this->handler,
             $this->name,
+            $this->constraints,
             ...$this->middleware
         );
 

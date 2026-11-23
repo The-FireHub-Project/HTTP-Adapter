@@ -347,6 +347,7 @@ final readonly class Matcher {
      *
      * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchSegments() To match route segments.
      * @uses \FireHub\Adapter\HTTP\Router\Storage::candidates() To retrieve candidate routes.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchesConstraints() To check route constraints.
      * @uses \FireHub\Foundation\Uri\Component\Path::normalized() To retrieve the normalized path.
      * @uses \FireHub\Runtime\Str\SB\Delimiter::explode() To split the normalized path into segments.
      * @uses \FireHub\Runtime\Str\SB\Access::part() To access the segment.
@@ -380,6 +381,9 @@ final readonly class Matcher {
             if ($parameters === null)
                 continue;
 
+            if (!$this->matchesConstraints($route, $parameters))
+                continue;
+
             $matches[] = new RouteMatch(
                 $route,
                 $parameters
@@ -388,6 +392,35 @@ final readonly class Matcher {
         }
 
         return $matches;
+
+    }
+
+    /**
+     * ### Checks route parameter constraints
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Router\Route $route <p>
+     * Route definition.
+     * </p>
+     * @param array<non-empty-string, string> $parameters <p>
+     * Extracted parameters.
+     * </p>
+     *
+     * @return bool True if every constraint is satisfied.
+     */
+    private function matchesConstraints (Route $route, array $parameters):bool {
+
+        foreach ($route->constraints() as $name => $constraint) {
+
+            if (!isset($parameters[$name]))
+                return false;
+
+            if (!$constraint->matches($parameters[$name]))
+                return false;
+
+        }
+
+        return true;
 
     }
 

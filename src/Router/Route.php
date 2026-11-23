@@ -52,6 +52,14 @@ use Closure;
 final readonly class Route {
 
     /**
+     * ### Route parameter constraints
+     * @since 1.0.0
+     *
+     * @var array<non-empty-string, \FireHub\Adapter\HTTP\Router\Constraint>
+     */
+    private array $constraints;
+
+    /**
      * ### Route middleware
      * @since 1.0.0
      *
@@ -77,6 +85,9 @@ final readonly class Route {
      * @param RouteHandler $handler <p>
      * Route handler.
      * </p>
+     * @param array<non-empty-string, \FireHub\Adapter\HTTP\Router\Constraint> $constraints <p>
+     * Route parameter constraints.
+     * </p>
      * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
      * Route middleware.
      * </p>
@@ -88,8 +99,11 @@ final readonly class Route {
         private Pattern $pattern,
         private Closure|string|array $handler,
         private ?Name $name = null,
+        array $constraints = [],
         Middleware ...$middleware
     ) {
+
+        $this->constraints = $constraints;
 
         $this->middleware = Runtime\Arr\Access::values($middleware);
 
@@ -171,6 +185,23 @@ final readonly class Route {
     public function name ():?Name {
 
         return $this->name;
+
+    }
+
+    /**
+     * ### Gets route parameter constraints
+     *
+     * <code>
+     * $constraints = $route->constraints();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @return array<non-empty-string, \FireHub\Adapter\HTTP\Router\Constraint> Parameter constraints.
+     */
+    public function constraints ():array {
+
+        return $this->constraints;
 
     }
 
