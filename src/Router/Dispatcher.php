@@ -101,6 +101,7 @@ final readonly class Dispatcher {
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Router\RouteMatch::route() To retrieve the matched route.
+     * @uses \FireHub\Adapter\HTTP\Router\RouteMatch::parameters() To retrieve the route parameters.
      * @uses \FireHub\Adapter\HTTP\Router\Route::handler() To retrieve the route handler.
      * @uses \FireHub\Adapter\HTTP\ExecutionContext::scope() To retrieve the current dependency injection scope.
      * @uses \FireHub\Runtime\DataIs::callable() To check if the resolved controller action is callable.
@@ -138,7 +139,10 @@ final readonly class Dispatcher {
 
         }
 
-        $controller = $context->scope()->get($class);
+        /** @var \FireHub\Container\Scope $scope */
+        $scope = $context->scope();
+
+        $controller = $scope->get($class);
 
         if (!$controller instanceof Controller)
             throw new InvalidRouteHandlerException(
@@ -152,7 +156,20 @@ final readonly class Dispatcher {
                 "The controller action '{$method}' is not callable."
             );
 
-        $response = $callable($action_context);
+        $parameters = $match->parameters();
+
+        if (isset($parameters['context']))
+            throw new InvalidRouteHandlerException(
+                "Route parameter 'context' conflicts with the reserved action context argument."
+            );
+
+        $response = $scope->invoke(
+            $callable,
+            [
+                'context' => $action_context,
+                ...$parameters
+            ]
+        );
 
         if (!$response instanceof Response)
             throw new InvalidRouteHandlerException(
