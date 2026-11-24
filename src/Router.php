@@ -41,6 +41,11 @@ use Closure;
  *
  * When no storage implementation is provided, the router uses the default map-based storage.
  *
+ * The router participates in the HTTP adapter initialization lifecycle by freezing its route storage before
+ * the adapter becomes operational.
+ *
+ * Once initialized, registered route definitions cannot be modified.
+ *
  * The router handles unmatched routes, unsupported request methods, and automatic OPTIONS responses according to
  * HTTP routing semantics.
  *
@@ -48,22 +53,21 @@ use Closure;
  * HTTP responses.
  *
  * <code>
- * $router = new Router();
+ * $router = new Router;
  *
  * $router->get('/users', [UserController::class, 'index']);
- *
  * $router->get('/users/{id}', [UserController::class, 'show']);
- *
  * $router->post('/users', [UserController::class, 'store']);
  *
- * $response = $router->dispatch($context);
+ * $adapter->registerInitializer($router);
+ * $adapter->initialize();
  * </code>
  *
  * @since 1.0.0
  *
  * @phpstan-import-type RouteHandler from \FireHub\Adapter\HTTP\Router\Route
  */
-final class Router implements Handler {
+final class Router implements Handler, Initializer {
 
     /**
      * ### Route storage
@@ -102,6 +106,44 @@ final class Router implements Handler {
         $this->matcher = new Matcher($this->storage);
 
         $this->dispatcher = new Dispatcher;
+
+    }
+
+    /**
+     * ### Initializes the HTTP router
+     *
+     * Freezes the underlying route storage during the HTTP adapter initialization lifecycle.
+     *
+     * All route definitions must be registered before initialization. Once the storage is frozen, additional route
+     * registration is prohibited.
+     *
+     * Repeated initialization does not modify the existing route definitions.
+     *
+     * <code>
+     * $router = new Router;
+     *
+     * $router->get('/users', [UserController::class, 'index']);
+     *
+     * $adapter->registerInitializer($router);
+     * $adapter->initialize();
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Storage::isFrozen() To determine whether route storage is already frozen.
+     * @uses \FireHub\Adapter\HTTP\Router\Storage::freeze() To prevent further route registration.
+     *
+     * @param \FireHub\Adapter\HTTP\Adapter $adapter <p>
+     * HTTP adapter being initialized.
+     * </p>
+     *
+     * @return void
+     */
+    public function initialize (Adapter $adapter):void {
+
+        if ($this->storage->isFrozen()) return;
+
+        $this->storage->freeze();
 
     }
 
