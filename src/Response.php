@@ -66,6 +66,143 @@ final readonly class Response {
     }
 
     /**
+     * ### Create a response with a different HTTP status
+     *
+     * Returns a new response instance with the supplied HTTP status while preserving the existing message body
+     * and headers.
+     *
+     * <code>
+     * $response = new Response(Standard::OK);
+     *
+     * $created = $response->withStatus(Standard::CREATED);
+     *
+     * $response->status(); // Standard::OK
+     * $created->status(); // Standard::CREATED
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Response\Status $status <p>
+     * HTTP status to assign to the new response.
+     * </p>
+     *
+     * @return self New response instance with the supplied HTTP status.
+     */
+    public function withStatus (Status $status):self {
+
+        return new self(
+            $status,
+            $this->body,
+            $this->headers
+        );
+
+    }
+
+    /**
+     * ### Create a response with a different message body
+     *
+     * Returns a new response instance with the supplied message body while preserving the existing HTTP status
+     * and headers.
+     *
+     * <code>
+     * $response = new Response(Standard::OK);
+     *
+     * $body = new \FireHub\Adapter\HTTP\Body\Str('Hello FireHub!');
+     *
+     * $modified = $response->withBody($body);
+     *
+     * $response->body(); // null
+     * $modified->body() === $body; // true
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Body $body <p>
+     * HTTP message body to assign to the new response.
+     * </p>
+     *
+     * @return self New response instance with the supplied message body.
+     */
+    public function withBody (Body $body):self {
+
+        return new self(
+            $this->status,
+            $body,
+            $this->headers
+        );
+
+    }
+
+    /**
+     * ### Create a response without a message body
+     *
+     * Returns a new response instance without a message body while preserving the existing HTTP status
+     * and headers.
+     *
+     * <code>
+     * $response = new Response(
+     *     Standard::OK,
+     *     new \FireHub\Adapter\HTTP\Body\Str('Hello FireHub!')
+     * );
+     *
+     * $modified = $response->withoutBody();
+     *
+     * $modified->body(); // null
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @return self New response instance without a message body.
+     */
+    public function withoutBody ():self {
+
+        return new self(
+            $this->status,
+            null,
+            $this->headers
+        );
+
+    }
+
+    /**
+     * ### Create a response with a different header collection
+     *
+     * Returns a new response instance with the supplied header collection while preserving the existing HTTP
+     * status and message body.
+     *
+     * The supplied header collection replaces the existing collection entirely.
+     *
+     * <code>
+     * $response = new Response(Standard::OK);
+     *
+     * $headers = $response->headers()->withContentType(
+     *     \FireHub\Adapter\HTTP\Header\Content\Type::parse('application/json')
+     * );
+     *
+     * $modified = $response->withHeaders($headers);
+     *
+     * $modified->headers() === $headers; // true
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Response\Headers $headers <p>
+     * HTTP header collection to assign to the new response.
+     * </p>
+     *
+     * @return self New response instance with the supplied header collection.
+     */
+    public function withHeaders (Headers $headers):self {
+
+        return new self(
+            $this->status,
+            $this->body,
+            $headers
+        );
+
+    }
+
+    /**
      * ### Gets the HTTP response status
      * @since 1.0.0
      *
