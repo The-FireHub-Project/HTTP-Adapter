@@ -46,7 +46,6 @@ final readonly class Html extends Response {
      * @uses \FireHub\Adapter\HTTP\Response\Headers::empty() To create an empty HTTP header collection.
      * @uses \FireHub\Adapter\HTTP\Header\Content\Type::parse() To construct the HTML content type.
      * @uses \FireHub\Adapter\HTTP\Message\Headers::withContentType() To assign the HTML content type.
-     * @uses \FireHub\Adapter\HTTP\Response::__construct() To initialize the HTTP response.
      *
      * @param \FireHub\Adapter\HTTP\Body $body <p>
      * HTTP response body.
