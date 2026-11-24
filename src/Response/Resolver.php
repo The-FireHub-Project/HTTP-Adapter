@@ -22,22 +22,21 @@ use FireHub\Runtime;
 /**
  * ### HTTP response resolver
  *
- * Coordinates the conversion of route handler return values into HTTP responses through an ordered collection
- * of response value resolvers.
+ * Coordinates the conversion of route action results into HTTP responses through an ordered collection
+ * of value resolution strategies.
  *
- * Value resolvers are evaluated in registration order, and the first resolver supporting the supplied value
- * is responsible for its conversion.
+ * Extracts explicitly supplied HTTP metadata from response result objects and delegates response
+ * construction to the first registered resolver supporting the underlying value.
  *
- * The resolver does not perform conversions directly, allowing additional response value types to be supported
- * without modifying the resolution mechanism.
+ * Does not perform response serialization, rendering, header merging, or emission directly.
  * @since 1.0.0
  */
 final readonly class Resolver {
 
     /**
-     * ### Registered response value resolvers
+     * ### Registered value resolvers
      *
-     * Value resolvers stored in their evaluation order.
+     * Resolvers are evaluated in registration order.
      * @since 1.0.0
      *
      * @var list<\FireHub\Adapter\HTTP\Response\Resolver\ValueResolver>
@@ -48,10 +47,10 @@ final readonly class Resolver {
      * ### Constructor
      * @since 1.0.0
      *
-     * @uses \FireHub\Runtime\Arr\Access::values() To preserve insertion order.
+     * @uses \FireHub\Runtime\Arr\Access::values() To normalize resolver registration order.
      *
      * @param \FireHub\Adapter\HTTP\Response\Resolver\ValueResolver ...$resolvers <p>
-     * Response value resolvers in their evaluation order.
+     * Ordered value resolution strategies.
      * </p>
      *
      * @return void
@@ -63,46 +62,84 @@ final readonly class Resolver {
     }
 
     /**
-     * ### Resolves a value into an HTTP response
+     * ### Resolves a route action result into an HTTP response
      *
-     * Evaluates registered value resolvers in their configured order and delegates the conversion to the
-     * first resolver supporting the supplied value.
+     * When the supplied value is a response result object, its underlying value and explicitly assigned
+     * HTTP metadata are extracted before selecting a value resolver.
      *
-     * If no registered resolver supports the value, an exception is thrown.
+     * Registered resolvers are evaluated in registration order. The first resolver supporting the
+     * underlying value is responsible for constructing the HTTP response.
      *
-     * Exceptions thrown during value inspection or conversion are propagated to the caller.
+     * Existing HTTP responses must be supplied directly rather than wrapped in response result objects.
+     *
+     * Nested response result objects are not supported.
      *
      * <code>
      * $response = $resolver->resolve(
-     *     'Hello FireHub!',
+     *     new Result(
+     *         value: ['name' => 'FireHub'],
+     *         status: Status\Standard::CREATED
+     *     ),
      *     $context
      * );
+     *
+     * $response->status(); // Status\Standard::CREATED
+     *
+     * $response->headers()->getContentType()?->value();
+     * // application/json
      * </code>
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Response\Resolver\ValueResolver::supports() To determine whether a value resolver
-     * supports the supplied value.
-     * @uses \FireHub\Adapter\HTTP\Response\Resolver\ValueResolver::resolve() To convert the supplied value into an
-     * HTTP response.
+     * @uses \FireHub\Adapter\HTTP\Response\Result::value() To retrieve the underlying response value.
+     * @uses \FireHub\Adapter\HTTP\Response\Result::status() To retrieve explicitly assigned HTTP status.
+     * @uses \FireHub\Adapter\HTTP\Response\Result::headers() To retrieve explicitly assigned HTTP headers.
+     * @uses \FireHub\Adapter\HTTP\Response\Resolver\ValueResolver::supports() To select a value resolver.
+     * @uses \FireHub\Adapter\HTTP\Response\Resolver\ValueResolver::resolve() To construct the HTTP response.
      *
      * @param mixed $value <p>
-     * Route handler return value to resolve.
+     * Route action result to resolve.
      * </p>
      * @param \FireHub\Adapter\HTTP\Router\ActionContext $context <p>
-     * Current route action context.
+     * Current route action execution context.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException If no registered
-     * value resolver supports the supplied value.
+     * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException If the supplied
+     * value is not supported or contains an unsupported response result structure.
      *
      * @return \FireHub\Adapter\HTTP\Response Resolved HTTP response.
      */
     public function resolve (mixed $value, ActionContext $context):Response {
 
+        $status = null;
+        $headers = null;
+
+        if ($value instanceof Result) {
+
+            $status = $value->status();
+            $headers = $value->headers();
+            $value = $value->value();
+
+            if ($value instanceof Result)
+                throw new UnsupportedResponseValueException(
+                    'Nested response results are not supported.'
+                );
+
+            if ($value instanceof Response)
+                throw new UnsupportedResponseValueException(
+                    'An existing HTTP response must not be wrapped in a response result.'
+                );
+
+        }
+
         foreach ($this->resolvers as $resolver)
             if ($resolver->supports($value))
-                return $resolver->resolve($value, $context);
+                return $resolver->resolve(
+                    $value,
+                    $context,
+                    $status,
+                    $headers
+                );
 
         throw new UnsupportedResponseValueException(
             'No registered value resolver supports the supplied value.'

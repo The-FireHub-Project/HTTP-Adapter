@@ -14,7 +14,7 @@
 namespace FireHub\Adapter\HTTP\Response\Resolver;
 
 use FireHub\Adapter\HTTP\ {
-    Router\ActionContext, Response
+    Router\ActionContext, Response\Headers, Response\Status, Response
 };
 use FireHub\Adapter\HTTP\Response\Status\Standard;
 use FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException;
@@ -78,14 +78,18 @@ final readonly class EmptyResponse implements ValueResolver {
      * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException If the supplied
      * value is not null.
      */
-    public function resolve (mixed $value, ActionContext $context):Response {
+    public function resolve (mixed $value, ActionContext $context, ?Status $status = null, ?Headers $headers = null):Response {
 
         if (!$this->supports($value))
             throw new UnsupportedResponseValueException(
                 'The supplied value cannot be resolved as an empty response.'
             );
 
-        return new Response(Standard::NO_CONTENT);
+        return new Response(
+            $status ?? Standard::NO_CONTENT,
+            null,
+            $headers
+        );
 
     }
 

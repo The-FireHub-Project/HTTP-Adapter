@@ -18,9 +18,11 @@ use FireHub\Adapter\HTTP\ {
 };
 use FireHub\Adapter\HTTP\Body\Str as StringBody;
 use FireHub\Adapter\HTTP\Response\ {
-    Status\Standard, Headers
+    Status\Standard, Headers, Status
 };
-use FireHub\Adapter\HTTP\Header\Content\Type as ContentType;
+use FireHub\Adapter\HTTP\Header\ {
+    Content\Type as ContentType, Name
+};
 use FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException;
 use FireHub\Runtime;
 
@@ -81,21 +83,19 @@ final readonly class Text implements ValueResolver {
      *
      * Converts a supported scalar value into a plain text HTTP response.
      *
-     * <code>
+     * code>
      * $resolver = new Text();
      *
      * $response = $resolver->resolve(
-     *     'Hello FireHub!',
-     *     $context
+     *     'FireHub',
+     *     $context,
+     *     Standard::CREATED
      * );
      *
-     * $response->status()->code(); // 200
+     * $response->status(); // Standard::CREATED
      *
-     * $response->headers()
-     *     ->getContentType()
-     *     ?->value(); // text/plain; charset=utf-8
-     *
-     * $response->body()?->contents(); // Hello FireHub!
+     * $response->headers()->getContentType()?->value();
+     * // text/plain; charset=utf-8
      * </code>
      *
      * @since 1.0.0
@@ -104,7 +104,6 @@ final readonly class Text implements ValueResolver {
      * @uses \FireHub\Adapter\HTTP\Header\Content\Type::parse() To construct the plain text Content-Type header.
      * @uses \FireHub\Adapter\HTTP\Response\Headers::empty() To create the response header collection.
      * @uses \FireHub\Adapter\HTTP\Message\Headers::withContentType() To set the Content-Type header.
-     * @uses \FireHub\Adapter\HTTP\Response::__construct() To construct the HTTP response.
      *
      * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException If the supplied
      * value is not supported.
@@ -112,20 +111,25 @@ final readonly class Text implements ValueResolver {
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      */
-    public function resolve (mixed $value, ActionContext $context):Response {
+    public function resolve (mixed $value, ActionContext $context, ?Status $status = null, ?Headers $headers = null):Response {
 
         if (!$this->supports($value))
             throw new UnsupportedResponseValueException(
                 'The supplied value cannot be resolved as plain text.'
             );
 
+        $headers ??= Headers::empty();
+
+        if (!$headers->has(new Name('Content-Type')))
+            $headers = $headers->withContentType(
+                ContentType::parse('text/plain; charset=utf-8')
+            );
+
         /** @var string|int|float $value */
         return new Response(
-            Standard::OK,
+            $status ?? Standard::OK,
             new StringBody((string)$value),
-            Headers::empty()->withContentType(
-                ContentType::parse('text/plain; charset=utf-8')
-            )
+            $headers
         );
 
     }

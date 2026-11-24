@@ -14,14 +14,15 @@
 namespace FireHub\Adapter\HTTP\Response\Resolver;
 
 use FireHub\Adapter\HTTP\ {
-    Response, Router\ActionContext
+    Router\ActionContext, Response
 };
 use FireHub\Adapter\HTTP\Response\ {
-    Headers, Status\Standard
+    Status\Standard, Headers, Status
 };
 use FireHub\Adapter\HTTP\Body\Str as StringBody;
-use FireHub\Adapter\HTTP\Header\Content\Type as ContentType;
-use FireHub\Adapter\HTTP\Header\Media\Known\MediaType;
+use FireHub\Adapter\HTTP\Header\{
+    Content\Type as ContentType, Media\Known\MediaType, Name
+};
 use FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException;
 use FireHub\Runtime;
 use JsonSerializable;
@@ -79,22 +80,15 @@ final readonly class Json implements ValueResolver {
      * $resolver = new Json();
      *
      * $response = $resolver->resolve(
-     *     [
-     *         'id' => 1,
-     *         'name' => 'FireHub'
-     *     ],
-     *     $context
+     *     ['name' => 'FireHub'],
+     *     $context,
+     *     Standard::CREATED
      * );
      *
-     * $response->status()->code(); // 200
+     * $response->status(); // Standard::CREATED
      *
-     * $response->headers()
-     *     ->getContentType()?->value(); // application/json
-     *
-     * $body = $response->body();
-     *
-     * if ($body instanceof StringBody)
-     *     $body->contents(); // {"id":1,"name":"FireHub"}
+     * $response->headers()->getContentType()?->value();
+     * // application/json
      * </code>
      *
      * @since 1.0.0
@@ -112,21 +106,26 @@ final readonly class Json implements ValueResolver {
      * @throws \FireHub\Core\Exception\FireHubException If the condition is not met.
      * @throws \FireHub\Core\Type\Exception\ValueObjectException If the exception is not a FireHubException.
      */
-    public function resolve (mixed $value, ActionContext $context):Response {
+    public function resolve (mixed $value, ActionContext $context, ?Status $status = null, ?Headers $headers = null):Response {
 
         if (!$this->supports($value))
             throw new UnsupportedResponseValueException(
                 'The supplied value cannot be resolved as JSON.'
             );
 
+        $headers ??= Headers::empty();
+
+        if (!$headers->has(new Name('Content-Type')))
+            $headers = $headers->withContentType(
+                ContentType::parse(MediaType::APPLICATION_JSON->value)
+            );
+
         return new Response(
-            Standard::OK,
+            $status ?? Standard::OK,
             new StringBody(
                 Runtime\Json::encode($value)
             ),
-            Headers::empty()->withContentType(
-                ContentType::parse(MediaType::APPLICATION_JSON->value)
-            )
+            $headers
         );
 
     }

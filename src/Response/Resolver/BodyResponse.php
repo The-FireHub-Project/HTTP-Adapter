@@ -14,7 +14,7 @@
 namespace FireHub\Adapter\HTTP\Response\Resolver;
 
 use FireHub\Adapter\HTTP\ {
-    Router\ActionContext, Body, Response
+    Router\ActionContext, Response\Headers, Response\Status, Body, Response
 };
 use FireHub\Adapter\HTTP\Response\Status\Standard;
 use FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException;
@@ -82,7 +82,7 @@ final readonly class BodyResponse implements ValueResolver {
      * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException If the supplied
      * value is not an HTTP message body.
      */
-    public function resolve (mixed $value, ActionContext $context):Response {
+    public function resolve (mixed $value, ActionContext $context, ?Status $status = null, ?Headers $headers = null):Response {
 
         if (!$value instanceof Body)
             throw new UnsupportedResponseValueException(
@@ -90,8 +90,9 @@ final readonly class BodyResponse implements ValueResolver {
             );
 
         return new Response(
-            Standard::OK,
-            $value
+            $status ?? Standard::OK,
+            $value,
+            $headers
         );
 
     }

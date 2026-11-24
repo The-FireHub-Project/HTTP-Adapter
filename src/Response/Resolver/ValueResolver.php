@@ -13,7 +13,9 @@
 
 namespace FireHub\Adapter\HTTP\Response\Resolver;
 
-use FireHub\Adapter\HTTP\Response;
+use FireHub\Adapter\HTTP\ {
+    Response\Headers, Response\Status, Response
+};
 use FireHub\Adapter\HTTP\Router\ActionContext;
 
 /**
@@ -66,38 +68,39 @@ interface ValueResolver {
     public function supports (mixed $value):bool;
 
     /**
-     * ### Resolves a value into an HTTP response
+     * ### Resolves a supported value into an HTTP response
      *
-     * Converts a supported route handler return value into an HTTP response.
-     *
-     * The current route action context provides access to request-specific information required during response
-     * resolution.
-     *
-     * Implementations must reject unsupported values rather than silently converting them into an unrelated
-     * representation.
+     * Uses explicitly supplied HTTP metadata when available and provides appropriate defaults otherwise.
      *
      * <code>
      * $response = $resolver->resolve(
-     *     $value,
-     *     $context
+     *     'FireHub',
+     *     $context,
+     *     Status\Standard::OK,
+     *     Headers::empty()
      * );
-     *
-     * $response->status();
-     * $response->headers();
-     * $response->body();
      * </code>
      *
      * @since 1.0.0
      *
      * @param mixed $value <p>
-     * Supported route handler return value.
+     * Value to resolve into an HTTP response.
      * </p>
      * @param \FireHub\Adapter\HTTP\Router\ActionContext $context <p>
-     * Current route action context.
+     * Current route action execution context.
      * </p>
+     * @param null|\FireHub\Adapter\HTTP\Response\Status $status [optional] <p>
+     * Explicit HTTP status, or null to use the resolver default.
+     * </p>
+     * @param null|\FireHub\Adapter\HTTP\Response\Headers $headers [optional] <p>
+     * Explicit HTTP headers, or null if no headers are supplied.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException
+     * If the supplied value is not supported.
      *
      * @return \FireHub\Adapter\HTTP\Response Resolved HTTP response.
      */
-    public function resolve (mixed $value, ActionContext $context):Response;
+    public function resolve (mixed $value, ActionContext $context, ?Status $status = null, ?Headers $headers = null):Response;
 
 }

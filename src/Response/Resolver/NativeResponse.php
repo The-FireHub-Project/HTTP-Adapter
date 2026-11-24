@@ -14,7 +14,9 @@
 namespace FireHub\Adapter\HTTP\Response\Resolver;
 
 use FireHub\Adapter\HTTP\Router\ActionContext;
-use FireHub\Adapter\HTTP\Response;
+use FireHub\Adapter\HTTP\ {
+    Response\Headers, Response\Status, Response
+};
 use FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException;
 
 /**
@@ -49,26 +51,30 @@ final readonly class NativeResponse implements ValueResolver {
     /**
      * {@inheritDoc}
      *
-     * <code>
+     * code>
      * $resolver = new NativeResponse();
      *
-     * $response = new Response(Standard::OK);
+     * $response = new Response(Status\Standard::OK);
      *
-     * $resolved = $resolver->resolve($response, $context);
-     *
-     * $response === $resolved; // true
+     * $resolver->resolve($response, $context) === $response;
+     * // true
      * </code>
      *
      * @since 1.0.0
      *
-     * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException If the supplied
-     * value is not an HTTP response.
+     * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException
+     * If additional HTTP metadata is supplied for an existing response.
      */
-    public function resolve (mixed $value, ActionContext $context):Response {
+    public function resolve (mixed $value, ActionContext $context, ?Status $status = null, ?Headers $headers = null):Response {
 
         if (!$value instanceof Response)
             throw new UnsupportedResponseValueException(
                 'The supplied value is not an HTTP response.'
+            );
+
+        if ($status !== null || $headers !== null)
+            throw new UnsupportedResponseValueException(
+                'An existing HTTP response cannot receive additional resolution metadata.'
             );
 
         return $value;
