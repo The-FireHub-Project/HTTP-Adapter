@@ -17,7 +17,6 @@ use FireHub\Adapter\HTTP\Middleware\Pipeline;
 use FireHub\Adapter\HTTP\ {
     Controller, ExecutionContext, Response
 };
-use FireHub\Adapter\HTTP\Response\Resolver;
 use FireHub\Adapter\HTTP\Router\Exception\InvalidRouteHandlerException;
 use FireHub\Runtime;
 use Closure;
@@ -39,8 +38,6 @@ use Closure;
  * emission.
  *
  * <code>
- * $dispatcher = new Dispatcher($resolver);
- *
  * $response = $dispatcher->dispatch(
  *     $match,
  *     $context
@@ -50,20 +47,6 @@ use Closure;
  * @since 1.0.0
  */
 final readonly class Dispatcher {
-
-    /**
-     * ### Constructor
-     * @since 1.0.0
-     *
-     * @param \FireHub\Adapter\HTTP\Response\Resolver $resolver <p>
-     * Resolver responsible for converting route action results into HTTP responses.
-     * </p>
-     *
-     * @return void
-     */
-    public function __construct (
-        private Resolver $resolver
-    ) {}
 
     /**
      * ### Dispatches a matched HTTP route
@@ -95,8 +78,6 @@ final readonly class Dispatcher {
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRouteHandlerException If the resolved controller or its
      * action is invalid.
-     * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException If the route action
-     * result cannot be resolved into an HTTP response.
      *
      * @return \FireHub\Adapter\HTTP\Response Resolved HTTP response.
      */
@@ -138,8 +119,6 @@ final readonly class Dispatcher {
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRouteHandlerException If the route handler is invalid.
-     * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException If the returned
-     * value cannot be resolved into an HTTP response.
      *
      * @return \FireHub\Adapter\HTTP\Response Resolved HTTP response.
      */
@@ -150,10 +129,18 @@ final readonly class Dispatcher {
             $match
         );
 
-        return $this->resolver->resolve(
-            $this->invoke($match, $context, $action_context),
+        $response = $this->invoke(
+            $match,
+            $context,
             $action_context
         );
+
+        if (!$response instanceof Response)
+            throw new InvalidRouteHandlerException(
+                'The route handler must return an HTTP response.'
+            );
+
+        return $response;
 
     }
 

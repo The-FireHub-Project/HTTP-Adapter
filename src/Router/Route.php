@@ -41,7 +41,7 @@ use Closure;
  * @since 1.0.0
  *
  * @phpstan-type RouteHandler (
- *     Closure(\FireHub\Adapter\HTTP\Router\ActionContext):mixed
+ *     Closure(\FireHub\Adapter\HTTP\Router\ActionContext):\FireHub\Adapter\HTTP\Response
  *     | class-string<\FireHub\Adapter\HTTP\Controller>
  *     | array{class-string<\FireHub\Adapter\HTTP\Controller>, non-empty-string}
  * )
