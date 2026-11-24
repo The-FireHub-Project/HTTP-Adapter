@@ -19,7 +19,7 @@ use FireHub\Adapter\HTTP\Request\ {
 };
 use FireHub\Adapter\HTTP\Response\ {
     Status\Standard as ResponseStatus,
-    Headers
+    Headers, Resolver
 };
 use FireHub\Adapter\HTTP\Header\Allow;
 use FireHub\Adapter\HTTP\Router\ {
@@ -61,13 +61,7 @@ use Closure;
  *
  * @since 1.0.0
  *
- * @phpstan-type RouteHandler (
- *     Closure(
- *         \FireHub\Adapter\HTTP\Router\ActionContext
- *     ):\FireHub\Adapter\HTTP\Response
- *     | class-string<\FireHub\Adapter\HTTP\Controller>
- *     | array{class-string<\FireHub\Adapter\HTTP\Controller>, non-empty-string}
- * )
+ * @phpstan-import-type RouteHandler from \FireHub\Adapter\HTTP\Router\Route
  */
 final class Router implements Handler {
 
@@ -93,19 +87,26 @@ final class Router implements Handler {
      * ### Constructor
      * @since 1.0.0
      *
+     * @uses \FireHub\Adapter\HTTP\Response\Resolver::default() To create the default HTTP response resolver.
+     *
      * @param null|\FireHub\Adapter\HTTP\Router\Storage $storage [optional] <p>
-     * Route storage implementation.
+     * Route storage implementation, or null to use the default map-based storage.
+     * </p>
+     * @param null|\FireHub\Adapter\HTTP\Response\Resolver $resolver [optional] <p>
+     * HTTP response resolver, or null to use the default value resolution strategies.
      * </p>
      *
      * @return void
      */
-    public function __construct (?Storage $storage = null) {
+    public function __construct (?Storage $storage = null, ?Resolver $resolver = null) {
 
         $this->storage = $storage ?? new Map;
 
         $this->matcher = new Matcher($this->storage);
 
-        $this->dispatcher = new Dispatcher;
+        $this->dispatcher = new Dispatcher(
+            $resolver ?? Resolver::default()
+        );
 
     }
 

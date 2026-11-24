@@ -17,6 +17,7 @@ use FireHub\Adapter\HTTP\Middleware\Pipeline;
 use FireHub\Adapter\HTTP\ {
     Controller, ExecutionContext, Response
 };
+use FireHub\Adapter\HTTP\Response\Resolver;
 use FireHub\Adapter\HTTP\Router\Exception\InvalidRouteHandlerException;
 use FireHub\Runtime;
 use Closure;
@@ -24,16 +25,21 @@ use Closure;
 /**
  * ### Dispatches matched HTTP routes
  *
- * Executes the handler associated with a matched HTTP route.
+ * Executes the handler associated with a matched HTTP route and resolves its returned value into an HTTP response.
  *
  * Closure handlers are invoked directly.
  *
  * Controller handlers are resolved through the current HTTP execution dependency injection scope.
  *
- * The dispatcher does not perform route matching, HTTP method validation, or HTTP response emission.
+ * Returned values are converted into HTTP responses through the configured response resolver.
+ *
+ * Route middleware always receives a resolved HTTP response from the route execution.
+ *
+ * The dispatcher does not perform route matching, HTTP method validation, response serialization, or HTTP response
+ * emission.
  *
  * <code>
- * $dispatcher = new Dispatcher();
+ * $dispatcher = new Dispatcher($resolver);
  *
  * $response = $dispatcher->dispatch(
  *     $match,
@@ -46,10 +52,25 @@ use Closure;
 final readonly class Dispatcher {
 
     /**
+     * ### Constructor
+     * @since 1.0.0
+     *
+     * @param \FireHub\Adapter\HTTP\Response\Resolver $resolver <p>
+     * Resolver responsible for converting route action results into HTTP responses.
+     * </p>
+     *
+     * @return void
+     */
+    public function __construct (
+        private Resolver $resolver
+    ) {}
+
+    /**
      * ### Dispatches a matched HTTP route
      *
-     * Resolves controller instances through the current dependency injection scope and invokes the selected route
-     * action.
+     * Executes the matched route handler through its configured middleware pipeline.
+     *
+     * The route action result is resolved into an HTTP response before being returned through the middleware pipeline.
      *
      * <code>
      * $response = $dispatcher->dispatch(
@@ -60,9 +81,9 @@ final readonly class Dispatcher {
      *
      * @since 1.0.0
      *
+     * @uses self::execute() To execute and resolve the route handler.
      * @uses \FireHub\Adapter\HTTP\Router\RouteMatch::route() To retrieve the matched route.
      * @uses \FireHub\Adapter\HTTP\Router\Route::middleware() To retrieve the route middleware.
-     * @uses \FireHub\Adapter\HTTP\Router\Dispatcher::execute() To execute the route handler.
      * @uses \FireHub\Adapter\HTTP\Middleware\Pipeline::handle() To execute the middleware pipeline.
      *
      * @param \FireHub\Adapter\HTTP\Router\RouteMatch $match <p>
@@ -72,10 +93,12 @@ final readonly class Dispatcher {
      * Current HTTP execution context.
      * </p>
      *
-     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRouteHandlerException If the resolved controller is not
-     * callable.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRouteHandlerException If the resolved controller or its
+     * action is invalid.
+     * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException If the route action
+     * result cannot be resolved into an HTTP response.
      *
-     * @return \FireHub\Adapter\HTTP\Response HTTP response.
+     * @return \FireHub\Adapter\HTTP\Response Resolved HTTP response.
      */
     public function dispatch (RouteMatch $match, ExecutionContext $context):Response {
 
@@ -97,33 +120,81 @@ final readonly class Dispatcher {
     }
 
     /**
-     * ### Executes a matched route handler
+     * ### Executes and resolves a matched route handler
+     *
+     * Creates the route action execution context, invokes the matched handler, and resolves its returned value into
+     * an HTTP response.
+     *
+     * @since 1.0.0
+     *
+     * @uses self::invoke() To invoke the matched route handler.
+     * @uses \FireHub\Adapter\HTTP\Response\Resolver::resolve() To resolve the returned route action value.
+     *
+     * @param \FireHub\Adapter\HTTP\Router\RouteMatch $match <p>
+     * Matched HTTP route.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\ExecutionContext $context <p>
+     * Current HTTP execution context.
+     * </p>
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRouteHandlerException If the route handler is invalid.
+     * @throws \FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException If the returned
+     * value cannot be resolved into an HTTP response.
+     *
+     * @return \FireHub\Adapter\HTTP\Response Resolved HTTP response.
+     */
+    private function execute (RouteMatch $match, ExecutionContext $context):Response {
+
+        $action_context = new ActionContext(
+            $context,
+            $match
+        );
+
+        return $this->resolver->resolve(
+            $this->invoke($match, $context, $action_context),
+            $action_context
+        );
+
+    }
+
+    /**
+     * ### Invokes a matched route handler
+     *
+     * Closure handlers are invoked directly with the route action execution context.
+     *
+     * Controller handlers are resolved through the current dependency injection scope and invoked with the matched
+     * route parameters and the route action execution context.
+     *
+     * The returned value is not required to be an HTTP response.
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Router\RouteMatch::route() To retrieve the matched route.
      * @uses \FireHub\Adapter\HTTP\Router\RouteMatch::parameters() To retrieve the route parameters.
      * @uses \FireHub\Adapter\HTTP\Router\Route::handler() To retrieve the route handler.
      * @uses \FireHub\Adapter\HTTP\ExecutionContext::scope() To retrieve the current dependency injection scope.
-     * @uses \FireHub\Runtime\DataIs::callable() To check if the resolved controller action is callable.
-     * @uses \FireHub\Runtime\DataIs::string() To check if the route handler is a string.
+     * @uses \FireHub\Runtime\DataIs::string() To determine whether the route handler is a controller class.
+     * @uses \FireHub\Runtime\DataIs::callable() To determine whether the resolved controller action is callable.
+     * @uses \FireHub\Container\Scope::get() To resolve the controller instance.
+     * @uses \FireHub\Container\Scope::invoke() To invoke the resolved controller action.
      *
      * @param \FireHub\Adapter\HTTP\Router\RouteMatch $match <p>
-     * Matched route.
+     * Matched HTTP route.
      * </p>
      * @param \FireHub\Adapter\HTTP\ExecutionContext $context <p>
-     * HTTP execution context.
+     * Current HTTP execution context.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Router\ActionContext $action_context <p>
+     * Current route action execution context.
      * </p>
      *
-     * @return \FireHub\Adapter\HTTP\Response HTTP response.
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRouteHandlerException If the resolved controller is
+     * invalid, its action is not callable, or a route parameter conflicts with a reserved argument.
+     *
+     * @return mixed Returned route action value.
      */
-    private function execute (RouteMatch $match, ExecutionContext $context):Response {
+    private function invoke (RouteMatch $match, ExecutionContext $context, ActionContext $action_context):mixed {
 
         $handler = $match->route()->handler();
-
-        $action_context = new ActionContext(
-            $context,
-            $match
-        );
 
         if ($handler instanceof Closure)
             return $handler($action_context);
@@ -153,7 +224,7 @@ final readonly class Dispatcher {
 
         if (!Runtime\DataIs::callable($callable))
             throw new InvalidRouteHandlerException(
-                "The controller action '{$method}' is not callable."
+                "The controller action '$method' is not callable."
             );
 
         $parameters = $match->parameters();
@@ -163,20 +234,13 @@ final readonly class Dispatcher {
                 "Route parameter 'context' conflicts with the reserved action context argument."
             );
 
-        $response = $scope->invoke(
+        return $scope->invoke(
             $callable,
             [
                 'context' => $action_context,
                 ...$parameters
             ]
         );
-
-        if (!$response instanceof Response)
-            throw new InvalidRouteHandlerException(
-                'The controller action must return an HTTP response.'
-            );
-
-        return $response;
 
     }
 

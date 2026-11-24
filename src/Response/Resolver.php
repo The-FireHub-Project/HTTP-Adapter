@@ -15,7 +15,9 @@ namespace FireHub\Adapter\HTTP\Response;
 
 use FireHub\Adapter\HTTP\Router\ActionContext;
 use FireHub\Adapter\HTTP\Response;
-use FireHub\Adapter\HTTP\Response\Resolver\ValueResolver;
+use FireHub\Adapter\HTTP\Response\Resolver\ {
+    BodyResponse, EmptyResponse, Json, NativeResponse, Text, ValueResolver
+};
 use FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException;
 use FireHub\Runtime;
 
@@ -58,6 +60,41 @@ final readonly class Resolver {
     public function __construct (ValueResolver ...$resolvers) {
 
         $this->resolvers = Runtime\Arr\Access::values($resolvers);
+
+    }
+
+    /**
+     * ### Creates a response resolver with the default value resolution strategies
+     *
+     * Registers the standard HTTP response value resolvers in their default evaluation order.
+     *
+     * Existing HTTP responses and message bodies take precedence over scalar and serializable values.
+     *
+     * <code>
+     * $resolver = Resolver::default();
+     *
+     * $response = $resolver->resolve(
+     *     ['name' => 'FireHub'],
+     *     $context
+     * );
+     *
+     * $response->headers()->getContentType()?->value();
+     * // application/json
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @return self HTTP response resolver containing the default value resolution strategies.
+     */
+    public static function default ():self {
+
+        return new self(
+            new NativeResponse,
+            new BodyResponse,
+            new EmptyResponse,
+            new Text,
+            new Json
+        );
 
     }
 
