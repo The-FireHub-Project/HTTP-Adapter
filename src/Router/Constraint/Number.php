@@ -52,4 +52,25 @@ final readonly class Number implements Constraint {
 
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <code>
+     * $constraint = new Number();
+     *
+     * $constraint->convert('00123');
+     *
+     * // '00123'
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @return string Original parameter value.
+     */
+    public function convert (string $value):string {
+
+        return $value;
+
+    }
+
 }

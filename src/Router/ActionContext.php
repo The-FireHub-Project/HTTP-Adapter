@@ -110,10 +110,35 @@ final readonly class ActionContext {
     }
 
     /**
-     * ### Gets a named route parameter
+     * ### Gets all matched route parameters
      *
      * <code>
-     * $context->parameter('id');
+     * $parameters = $context->parameters();
+     *
+     * // ['id' => 123, 'test' => '20']
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\RouteMatch::parameters() To retrieve matched parameters.
+     *
+     * @return array<non-empty-string, scalar> Matched route parameters.
+     */
+    public function parameters ():array {
+
+        return $this->match->parameters();
+
+    }
+
+    /**
+     * ### Gets a named route parameter
+     *
+     * Returns the parameter in the PHP type defined by its constraint.
+     *
+     * <code>
+     * $id = $context->parameter('id');
+     *
+     * // int(123), when using whereInteger('id')
      * </code>
      *
      * @since 1.0.0
@@ -124,9 +149,9 @@ final readonly class ActionContext {
      * Parameter name.
      * </p>
      *
-     * @return null|string Parameter value.
+     * @return null|scalar Converted parameter value.
      */
-    public function parameter (string $name):?string {
+    public function parameter (string $name):null|int|float|string|bool {
 
         return $this->match->parameter($name);
 

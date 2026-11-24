@@ -41,7 +41,7 @@ final readonly class RouteMatch {
      * @param \FireHub\Adapter\HTTP\Router\Route $route <p>
      * Matched route.
      * </p>
-     * @param array<non-empty-string, string> $parameters <p>
+     * @param array<non-empty-string, scalar> $parameters <p>
      * Named route parameters.
      * </p>
      *
@@ -74,15 +74,20 @@ final readonly class RouteMatch {
     /**
      * ### Gets all route parameters
      *
+     * ### Gets all matched route parameters
+     *
+     * Returns values in the types defined by their constraints.
+     *
      * <code>
      * $match->parameters();
      *
-     * // ['id' => '123']
+     * // ['id' => 123, 'test' => '20']
      * </code>
+     *
      *
      * @since 1.0.0
      *
-     * @return array<non-empty-string, string> Named route parameters.
+     * @return array<non-empty-string, scalar> Named route parameters.
      */
     public function parameters ():array {
 
@@ -98,16 +103,16 @@ final readonly class RouteMatch {
      * <code>
      * $match->parameter('id');
      *
-     * // '123'
+     * // int(123)
      * </code>
      *
      * @since 1.0.0
      *
      * @param non-empty-string $name Parameter name.
      *
-     * @return null|string Parameter value.
+     * @return null|scalar Parameter value or null if absent.
      */
-    public function parameter (string $name):?string {
+    public function parameter (string $name):null|int|float|string|bool {
 
         return $this->parameters[$name] ?? null;
 

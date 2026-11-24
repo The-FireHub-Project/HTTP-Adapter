@@ -68,10 +68,10 @@ final readonly class Matcher {
     /**
      * ### Matches an HTTP request
      *
-     * Resolves the most specific route pattern matching the request path, then selects the route matching the
-     * requested HTTP method.
+     * Resolves the most specific route matching the request path and method.
      *
-     * Route specificity is independent of the HTTP method.
+     * Route parameters are converted according to their configured constraints after the matching route has been
+     * selected.
      *
      * <code>
      * $match = $matcher->match(
@@ -81,13 +81,14 @@ final readonly class Matcher {
      *
      * $match?->parameter('id');
      *
-     * // '123'
+     * // int(123), when using whereInteger('id')
      * </code>
      *
      * @since 1.0.0
      *
-     * @uses \FireHub\Adapter\HTTP\Router\Matcher::matchingRoutes() To retrieve matching routes.
-     * @uses \FireHub\Adapter\HTTP\Router\Matcher::compareSpecificity() To compare route specificity.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::bestMatches() To retrieve the most specific matching routes.
+     * @uses \FireHub\Adapter\HTTP\Router\Matcher::convertParameters() To convert route parameters.
+     * @uses \FireHub\Adapter\HTTP\Request\Method::value() To compare HTTP method names.
      *
      * @param \FireHub\Adapter\HTTP\Request\Method $method <p>
      * HTTP request method.
@@ -96,7 +97,7 @@ final readonly class Matcher {
      * HTTP request path.
      * </p>
      *
-     * @return null|RouteMatch Matched route or null.
+     * @return null|\FireHub\Adapter\HTTP\Router\RouteMatch Matched route or null.
      */
     public function match (Method $method, Path $path):?RouteMatch {
 
@@ -105,22 +106,28 @@ final readonly class Matcher {
         if ($matches === [])
             return null;
 
-        foreach ($matches as $match) {
-
+        foreach ($matches as $match)
             if ($match->route()->method()->value() === $method->value())
-                return $match;
-
-        }
+                return new RouteMatch(
+                    $match->route(),
+                    $this->convertParameters(
+                        $match->route(),
+                        $match->parameters()
+                    )
+                );
 
         if ($method->value() !== Standard::HEAD->value)
             return null;
 
-        foreach ($matches as $match) {
-
+        foreach ($matches as $match)
             if ($match->route()->method()->value() === Standard::GET->value)
-                return $match;
-
-        }
+                return new RouteMatch(
+                    $match->route(),
+                    $this->convertParameters(
+                        $match->route(),
+                        $match->parameters()
+                    )
+                );
 
         return null;
 
@@ -421,6 +428,46 @@ final readonly class Matcher {
         }
 
         return true;
+
+    }
+
+    /**
+     * ### Converts validated route parameters
+     *
+     * Applies the conversion defined by each registered constraint.
+     *
+     * Parameters without constraints remain strings.
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\Route::constraints() To retrieve configured constraints.
+     * @uses \FireHub\Adapter\HTTP\Router\Constraint::convert() To convert validated parameter values.
+     *
+     * @param \FireHub\Adapter\HTTP\Router\Route $route <p>
+     * Matched route.
+     * </p>
+     * @param array<non-empty-string, scalar> $parameters <p>
+     * Extracted parameters.
+     * </p>
+     *
+     * @return array<non-empty-string, scalar> Converted route parameters.
+     */
+    private function convertParameters (Route $route, array $parameters):array {
+
+        /** @var array<non-empty-string, scalar> $converted */
+        $converted = $parameters;
+
+        foreach ($route->constraints() as $name => $constraint) {
+
+            if (!isset($parameters[$name]))
+                continue;
+
+            $converted[$name] = $constraint->convert(
+                $parameters[$name] // @phpstan-ignore argument.type
+            );
+
+        }
+
+        return $converted;
 
     }
 

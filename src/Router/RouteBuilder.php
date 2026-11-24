@@ -15,7 +15,7 @@ namespace FireHub\Adapter\HTTP\Router;
 
 use FireHub\Adapter\HTTP\Request\Method;
 use FireHub\Adapter\HTTP\Router\ {
-    Constraint\Number, Route\Name
+    Constraint\Integer, Constraint\Number, Route\Name
 };
 use FireHub\Adapter\HTTP\Router\Exception\ {
     InvalidRouteConstraintException, RouteBuilderAlreadyBuiltException
@@ -196,6 +196,36 @@ final class RouteBuilder {
         return $this->where(
             $parameter,
             new Number
+        );
+
+    }
+
+    /**
+     * ### Restricts a route parameter to a PHP integer
+     *
+     * Validates the parameter and converts it into an integer when the route is matched.
+     *
+     * <code>
+     * $builder->whereInteger('id');
+     * </code>
+     *
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Router\RouteBuilder::where()
+     * To register the integer constraint.
+     *
+     * @param non-empty-string $parameter Route parameter name.
+     *
+     * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException
+     * If the builder has already been built.
+     *
+     * @return self Current builder.
+     */
+    public function whereInteger (string $parameter):self {
+
+        return $this->where(
+            $parameter,
+            new Integer
         );
 
     }
