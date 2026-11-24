@@ -30,8 +30,6 @@ use Closure;
  *
  * Controller handlers are resolved through the current HTTP execution dependency injection scope.
  *
- * Returned values are converted into HTTP responses through the configured response resolver.
- *
  * Route middleware always receives a resolved HTTP response from the route execution.
  *
  * The dispatcher does not perform route matching, HTTP method validation, response serialization, or HTTP response
@@ -105,11 +103,9 @@ final readonly class Dispatcher {
      *
      * Creates the route action execution context, invokes the matched handler, and resolves its returned value into
      * an HTTP response.
-     *
      * @since 1.0.0
      *
      * @uses self::invoke() To invoke the matched route handler.
-     * @uses \FireHub\Adapter\HTTP\Response\Resolver::resolve() To resolve the returned route action value.
      *
      * @param \FireHub\Adapter\HTTP\Router\RouteMatch $match <p>
      * Matched HTTP route.
