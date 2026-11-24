@@ -13,7 +13,6 @@
 
 namespace FireHub\Adapter\HTTP\Router;
 
-use FireHub\Adapter\HTTP\Middleware;
 use FireHub\Adapter\HTTP\Request\Method;
 use FireHub\Adapter\HTTP\Router\ {
     Constraint\Number, Route\Name
@@ -70,7 +69,7 @@ final class RouteBuilder {
      * ### Route middleware
      * @since 1.0.0
      *
-     * @var list<\FireHub\Adapter\HTTP\Middleware>
+     * @var list<class-string<\FireHub\Adapter\HTTP\Middleware>>
      */
     private array $middleware = [];
 
@@ -204,22 +203,24 @@ final class RouteBuilder {
     /**
      * ### Appends route middleware
      *
-     * Adds middleware components in their execution order.
+     * Adds middleware class references in their execution order.
+     *
+     * Middleware is resolved through the current HTTP execution dependency injection scope during request processing.
      *
      * Multiple calls append middleware without replacing previously registered components.
      *
      * <code>
      * $builder
-     *     ->middleware(new AuthenticationMiddleware())
-     *     ->middleware(new AuthorizationMiddleware());
+     *     ->middleware(AuthenticationMiddleware::class)
+     *     ->middleware(AuthorizationMiddleware::class);
      * </code>
      *
      * @since 1.0.0
      *
      * @uses \FireHub\Adapter\HTTP\Router\RouteBuilder::assertConfigurable() To ensure the builder is not already built.
      *
-     * @param \FireHub\Adapter\HTTP\Middleware...$middleware <p>
-     * Middleware components to append.
+     * @param class-string<\FireHub\Adapter\HTTP\Middleware> ...$middleware <p>
+     * Middleware class references to append.
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\RouteBuilderAlreadyBuiltException If the builder has already
@@ -227,7 +228,7 @@ final class RouteBuilder {
      *
      * @return self Current builder.
      */
-    public function middleware (Middleware ...$middleware):self {
+    public function middleware (string ...$middleware):self {
 
         $this->assertConfigurable();
 
@@ -277,7 +278,7 @@ final class RouteBuilder {
 
         $route = new Route(
             $this->method,
-            new Pattern($this->pattern),
+            $pattern,
             $this->handler,
             $this->name,
             $this->constraints,

@@ -20,13 +20,18 @@ use FireHub\Core\Boundary\Pipeline\Next;
  *
  * Represents a processing component that participates in HTTP request execution.
  *
+ * Middleware is resolved through the current HTTP execution dependency injection scope.
+ *
  * Middleware receives the current HTTP execution context and a continuation representing the remaining processing
  * chain.
  *
  * Middleware may inspect the request, access application-scoped dependencies, delegate processing to the next
  * middleware, modify the returned response, or terminate execution by returning a response directly.
  *
- * Middleware implementations should not retain request-specific state between executions.
+ * The lifecycle of middleware instances is managed by the application dependency injection container.
+ *
+ * Middleware implementations must respect their configured service lifetime and must not retain request-specific
+ * state beyond the associated execution scope.
  * @since 1.0.0
  */
 interface Middleware {

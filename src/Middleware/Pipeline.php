@@ -28,7 +28,7 @@ use Closure;
  *
  * The middleware chain is assembled once during construction and can be reused across multiple HTTP requests.
  *
- * Each execution receives its own HTTP execution context.
+ * Middleware instances are resolved lazily through the dependency injection scope associated with each execution.
  * @since 1.0.0
  */
 final readonly class Pipeline {
@@ -48,13 +48,13 @@ final readonly class Pipeline {
      * @param Closure(\FireHub\Adapter\HTTP\ExecutionContext):\FireHub\Adapter\HTTP\Response $handler <p>
      * Terminal HTTP request handler.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * HTTP middleware components in execution order.
+     * @param class-string<\FireHub\Adapter\HTTP\Middleware> ...$middleware <p>
+     * HTTP middleware class references in execution order.
      * </p>
      *
      * @return void
      */
-    public function __construct (Closure $handler, Middleware ...$middleware) {
+    public function __construct (Closure $handler, string ...$middleware) {
 
         $stages = [];
 

@@ -13,7 +13,6 @@
 
 namespace FireHub\Adapter\HTTP\Router;
 
-use FireHub\Adapter\HTTP\Middleware;
 use FireHub\Adapter\HTTP\Request\Method;
 use FireHub\Adapter\HTTP\Router\Route\Name;
 use FireHub\Runtime;
@@ -63,7 +62,7 @@ final readonly class Route {
      * ### Route middleware
      * @since 1.0.0
      *
-     * @var list<\FireHub\Adapter\HTTP\Middleware>
+     * @var list<class-string<\FireHub\Adapter\HTTP\Middleware>>
      */
     private array $middleware;
 
@@ -88,8 +87,8 @@ final readonly class Route {
      * @param array<non-empty-string, \FireHub\Adapter\HTTP\Router\Constraint> $constraints <p>
      * Route parameter constraints.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Route middleware.
+     * @param class-string<\FireHub\Adapter\HTTP\Middleware> ...$middleware <p>
+     * Route middleware class references in execution order.
      * </p>
      *
      * @return void
@@ -100,7 +99,7 @@ final readonly class Route {
         private Closure|string|array $handler,
         private ?Name $name = null,
         array $constraints = [],
-        Middleware ...$middleware
+        string ...$middleware
     ) {
 
         $this->constraints = $constraints;
@@ -208,15 +207,17 @@ final readonly class Route {
     /**
      * ### Gets route middleware
      *
-     * Returns middleware components associated with this route in execution order.
+     * Returns middleware class references associated with this route in execution order.
      *
      * <code>
      * $middleware = $route->middleware();
+     *
+     * // [AuthenticationMiddleware::class, AuthorizationMiddleware::class]
      * </code>
      *
      * @since 1.0.0
      *
-     * @return list<\FireHub\Adapter\HTTP\Middleware> Route middleware.
+     * @return list<class-string<\FireHub\Adapter\HTTP\Middleware>> Route middleware class references.
      */
     public function middleware ():array {
 

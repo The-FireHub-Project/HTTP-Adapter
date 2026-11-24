@@ -13,9 +13,7 @@
 
 namespace FireHub\Adapter\HTTP\Router;
 
-use FireHub\Adapter\HTTP\ {
-    Middleware, Router
-};
+use FireHub\Adapter\HTTP\Router;
 use FireHub\Adapter\HTTP\Request\ {
     Method, Method\Standard
 };
@@ -66,7 +64,7 @@ final class Group {
      * ### Registered group middleware
      * @since 1.0.0
      *
-     * @var list<\FireHub\Adapter\HTTP\Middleware>
+     * @var list<class-string<\FireHub\Adapter\HTTP\Middleware>>
      */
     private array $middleware;
 
@@ -82,8 +80,8 @@ final class Group {
      * @param non-empty-string $prefix <p>
      * Absolute group path prefix.
      * </p>
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Middleware inherited from parent groups.
+     * @param class-string<\FireHub\Adapter\HTTP\Middleware> ...$middleware <p>
+     * Middleware class references inherited from parent groups.
      * </p>
      *
      * @throws \FireHub\Adapter\HTTP\Router\Exception\InvalidRoutePatternException If the prefix is invalid.
@@ -93,7 +91,7 @@ final class Group {
     public function __construct (
         private readonly Router $router,
         private readonly string $prefix,
-        Middleware ...$middleware
+        string ...$middleware
     ) {
 
         new Pattern($prefix);
@@ -105,26 +103,29 @@ final class Group {
     /**
      * ### Registers group middleware
      *
-     * Appends middleware to the current group.
+     * Appends middleware class references to the current group.
      *
      * Middleware applies only to routes and nested groups registered after this method is called.
      *
+     * Middleware instances are resolved through the current HTTP execution dependency injection scope during request
+     * processing.
+     *
      * <code>
      * $group->middleware(
-     *     new AuthenticationMiddleware(),
-     *     new AuthorizationMiddleware()
+     *     AuthenticationMiddleware::class,
+     *     AuthorizationMiddleware::class
      * );
      * </code>
      *
      * @since 1.0.0
      *
-     * @param \FireHub\Adapter\HTTP\Middleware ...$middleware <p>
-     * Middleware components to append.
+     * @param class-string<\FireHub\Adapter\HTTP\Middleware> ...$middleware <p>
+     * Middleware class references to append.
      * </p>
      *
      * @return void
      */
-    public function middleware (Middleware ...$middleware):void {
+    public function middleware (string ...$middleware):void {
 
         foreach ($middleware as $component)
             $this->middleware[] = $component;

@@ -125,7 +125,7 @@ final class Router implements Handler {
      *
      *         $route
      *             ->name('users.show')
-     *             ->middleware(new AuthenticationMiddleware());
+     *             ->middleware(AuthenticationMiddleware::class)
      *
      *     }
      * );
