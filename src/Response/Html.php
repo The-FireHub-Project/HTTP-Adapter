@@ -1,0 +1,78 @@
+<?php declare(strict_types = 1);
+
+/**
+ * This file is part of the FireHub Project ecosystem
+ *
+ * @author Danijel Galić <danijel.galic@outlook.com>
+ * @copyright 2026-present The FireHub Project - All rights reserved
+ * @license https://opensource.org/license/Apache-2-0 Apache License, Version 2.0
+ *
+ * @php-version >=8.2
+ * @package Adapter\HTTP
+ */
+
+namespace FireHub\Adapter\HTTP\Response;
+
+use FireHub\Adapter\HTTP\Response;
+use FireHub\Adapter\HTTP\Body\Str as StringBody;
+use FireHub\Adapter\HTTP\Header\Content\Type as ContentType;
+use FireHub\Adapter\HTTP\Response\Status\Standard;
+
+/**
+ * ### Represents an HTML HTTP response
+ *
+ * Encapsulates rendered HTML content within an HTTP response.
+ *
+ * The response automatically assigns the text/html content type with UTF-8 character encoding and defaults
+ * to HTTP 200 OK.
+ *
+ * This response implementation does not perform template rendering, HTML escaping, or content sanitization.
+ *
+ * <code>
+ * $response = new Html('<h1>Hello FireHub!</h1>');
+ * </code>
+ *
+ * @since 1.0.0
+ */
+final readonly class Html extends Response {
+
+    /**
+     * ### Constructor
+     * @since 1.0.0
+     *
+     * @uses \FireHub\Adapter\HTTP\Response\Headers::empty() To create an empty HTTP header collection.
+     * @uses \FireHub\Adapter\HTTP\Header\Content\Type::parse() To construct the HTML content type.
+     * @uses \FireHub\Adapter\HTTP\Message\Headers::withContentType() To assign the HTML content type.
+     * @uses \FireHub\Adapter\HTTP\Response::__construct() To initialize the HTTP response.
+     *
+     * @param string $value <p>
+     * UTF-8 encoded rendered HTML content.
+     * </p>
+     * @param \FireHub\Adapter\HTTP\Response\Status $status [optional] <p>
+     * HTTP response status.
+     * </p>
+     * @param null|\FireHub\Adapter\HTTP\Response\Headers $headers [optional] <p>
+     * Additional HTTP response headers.
+     * </p>
+     *
+     * @return void
+     */
+    public function __construct (
+        string $value,
+        Status $status = Standard::OK,
+        ?Headers $headers = null
+    ) {
+
+        $headers ??= Headers::empty();
+
+        parent::__construct(
+            $status,
+            new StringBody($value),
+            $headers->withContentType(
+                ContentType::parse('text/html; charset=utf-8')
+            )
+        );
+
+    }
+
+}
