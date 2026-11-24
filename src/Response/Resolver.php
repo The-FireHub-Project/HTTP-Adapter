@@ -54,7 +54,7 @@ final readonly class Resolver {
      * Response value resolvers in their evaluation order.
      * </p>
      *
-     * @uses \array_values() To normalize the value resolver collection.
+     * @return void
      */
     public function __construct (ValueResolver ...$resolvers) {
 
