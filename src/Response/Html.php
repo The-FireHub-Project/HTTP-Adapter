@@ -13,8 +13,9 @@
 
 namespace FireHub\Adapter\HTTP\Response;
 
-use FireHub\Adapter\HTTP\Response;
-use FireHub\Adapter\HTTP\Body\Str as StringBody;
+use FireHub\Adapter\HTTP\ {
+    Body, Response
+};
 use FireHub\Adapter\HTTP\Header\Content\Type as ContentType;
 use FireHub\Adapter\HTTP\Response\Status\Standard;
 
@@ -29,7 +30,9 @@ use FireHub\Adapter\HTTP\Response\Status\Standard;
  * This response implementation does not perform template rendering, HTML escaping, or content sanitization.
  *
  * <code>
- * $response = new Html('<h1>Hello FireHub!</h1>');
+ * $response = new Html(new Body\Str('<h1>Hello FireHub!</h1>'));
+ *
+ * $response->status(); // Standard::OK
  * </code>
  *
  * @since 1.0.0
@@ -45,8 +48,8 @@ final readonly class Html extends Response {
      * @uses \FireHub\Adapter\HTTP\Message\Headers::withContentType() To assign the HTML content type.
      * @uses \FireHub\Adapter\HTTP\Response::__construct() To initialize the HTTP response.
      *
-     * @param string $value <p>
-     * UTF-8 encoded rendered HTML content.
+     * @param \FireHub\Adapter\HTTP\Body $body <p>
+     * HTTP response body.
      * </p>
      * @param \FireHub\Adapter\HTTP\Response\Status $status [optional] <p>
      * HTTP response status.
@@ -57,17 +60,13 @@ final readonly class Html extends Response {
      *
      * @return void
      */
-    public function __construct (
-        string $value,
-        Status $status = Standard::OK,
-        ?Headers $headers = null
-    ) {
+    public function __construct (Body $body, Status $status = Standard::OK, ?Headers $headers = null) {
 
         $headers ??= Headers::empty();
 
         parent::__construct(
             $status,
-            new StringBody($value),
+            $body,
             $headers->withContentType(
                 ContentType::parse('text/html; charset=utf-8')
             )

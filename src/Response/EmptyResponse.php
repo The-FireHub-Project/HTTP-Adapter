@@ -46,10 +46,7 @@ final readonly class EmptyResponse extends Response {
      *
      * @return void
      */
-    public function __construct (
-        Status $status = Standard::NO_CONTENT,
-        ?Headers $headers = null
-    ) {
+    public function __construct (Status $status = Standard::NO_CONTENT, ?Headers $headers = null) {
 
         parent::__construct(
             $status,
