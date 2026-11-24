@@ -82,7 +82,7 @@ final readonly class Emitter implements HttpEmitter{
      * @uses \FireHub\Adapter\HTTP\Integration\Native\Emitter::emitBody() To emit the HTTP response body.
      * @uses \FireHub\Runtime\Http\Response::headersSent() To check if headers have already been sent.
      * @uses \FireHub\Runtime\Http\Response::statusCode() To set the HTTP status code.
-     * @uses \FireHub\Adapter\HTTP\Response\Policy::allowsBody() To check if response content is permitted.
+     * @uses \FireHub\Adapter\HTTP\Response\Policy::mayEmitBody() To check if response content is permitted.
      *
      * @param \FireHub\Adapter\HTTP\Request $request <p>
      * HTTP request associated with the response.
@@ -107,7 +107,7 @@ final readonly class Emitter implements HttpEmitter{
 
         $this->emitHeaders($response);
 
-        if (Policy::allowsBody($request, $response))
+        if (Policy::mayEmitBody($request, $response))
             $this->emitBody($response);
 
     }

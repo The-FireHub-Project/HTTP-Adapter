@@ -32,7 +32,7 @@ final readonly class Policy {
      *
      * @return bool True if response content is permitted.
      */
-    public static function allowsBody (Request $request, Response $response):bool {
+    public static function mayEmitBody (Request $request, Response $response):bool {
 
         $status = $response->status()->code();
         $method = $request->method()->value();
@@ -40,8 +40,12 @@ final readonly class Policy {
         return $method !== Method::HEAD->value
             && $status >= 200
             && $status !== 204
+            && $status !== 205
             && $status !== 304
-            && !($method === Method::CONNECT->value && $status < 300);
+            && !(
+                $method === Method::CONNECT->value
+                && $status < 300
+            );
 
     }
 
