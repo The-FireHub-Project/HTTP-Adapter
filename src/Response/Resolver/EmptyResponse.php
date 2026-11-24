@@ -14,7 +14,7 @@
 namespace FireHub\Adapter\HTTP\Response\Resolver;
 
 use FireHub\Adapter\HTTP\ {
-    Response, Router\ActionContext
+    Router\ActionContext, Response
 };
 use FireHub\Adapter\HTTP\Response\Status\Standard;
 use FireHub\Adapter\HTTP\Response\Resolver\Exception\UnsupportedResponseValueException;
