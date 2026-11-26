@@ -51,7 +51,7 @@ readonly class Route {
      * @param non-empty-string $pattern <p>
      * HTTP route path pattern.
      * </p>
-     * @param null|string $name [optional] <p>
+     * @param null|non-empty-string $name [optional] <p>
      * Unique route name, or null if the route is unnamed.
      * </p>
      *
@@ -89,7 +89,7 @@ readonly class Route {
      *
      * @since 1.0.0
      *
-     * @return string HTTP route path pattern.
+     * @return non-empty-string HTTP route path pattern.
      */
     public function pattern ():string {
 
@@ -106,7 +106,7 @@ readonly class Route {
      *
      * @since 1.0.0
      *
-     * @return null|string HTTP route name, or null if the route is unnamed.
+     * @return null|non-empty-string HTTP route name, or null if the route is unnamed.
      */
     public function name ():?string {
 

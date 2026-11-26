@@ -75,7 +75,7 @@ final readonly class RoutePrefix {
      *
      * @since 1.0.0
      *
-     * @return string Common route path prefix.
+     * @return non-empty-string Common route path prefix.
      */
     public function prefix ():string {
 
