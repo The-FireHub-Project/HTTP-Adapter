@@ -136,8 +136,7 @@ final readonly class Emitter implements HttpEmitter{
 
         foreach ($response->headers()->all() as $header)
             Runtime\Http\Response::sendHeader(
-                $header['name']->value() . ': ' . $header['value']->value(),
-                false
+                $header['name']->value() . ': ' . $header['value']->value()
             );
 
     }
