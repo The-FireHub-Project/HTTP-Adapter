@@ -346,7 +346,7 @@ final readonly class ControllerRegistrar {
 
         return $pattern === '/'
             ? ($prefix ?: '/')
-            : $prefix.'/'.Runtime\Str\SB\Transform::trim($prefix, Side::LEFT, '/');
+            : $prefix.'/'.Runtime\Str\SB\Transform::trim($pattern, Side::LEFT, '/');
 
     }
 
