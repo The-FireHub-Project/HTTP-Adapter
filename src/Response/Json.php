@@ -16,7 +16,10 @@ namespace FireHub\Adapter\HTTP\Response;
 use FireHub\Adapter\HTTP\ {
     Body, Response
 };
-use FireHub\Adapter\HTTP\Header\Content\Type as ContentType;
+use FireHub\Adapter\HTTP\Header\ {
+    Content\Type as ContentType,
+    Media\Known\MediaType as KnownMediaType, Media\MediaType
+};
 use FireHub\Adapter\HTTP\Response\Status\Standard;
 use FireHub\Runtime;
 
@@ -76,7 +79,9 @@ final readonly class Json extends Response {
             $status,
             $body,
             $headers->withContentType(
-                ContentType::parse('application/json')
+                new ContentType(
+                    MediaType::parse(KnownMediaType::APPLICATION_JSON->value)
+                )
             )
         );
 

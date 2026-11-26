@@ -13,10 +13,16 @@
 
 namespace FireHub\Adapter\HTTP\Response;
 
+use FireHub\Core\Type\Str\Encoding;
 use FireHub\Adapter\HTTP\ {
     Body, Response
 };
-use FireHub\Adapter\HTTP\Header\Content\Type as ContentType;
+use FireHub\Adapter\HTTP\Header\ {
+    Content\Type as ContentType,
+    Media\Known\MediaType as KnownMediaType, Media\MediaType,
+    Parameter\Charset,
+    Attributes
+};
 use FireHub\Adapter\HTTP\Response\Status\Standard;
 
 /**
@@ -67,7 +73,12 @@ final readonly class Text extends Response {
             $status,
             $body,
             $headers->withContentType(
-                ContentType::parse('text/plain; charset=utf-8')
+                new ContentType(
+                    MediaType::parse(KnownMediaType::TEXT_PLAIN->value),
+                    new Attributes(
+                        new Charset(Encoding::UTF_8)
+                    )
+                )
             )
         );
 
